@@ -1,0 +1,9 @@
+class Perfume:
+    brand: str
+    name: str
+    perfume_type: str
+    family: str
+    upper_notes: list[str]
+    middle_notes: list[str]
+    base_notes: list[str]
+    volume: list[int]
