@@ -1,4 +1,4 @@
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, element
 import re
 import requests
 from perfume import Perfume
@@ -37,9 +37,28 @@ def get_page_content(link: str) -> str:
         return ""
 
 
-# TODO: добавить парсинг бренда + объема
+# TODO: добавить парсинг бренда
 
 
+def _is_volume_box(tag: element.Tag) -> bool:
+    return tag.has_attr("style") and tag["style"] == "--icon-gap:5px;"
+
+
+def parse_volume(soup: BeautifulSoup) -> list[int]:
+    volume_variants = soup.find_all(_is_volume_box)
+    volumes = []
+    for variant in volume_variants:
+        spans = variant.find_all("span")
+        for span in spans:
+            if span.string:
+                volumes.append(
+                    [int(volume) for volume in re.findall(r"\d+", span.string)]
+                )
+    volumes = sorted([volume[0] for volume in volumes if volume])
+    return volumes
+
+
+# TODO: обернуть в трай
 def parse_properties(soup: BeautifulSoup) -> list[str]:
     properties_title_rx = re.compile("Подробные характеристики", re.I)
     properties_title = soup.find_all(string=properties_title_rx)
@@ -80,4 +99,6 @@ if __name__ == "__main__":
     with open("test.txt", "r") as c:
         page_content = c.read()
     soup = BeautifulSoup(page_content, "lxml")
-    print(get_properties(soup))
+    perfume = get_properties(soup)
+    perfume.volume = parse_volume(soup)
+    print(perfume)
