@@ -38,16 +38,46 @@ def get_page_content(link: str) -> str:
 
 
 # TODO: добавить парсинг бренда + объема
-# TODO: добавить перевод в объект
+
+
+def parse_properties(soup: BeautifulSoup) -> list[str]:
+    properties_title_rx = re.compile("Подробные характеристики", re.I)
+    properties_title = soup.find_all(string=properties_title_rx)
+    if not properties_title:
+        return []
+    section = properties_title[0].parent.parent if properties_title else None
+    raw_properties = section.find_all("span")
+    properties = []
+    for prop in raw_properties:
+        properties.append(prop.string.strip())
+    return properties
+
+
+def get_notes(notes: str) -> list[str]:
+    notes = notes.lower()
+    notes_list = notes.split(",")
+    notes_list = [note.strip() for note in notes_list if note.strip()]
+    return notes_list
+
+
+def get_properties(soup: BeautifulSoup) -> Perfume | None:
+    properties = parse_properties(soup)
+    if not properties:
+        return None
+    perfume = Perfume(
+        perfume_type=properties[1].lower(),
+        # TODO: добавить парсинг пола
+        family=properties[5].lower(),
+        upper_notes=get_notes(properties[7]),
+        middle_notes=get_notes(properties[9]),
+        base_notes=get_notes(properties[11]),
+    )
+    return perfume
+
 
 if __name__ == "__main__":
     page_content: str
     with open("test.txt", "r") as c:
         page_content = c.read()
     soup = BeautifulSoup(page_content, "lxml")
-    properties_title_rx = re.compile("\s*Подробные характеристики\s*", re.I)
-    properties_title = soup.find_all(string=properties_title_rx)
-    section = properties_title[0].parent.parent if properties_title else None
-    properties = section.find_all("span")
-    for prop in properties:
-        print(prop.string.strip())
+    print(get_properties(soup))
