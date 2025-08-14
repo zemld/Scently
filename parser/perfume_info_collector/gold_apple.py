@@ -2,39 +2,32 @@ from bs4 import BeautifulSoup, element
 import re
 import requests
 from perfume import Perfume
+from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from threading import Lock
 
-# TODO: remove test links
-links = [
-    "https://goldapple.ru/7041000021-chance-eau-fraiche",
-    "https://goldapple.ru/26250800001-spicebomb-fresh",
-    "https://goldapple.ru/80790100005-amber",
-    "https://goldapple.ru/7041100009-allure-homme-sport",
-    "https://goldapple.ru/7041100012-allure-homme-sport",
-    "https://goldapple.ru/80790100007-prada-amber",
-    "https://goldapple.ru/80790100002-amber",
-    "https://goldapple.ru/7040500014-n-19-poudre",
-    "https://goldapple.ru/7040100046-n-5",
-    "https://goldapple.ru/7042000021-bleu-de-chanel",
-    "https://goldapple.ru/7041100013-allure-homme-sport",
-    "https://goldapple.ru/7040600018-coco-mademoiselle",
-    "https://goldapple.ru/7041100001-allure-homme-sport",
-    "https://goldapple.ru/7040100053-n-5",
-    "https://goldapple.ru/7040400006-allure",
-    "https://goldapple.ru/7042000009-bleu-de-chanel",
-    "https://goldapple.ru/7040900001-allure-sensuelle",
-    "https://goldapple.ru/80791400002-candy-florale",
-]
+LOCK = Lock()
+DIR = Path.cwd() / "collected_urls"
+PROPERTIES_CNT = 14
+
+TYPE_FILTER = (
+    "духи",
+    "туалетная вода",
+    "парфюмерная вода",
+    "экстракт",
+    "одеколон",
+)
 
 
-def get_page_content(link: str) -> str:
+def get_page_content(link: str) -> tuple[str, str]:
     headers = {"User-Agent": "Mozilla/5.0"}
     try:
         r = requests.get(link, timeout=20, headers=headers)
         r.raise_for_status()
-        return r.text
+        return (link, r.content)
     except Exception as e:
         print(f"Error fetching {link}: {e}")
-        return ""
+        return (link, "")
 
 
 def _is_brand_tag(tag: element.Tag) -> bool:
@@ -64,7 +57,6 @@ def get_brand_info(soup: BeautifulSoup) -> Brand:
         return Brand()
 
 
-# TODO: add name parsing
 def _is_name_tag(tag: element.Tag) -> bool:
     return (
         tag.name == "span"
@@ -108,9 +100,14 @@ def get_notes(notes: str) -> list[str]:
     return notes_list
 
 
+def get_volume(volume: str) -> int:
+    int_rx = re.compile(r"\d+")
+    return int(re.search(int_rx, volume).group(0)) if re.search(int_rx, volume) else 0
+
+
 def get_properties(soup: BeautifulSoup) -> Perfume | None:
     properties = parse_properties(soup)
-    if not properties:
+    if not properties or len(properties) < PROPERTIES_CNT:
         return None
     perfume = Perfume(
         perfume_type=properties[1].lower(),
@@ -119,17 +116,58 @@ def get_properties(soup: BeautifulSoup) -> Perfume | None:
         upper_notes=get_notes(properties[7]),
         middle_notes=get_notes(properties[9]),
         base_notes=get_notes(properties[11]),
-        volume=properties[13],
+        volume=get_volume(properties[13]),
     )
     return perfume
 
 
-if __name__ == "__main__":
-    page_content: str
-    with open("test.txt", "r") as c:
-        page_content = c.read()
-    soup = BeautifulSoup(page_content, "lxml")
+def get_perfume(soup: BeautifulSoup) -> Perfume | None:
     perfume = get_properties(soup)
+    if not perfume:
+        return None
     perfume.brand = get_brand_info(soup).name
     perfume.name = get_name(soup)
-    print(perfume)
+    return perfume
+
+
+def read_files_with_urls() -> list[str]:
+    if not DIR.exists():
+        return []
+    files = list(DIR.glob("*.txt"))
+    urls = []
+    for file in files:
+        with open(file, "r") as f:
+            urls.extend(f.read().splitlines())
+    return urls
+
+
+def process_perfume(perfumes: list[Perfume], link: str, page: str):
+    if not page:
+        return
+    soup = BeautifulSoup(page, "lxml")
+    perfume = get_perfume(soup)
+    perfume.link = link
+    if perfume:
+        with LOCK:
+            perfumes.append(perfume)
+
+
+def process_links(links: list[str]) -> list[Perfume]:
+    perfumes = []
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {executor.submit(get_page_content, link): link for link in links}
+        for fut in as_completed(futures):
+            try:
+                process_perfume(perfumes, fut.result()[0], fut.result()[1])
+            except Exception as e:
+                print(f"Error processing {fut}: {e}")
+    return perfumes
+
+
+if __name__ == "__main__":
+    headers = {"User-Agent": "Mozilla/5.0"}
+    links = read_files_with_urls()[:100]
+    perfumes = process_links(links)
+    with open("goldapple_perfumes.txt", "w") as f:
+        for perfume in perfumes:
+            f.write(str(perfume))
