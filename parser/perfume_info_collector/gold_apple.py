@@ -40,24 +40,6 @@ def get_page_content(link: str) -> str:
 # TODO: добавить парсинг бренда
 
 
-def _is_volume_box(tag: element.Tag) -> bool:
-    return tag.has_attr("style") and tag["style"] == "--icon-gap:5px;"
-
-
-def parse_volume(soup: BeautifulSoup) -> list[int]:
-    volume_variants = soup.find_all(_is_volume_box)
-    volumes = []
-    for variant in volume_variants:
-        spans = variant.find_all("span")
-        for span in spans:
-            if span.string:
-                volumes.append(
-                    [int(volume) for volume in re.findall(r"\d+", span.string)]
-                )
-    volumes = sorted([volume[0] for volume in volumes if volume])
-    return volumes
-
-
 def parse_properties(soup: BeautifulSoup) -> list[str]:
     properties_title_rx = re.compile("Подробные характеристики", re.I)
     properties_title = soup.find_all(string=properties_title_rx)
@@ -83,6 +65,7 @@ def get_notes(notes: str) -> list[str]:
 
 def get_properties(soup: BeautifulSoup) -> Perfume | None:
     properties = parse_properties(soup)
+    print(properties)
     if not properties:
         return None
     perfume = Perfume(
@@ -92,6 +75,7 @@ def get_properties(soup: BeautifulSoup) -> Perfume | None:
         upper_notes=get_notes(properties[7]),
         middle_notes=get_notes(properties[9]),
         base_notes=get_notes(properties[11]),
+        volume=properties[13],
     )
     return perfume
 
@@ -102,5 +86,4 @@ if __name__ == "__main__":
         page_content = c.read()
     soup = BeautifulSoup(page_content, "lxml")
     perfume = get_properties(soup)
-    perfume.volume = parse_volume(soup)
     print(perfume)
