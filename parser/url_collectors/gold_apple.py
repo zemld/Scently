@@ -89,7 +89,7 @@ def get_sitemaps() -> list[str]:
         return []
 
 
-def get_urls_from_sitemap(sitemap: str) -> list[str]:
+def get_urls_from_sitemap(sitemap: str, limit: int) -> list[str]:
     headers = {"User-Agent": "Mozilla/5.0"}
 
     try:
@@ -97,13 +97,13 @@ def get_urls_from_sitemap(sitemap: str) -> list[str]:
         r.raise_for_status()
         soup = BeautifulSoup(r.content, "xml")
         urls = [url.string.strip() for url in soup.find_all("loc")]
-        return urls
+        return urls[:limit] if limit else urls
     except Exception as e:
         return []
 
 
 def get_product_urls_from_sitemap(sitemap: str) -> list[str]:
-    urls = get_urls_from_sitemap(sitemap)
+    urls = get_urls_from_sitemap(sitemap, 1000)
     urls = [normalize_href(u) for u in urls]
     urls = [u for u in urls if u and is_product_url(u)]
     return urls
