@@ -58,18 +58,20 @@ def parse_volume(soup: BeautifulSoup) -> list[int]:
     return volumes
 
 
-# TODO: обернуть в трай
 def parse_properties(soup: BeautifulSoup) -> list[str]:
     properties_title_rx = re.compile("Подробные характеристики", re.I)
     properties_title = soup.find_all(string=properties_title_rx)
     if not properties_title:
         return []
-    section = properties_title[0].parent.parent if properties_title else None
-    raw_properties = section.find_all("span")
-    properties = []
-    for prop in raw_properties:
-        properties.append(prop.string.strip())
-    return properties
+    try:
+        section = properties_title[0].parent.parent if properties_title else None
+        raw_properties = section.find_all("span")
+        properties = []
+        for prop in raw_properties:
+            properties.append(prop.string.strip())
+        return properties
+    except Exception as e:
+        return []
 
 
 def get_notes(notes: str) -> list[str]:
