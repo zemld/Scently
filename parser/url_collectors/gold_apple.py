@@ -7,7 +7,6 @@ from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 PRODUCT_URL_RE = re.compile(r"^https://goldapple\.ru/\d{6,}-[a-z0-9-]+$", re.IGNORECASE)
-SM_NS = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
 OUTPUT_DIR = Path.cwd() / "collected_urls"
 
 _PERFUME = [
