@@ -103,6 +103,7 @@ def get_urls_from_sitemap(sitemap: str, limit: int) -> list[str]:
 
 
 def get_product_urls_from_sitemap(sitemap: str) -> list[str]:
+    # TODO: при развертывании приложения нужно не забыть убрать ограничение
     urls = get_urls_from_sitemap(sitemap, 1000)
     urls = [normalize_href(u) for u in urls]
     urls = [u for u in urls if u and is_product_url(u)]
