@@ -164,10 +164,14 @@ def process_links(links: list[str]) -> list[Perfume]:
     return perfumes
 
 
-if __name__ == "__main__":
-    headers = {"User-Agent": "Mozilla/5.0"}
-    links = read_files_with_urls()[:100]
+def parse_pages_to_perfumes() -> list[Perfume]:
+    links = read_files_with_urls()
     perfumes = process_links(links)
+    return perfumes
+
+
+if __name__ == "__main__":
+    perfumes = parse_pages_to_perfumes()
     with open("goldapple_perfumes.txt", "w") as f:
         for perfume in perfumes:
             f.write(str(perfume))
