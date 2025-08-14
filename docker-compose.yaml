@@ -1,0 +1,6 @@
+services:
+  perfume-updater:
+    build:
+      context: parser
+    ports:
+      - "8090:8090"
