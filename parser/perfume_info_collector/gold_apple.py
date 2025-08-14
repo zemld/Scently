@@ -65,6 +65,24 @@ def get_brand_info(soup: BeautifulSoup) -> Brand:
 
 
 # TODO: add name parsing
+def _is_name_tag(tag: element.Tag) -> bool:
+    return (
+        tag.name == "span"
+        and tag.has_attr("itemprop")
+        and tag.get("itemprop") == "name"
+        and tag.has_attr("class")
+    )
+
+
+def get_name(soup: BeautifulSoup) -> str:
+    name_tag = soup.find_all(_is_name_tag)
+    if not name_tag:
+        return ""
+    try:
+        name_tag = name_tag[0]
+        return name_tag.string.strip()
+    except Exception as e:
+        return ""
 
 
 def parse_properties(soup: BeautifulSoup) -> list[str]:
@@ -113,4 +131,5 @@ if __name__ == "__main__":
     soup = BeautifulSoup(page_content, "lxml")
     perfume = get_properties(soup)
     perfume.brand = get_brand_info(soup).name
+    perfume.name = get_name(soup)
     print(perfume)
