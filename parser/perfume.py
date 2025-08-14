@@ -8,6 +8,7 @@ class Perfume:
     middle_notes: list[str]
     base_notes: list[str]
     volume: list[int]
+    links: list[str]
 
     def __init__(
         self,
@@ -20,6 +21,7 @@ class Perfume:
         middle_notes: list[str] = [],
         base_notes: list[str] = [],
         volume: list[int] = [],
+        links: list[str] = [],
     ):
         self.brand = brand
         self.name = name
@@ -30,19 +32,21 @@ class Perfume:
         self.middle_notes = middle_notes
         self.base_notes = base_notes
         self.volume = volume
+        self.links = links
 
     def _repr_property(self, name: str, value: str) -> str:
         return f"{name}={value if value else 'Unknown'}"
 
     def __repr__(self):
         return (
-            f"Perfume({self._repr_property('brand', self.brand)}, "
-            f"{self._repr_property('name', self.name)}, "
-            f"{self._repr_property('perfume_type', self.perfume_type)}, "
-            f"{self._repr_property('sex', self.sex)}, "
-            f"{self._repr_property('family', self.family)}, "
-            f"{self._repr_property('upper_notes', self.upper_notes)}, "
-            f"{self._repr_property('middle_notes', self.middle_notes)}, "
-            f"{self._repr_property('base_notes', self.base_notes)}, "
-            f"{self._repr_property('volume', self.volume)})"
+            f"Perfume(\n\t{self._repr_property('brand', self.brand)},\n"
+            f"\t{self._repr_property('name', self.name)},\n"
+            f"\t{self._repr_property('perfume_type', self.perfume_type)},\n"
+            f"\t{self._repr_property('sex', self.sex)},\n"
+            f"\t{self._repr_property('family', self.family)},\n"
+            f"\t{self._repr_property('upper_notes', self.upper_notes)},\n"
+            f"\t{self._repr_property('middle_notes', self.middle_notes)},\n"
+            f"\t{self._repr_property('base_notes', self.base_notes)},\n"
+            f"\t{self._repr_property('volume', self.volume)},\n"
+            f"\t{self._repr_property('links', self.links)}\n)\n"
         )
