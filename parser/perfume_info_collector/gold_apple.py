@@ -85,7 +85,7 @@ def get_properties(soup: BeautifulSoup) -> Perfume | None:
         return None
     perfume = Perfume(
         perfume_type=properties[1].lower(),
-        # TODO: добавить парсинг пола
+        sex=properties[3].lower(),
         family=properties[5].lower(),
         upper_notes=get_notes(properties[7]),
         middle_notes=get_notes(properties[9]),
