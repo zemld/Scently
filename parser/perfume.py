@@ -7,8 +7,8 @@ class Perfume:
     upper_notes: list[str]
     middle_notes: list[str]
     base_notes: list[str]
-    volume: list[int]
-    links: list[str]
+    volume: int
+    link: str
 
     def __init__(
         self,
@@ -20,8 +20,8 @@ class Perfume:
         upper_notes: list[str] = [],
         middle_notes: list[str] = [],
         base_notes: list[str] = [],
-        volume: list[int] = [],
-        links: list[str] = [],
+        volume: int = 0,
+        link: str = "",
     ):
         self.brand = brand
         self.name = name
@@ -32,7 +32,7 @@ class Perfume:
         self.middle_notes = middle_notes
         self.base_notes = base_notes
         self.volume = volume
-        self.links = links
+        self.link = link
 
     def _repr_property(self, name: str, value: str) -> str:
         return f"{name}={value if value else 'Unknown'}"
@@ -48,5 +48,5 @@ class Perfume:
             f"\t{self._repr_property('middle_notes', self.middle_notes)},\n"
             f"\t{self._repr_property('base_notes', self.base_notes)},\n"
             f"\t{self._repr_property('volume', self.volume)},\n"
-            f"\t{self._repr_property('links', self.links)}\n)\n"
+            f"\t{self._repr_property('link', self.link)}\n)\n"
         )
