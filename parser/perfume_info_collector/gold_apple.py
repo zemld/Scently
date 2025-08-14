@@ -97,6 +97,7 @@ def get_notes(notes: str) -> list[str]:
     notes = notes.lower()
     notes_list = notes.split(",")
     notes_list = [note.strip() for note in notes_list if note.strip()]
+    notes_list[-1] = notes_list[-1].strip(".")
     return notes_list
 
 
