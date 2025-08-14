@@ -1,17 +1,8 @@
-from enum import Enum
-
-
-class Sex(Enum):
-    FEMALE = "female"
-    MALE = "male"
-    UNISEX = "unisex"
-
-
 class Perfume:
     brand: str
     name: str
     perfume_type: str
-    sex: Sex
+    sex: str
     family: str
     upper_notes: list[str]
     middle_notes: list[str]
@@ -23,7 +14,7 @@ class Perfume:
         brand: str = "",
         name: str = "",
         perfume_type: str = "",
-        sex: Sex = Sex.UNISEX,
+        sex: str = "unisex",
         family: str = "",
         upper_notes: list[str] = [],
         middle_notes: list[str] = [],
