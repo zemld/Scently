@@ -37,7 +37,34 @@ def get_page_content(link: str) -> str:
         return ""
 
 
-# TODO: добавить парсинг бренда
+def _is_brand_tag(tag: element.Tag) -> bool:
+    return tag.has_attr("text") and tag.get("text") == "Бренд"
+
+
+class Brand:
+    name: str
+    country: str
+
+    def __init__(self, name: str = "Unknown", country: str = "Unknown"):
+        self.name = name
+        self.country = country
+
+
+def get_brand_info(soup: BeautifulSoup) -> Brand:
+    brand_tag = soup.find_all(_is_brand_tag)
+    if not brand_tag:
+        return ""
+    try:
+        brand_tag = brand_tag[0]
+        brand_info = [
+            tag.string.strip() for tag in brand_tag.find_all("div") if tag.string
+        ]
+        return Brand(brand_info[0], brand_info[1])
+    except Exception as e:
+        return Brand()
+
+
+# TODO: add name parsing
 
 
 def parse_properties(soup: BeautifulSoup) -> list[str]:
@@ -65,7 +92,6 @@ def get_notes(notes: str) -> list[str]:
 
 def get_properties(soup: BeautifulSoup) -> Perfume | None:
     properties = parse_properties(soup)
-    print(properties)
     if not properties:
         return None
     perfume = Perfume(
@@ -86,4 +112,5 @@ if __name__ == "__main__":
         page_content = c.read()
     soup = BeautifulSoup(page_content, "lxml")
     perfume = get_properties(soup)
+    perfume.brand = get_brand_info(soup).name
     print(perfume)
