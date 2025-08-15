@@ -4,3 +4,24 @@ services:
       context: parser
     ports:
       - "8090:8090"
+
+  perfume-db:
+    image: postgres:latest
+    env_file:
+      - ./secrets/db.env
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/perfume_db_password
+    secrets:
+      - perfume_db_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./perfume_volume:/var/lib/postgresql/data
+    
+
+volumes:
+  perfume_volume:
+
+secrets:
+  perfume_db_password:
+    file: ./secrets/perfume_db_password.txt
