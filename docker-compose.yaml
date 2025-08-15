@@ -8,6 +8,8 @@ services:
   db-api:
     build:
       context: perfume
+    env_file:
+      - ./secrets/db_url.env
     ports:
        - "8089:8089"
     depends_on:
