@@ -5,6 +5,14 @@ services:
     ports:
       - "8090:8090"
 
+  db-api:
+    build:
+      context: perfume
+    ports:
+       - "8089:8089"
+    depends_on:
+       - perfume-db
+
   perfume-db:
     image: postgres:latest
     env_file:
@@ -16,7 +24,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./perfume_volume:/var/lib/postgresql/data
+      - perfume_volume:/var/lib/postgresql/data
     
 
 volumes:
