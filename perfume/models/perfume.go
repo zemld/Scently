@@ -12,3 +12,9 @@ type Perfume struct {
 	Volume      int      `json:"volume"`
 	Link        string   `json:"link"`
 }
+
+type GluedPerfume struct {
+	Perfume
+	Volumes []int    `json:"volumes"`
+	Links   []string `json:"links"`
+}
