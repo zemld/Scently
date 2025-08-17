@@ -24,19 +24,8 @@ func Update(perfumes []models.GluedPerfume) {
 	tx, _ := conn.Begin(ctx)
 	defer tx.Rollback(ctx)
 
-	// TODO: use reflect
 	for _, perfume := range perfumes {
-		_, err = tx.Exec(ctx, constants.UpdateQuery,
-			perfume.Brand,
-			perfume.Name,
-			perfume.Type,
-			perfume.Sex,
-			perfume.Family,
-			perfume.UpperNotes,
-			perfume.MiddleNotes,
-			perfume.BaseNotes,
-			perfume.Volumes,
-			perfume.Links)
+		_, err = tx.Exec(ctx, constants.UpdateQuery, perfume.Unpack()...)
 		if err != nil {
 			log.Printf("Error updating perfume %s %s: %v\n", perfume.Brand, perfume.Name, err)
 		}
