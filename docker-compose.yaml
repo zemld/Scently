@@ -9,7 +9,11 @@ services:
     build:
       context: perfume
     env_file:
-      - ./secrets/db_url.env
+      - ./secrets/db.env
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/perfume_db_password
+    secrets:
+      - perfume_db_password
     ports:
        - "8089:8089"
     depends_on:
