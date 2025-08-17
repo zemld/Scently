@@ -30,4 +30,6 @@ const (
 		"base_notes = EXCLUDED.base_notes, " +
 		"volumes = EXCLUDED.volumes, " +
 		"links = EXCLUDED.links"
+
+	SelectQuery = "SELECT * FROM perfumes"
 )
