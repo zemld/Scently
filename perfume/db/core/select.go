@@ -9,7 +9,7 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/models"
 )
 
-func Select(params *SelectParameters) []models.GluedPerfume {
+func Select(params *SelectParameters) []models.Perfume {
 	config := config.NewConfig()
 	ctx, cancel := internal.CreateContext(config)
 	defer cancel()
@@ -27,9 +27,9 @@ func Select(params *SelectParameters) []models.GluedPerfume {
 	}
 	defer rows.Close()
 
-	var perfumes []models.GluedPerfume
+	var perfumes []models.Perfume
 	for rows.Next() {
-		var perfume models.GluedPerfume
+		var perfume models.Perfume
 		err := rows.Scan(
 			&perfume.Brand,
 			&perfume.Name,

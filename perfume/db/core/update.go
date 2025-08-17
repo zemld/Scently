@@ -11,7 +11,7 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/models"
 )
 
-func Update(params UpdateParameters, perfumes []models.GluedPerfume) {
+func Update(params UpdateParameters, perfumes []models.Perfume) {
 	config := config.NewConfig()
 	ctx, cancel := internal.CreateContext(config)
 	defer cancel()
