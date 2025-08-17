@@ -1,6 +1,7 @@
 package config
 
 import (
+	"log"
 	"os"
 )
 
@@ -24,5 +25,13 @@ func (c *Config) GetConnectionString() string {
 }
 
 func getPassword() string {
-	return ""
+	passFile := os.Getenv("POSTGRES_PASSWORD_FILE")
+	if passFile == "" {
+		log.Fatalln("No Postgres password file specified")
+	}
+	password, err := os.ReadFile(passFile)
+	if err != nil {
+		log.Fatalln("Error reading Postgres password file:", err)
+	}
+	return string(password)
 }
