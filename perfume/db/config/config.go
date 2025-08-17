@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"strings"
 )
 
 type configKeyType struct{}
@@ -33,5 +34,5 @@ func getPassword() string {
 	if err != nil {
 		log.Fatalln("Error reading Postgres password file:", err)
 	}
-	return string(password)
+	return strings.Trim(string(password), "\n ")
 }
