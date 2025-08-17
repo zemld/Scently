@@ -1,0 +1,12 @@
+package internal
+
+import (
+	"context"
+	"time"
+
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/db/config"
+)
+
+func CreateContext(c *config.Config) (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.WithValue(context.Background(), config.ConfigKey, c), 5*time.Second)
+}
