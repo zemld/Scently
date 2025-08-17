@@ -32,4 +32,6 @@ const (
 		"links = EXCLUDED.links"
 
 	SelectQuery = "SELECT * FROM perfumes"
+
+	TruncateQuery = "TRUNCATE ONLY perfumes"
 )
