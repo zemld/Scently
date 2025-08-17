@@ -21,7 +21,7 @@ func NewConfig() *Config {
 }
 
 func (c *Config) GetConnectionString() string {
-	return "postgres//:" + c.User + ":" + c.Password + "@" + c.Host + ":5432/" + c.Db
+	return "postgres://" + c.User + ":" + c.Password + "@" + c.Host + ":5432/" + c.Db
 }
 
 func getPassword() string {
