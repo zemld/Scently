@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"log"
 
 	"github.com/jackc/pgx/v5"
@@ -10,7 +11,7 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/models"
 )
 
-func Update(perfumes []models.GluedPerfume) {
+func Update(params UpdateParameters, perfumes []models.GluedPerfume) {
 	config := config.NewConfig()
 	ctx, cancel := internal.CreateContext(config)
 	defer cancel()
@@ -24,6 +25,12 @@ func Update(perfumes []models.GluedPerfume) {
 	tx, _ := conn.Begin(ctx)
 	defer tx.Rollback(ctx)
 
+	if params.IsTruncate {
+		if !truncate(ctx, tx) {
+			return
+		}
+	}
+
 	for _, perfume := range perfumes {
 		_, err = tx.Exec(ctx, constants.UpdateQuery, perfume.Unpack()...)
 		if err != nil {
@@ -32,4 +39,14 @@ func Update(perfumes []models.GluedPerfume) {
 	}
 	tx.Commit(ctx)
 	log.Println("Perfume table updated successfully")
+}
+
+func truncate(ctx context.Context, tx pgx.Tx) bool {
+	_, err := tx.Exec(ctx, constants.TruncateQuery)
+	if err != nil {
+		log.Printf("Error truncating perfume table: %v\n", err)
+		return false
+	}
+	log.Println("Perfume table truncated successfully")
+	return true
 }
