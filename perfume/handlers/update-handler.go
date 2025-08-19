@@ -18,7 +18,6 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to get perfumes", http.StatusBadRequest)
 		return
 	}
-	log.Printf("Got perfumes from request: %v\n", perfumes)
 	core.Update(p, perfumes)
 	w.WriteHeader(http.StatusOK)
 }

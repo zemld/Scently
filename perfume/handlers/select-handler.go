@@ -12,7 +12,6 @@ import (
 
 func SelectHandler(w http.ResponseWriter, r *http.Request) {
 	p := getSelectionParameters(r)
-	log.Printf("Parameters: %v\n", p)
 	perfumes := core.Select(p)
 	log.Printf("Found perfumes: %d\n", len(perfumes))
 	if len(perfumes) == 0 {
