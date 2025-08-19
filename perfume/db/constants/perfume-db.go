@@ -20,7 +20,7 @@ const (
 		"PRIMARY KEY (brand, name)" +
 		")"
 
-	UpdateQuery = "INSERT INTO perfumes (" +
+	Update = "INSERT INTO perfumes (" +
 		"brand, name, perfume_type, sex, family, upper_notes, middle_notes, base_notes, volumes, links" +
 		") VALUES (" +
 		"$1, $2, $3, $4, $5, $6, $7, $8, $9, $10" +
@@ -35,7 +35,7 @@ const (
 		"volumes = EXCLUDED.volumes, " +
 		"links = EXCLUDED.links"
 
-	SelectQuery = "SELECT * FROM perfumes"
+	Select = "SELECT * FROM perfumes"
 
-	TruncateQuery = "TRUNCATE ONLY perfumes"
+	Truncate = "TRUNCATE ONLY perfumes"
 )

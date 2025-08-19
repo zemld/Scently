@@ -32,7 +32,7 @@ func Update(params *UpdateParameters, perfumes []models.Perfume) {
 	}
 
 	for _, perfume := range perfumes {
-		_, err = tx.Exec(ctx, constants.UpdateQuery, perfume.Unpack()...)
+		_, err = tx.Exec(ctx, constants.Update, perfume.Unpack()...)
 		if err != nil {
 			log.Printf("Error updating perfume %s %s: %v\n", perfume.Brand, perfume.Name, err)
 		}
@@ -42,7 +42,7 @@ func Update(params *UpdateParameters, perfumes []models.Perfume) {
 }
 
 func truncate(ctx context.Context, tx pgx.Tx) bool {
-	_, err := tx.Exec(ctx, constants.TruncateQuery)
+	_, err := tx.Exec(ctx, constants.Truncate)
 	if err != nil {
 		log.Printf("Error truncating perfume table: %v\n", err)
 		return false

@@ -27,7 +27,7 @@ func (p *SelectParameters) WithName(name string) *SelectParameters {
 }
 
 func (p *SelectParameters) getQuery() string {
-	query := constants.SelectQuery
+	query := constants.Select
 	if p.Brand != "" && p.Name != "" {
 		return fmt.Sprintf("%s WHERE brand = $1 AND name = $2", query)
 	}
