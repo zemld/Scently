@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/db/core"
 )
@@ -31,5 +33,10 @@ func getAndCheckPassword(r *http.Request) bool {
 }
 
 func isPasswordValid(password string) bool {
-	return false
+	return password == getOriginalPassword()
+}
+
+func getOriginalPassword() string {
+	password, _ := os.ReadFile(os.Getenv("HARD_UPDATE_PASSWORD_FILE"))
+	return string(strings.Trim(string(password), "\n "))
 }
