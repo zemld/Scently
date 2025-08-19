@@ -1,13 +1,17 @@
 package constants
 
 const (
+	NonEmptyTextField = "CREATE DOMAIN nonempty_text_field AS TEXT " +
+		"CHECK (" +
+		"VALUE IS NOT NULL AND LENGTH(btrim(VALUE)) > 0" +
+		")"
 	CreateTable = "CREATE TABLE IF NOT EXISTS perfumes " +
 		"(" +
-		"brand TEXT NOT NULL, " +
-		"name TEXT NOT NULL, " +
-		"perfume_type TEXT NOT NULL, " +
-		"sex TEXT NOT NULL, " +
-		"family TEXT NOT NULL, " +
+		"brand nonempty_text_field, " +
+		"name nonempty_text_field, " +
+		"perfume_type nonempty_text_field, " +
+		"sex nonempty_text_field, " +
+		"family nonempty_text_field, " +
 		"upper_notes TEXT[] NOT NULL, " +
 		"middle_notes TEXT[] NOT NULL, " +
 		"base_notes TEXT[] NOT NULL, " +

@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"log"
 
 	"github.com/jackc/pgx/v5"
@@ -20,9 +21,15 @@ func Initiate() {
 	}
 	defer conn.Close(ctx)
 
-	_, err = conn.Exec(ctx, constants.CreateTable)
-	if err != nil {
+	setupDatabase(ctx, conn)
+	log.Println("Perfume table created successfully")
+}
+
+func setupDatabase(ctx context.Context, conn *pgx.Conn) {
+	if _, err := conn.Exec(ctx, constants.NonEmptyTextField); err != nil {
+		log.Fatalf("Unable to create nonempty_text_field domain: %v\n", err)
+	}
+	if _, err := conn.Exec(ctx, constants.CreateTable); err != nil {
 		log.Fatalf("Unable to create table: %v\n", err)
 	}
-	log.Println("Perfume table created successfully")
 }
