@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/db/core"
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/handlers/responses"
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/models"
 )
 
@@ -30,6 +31,7 @@ func getSelectionParameters(r *http.Request) *core.SelectParameters {
 
 func writeResponseWithFoundPerfumes(w http.ResponseWriter, perfumes []models.Perfume) {
 	w.Header().Set("Content-Type", "application/json")
-	encodedPerfumes, _ := json.Marshal(perfumes)
+	perfumeResponse := responses.PerfumeCollection{Perfumes: perfumes}
+	encodedPerfumes, _ := json.Marshal(perfumeResponse)
 	w.Write(encodedPerfumes)
 }
