@@ -12,8 +12,10 @@ services:
       - ./secrets/db.env
     environment:
       POSTGRES_PASSWORD_FILE: /run/secrets/perfume_db_password
+      HARD_UPDATE_PASSWORD_FILE: /run/secrets/hard_update_password
     secrets:
       - perfume_db_password
+      - hard_update_password
     ports:
        - "8089:8089"
     depends_on:
@@ -39,3 +41,5 @@ volumes:
 secrets:
   perfume_db_password:
     file: ./secrets/perfume_db_password.txt
+  hard_update_password:
+    file: ./secrets/hard_update_password.txt
