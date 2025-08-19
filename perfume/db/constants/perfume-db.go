@@ -38,4 +38,8 @@ const (
 	Select = "SELECT * FROM perfumes"
 
 	Truncate = "TRUNCATE ONLY perfumes"
+
+	Savepoint         = "SAVEPOINT perfume_update_"
+	ReleaseSavepoint  = "RELEASE SAVEPOINT perfume_update_"
+	RollbackSavepoint = "ROLLBACK TO SAVEPOINT perfume_update_"
 )
