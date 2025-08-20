@@ -6,4 +6,4 @@ COPY . .
 
 RUN go mod tidy
 
-CMD ["go", "run", "core/main.go"]
+CMD ["go", "run", "cmd/main.go"]
