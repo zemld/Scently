@@ -9,14 +9,15 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/models"
 )
 
-func Select(params *SelectParameters) []models.Perfume {
+func Select(params *SelectParameters) ([]models.Perfume, bool) {
 	config := config.NewConfig()
 	ctx, cancel := internal.CreateContext(config)
 	defer cancel()
 
 	conn, err := pgx.Connect(ctx, config.GetConnectionString())
 	if err != nil {
-		log.Fatalf("Unable to connect to database: %v\n", err)
+		log.Printf("Unable to connect to database: %v\n", err)
+		return nil, false
 	}
 	defer conn.Close(ctx)
 
@@ -24,6 +25,7 @@ func Select(params *SelectParameters) []models.Perfume {
 	rows, err := conn.Query(ctx, params.getQuery(), params.unpack()...)
 	if err != nil {
 		log.Printf("Error executing query: %v\n", err)
+		return nil, false
 	}
 	defer rows.Close()
 
@@ -47,5 +49,5 @@ func Select(params *SelectParameters) []models.Perfume {
 		}
 		perfumes = append(perfumes, perfume)
 	}
-	return perfumes
+	return perfumes, true
 }

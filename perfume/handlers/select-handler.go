@@ -21,7 +21,11 @@ import (
 // @router /get [get]
 func SelectHandler(w http.ResponseWriter, r *http.Request) {
 	p := getSelectionParameters(r)
-	perfumes := core.Select(p)
+	perfumes, ok := core.Select(p)
+	if !ok {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	log.Printf("Found perfumes: %d\n", len(perfumes))
 	if len(perfumes) == 0 {
 		w.WriteHeader(http.StatusNoContent)
