@@ -1,4 +1,4 @@
-package responses
+package util
 
 import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/db/core"
