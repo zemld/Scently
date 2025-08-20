@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup, element
 import re
 import requests
-from perfume import Perfume
+from models.perfume import Perfume
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
