@@ -47,10 +47,16 @@ const docTemplate = `{
                         }
                     },
                     "204": {
-                        "description": "No perfumes found"
+                        "description": "No perfumes found",
+                        "schema": {
+                            "$ref": "#/definitions/responses.PerfumeResponse"
+                        }
                     },
                     "500": {
-                        "description": "Something went wrong while processing request"
+                        "description": "Something went wrong while processing request",
+                        "schema": {
+                            "$ref": "#/definitions/responses.PerfumeResponse"
+                        }
                     }
                 }
             }
@@ -94,6 +100,9 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Wrong perfumes format"
+                    },
+                    "500": {
+                        "description": "Something went wrong while update perfumes state"
                     }
                 }
             }

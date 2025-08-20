@@ -85,8 +85,12 @@ paths:
             $ref: '#/definitions/responses.PerfumeResponse'
         "204":
           description: No perfumes found
+          schema:
+            $ref: '#/definitions/responses.PerfumeResponse'
         "500":
           description: Something went wrong while processing request
+          schema:
+            $ref: '#/definitions/responses.PerfumeResponse'
       summary: Get list of perfumes
       tags:
       - Perfumes
@@ -115,6 +119,8 @@ paths:
           description: Update successful
         "400":
           description: Wrong perfumes format
+        "500":
+          description: Something went wrong while update perfumes state
       summary: Update perfumes
       tags:
       - Perfumes

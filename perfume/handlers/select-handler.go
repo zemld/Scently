@@ -16,8 +16,8 @@ import (
 // @param brand query string false "Brand of the perfume"
 // @param name query string false "Name of the perfume"
 // @success 200 {object} responses.PerfumeResponse "Found perfumes"
-// @success 204 "No perfumes found"
-// @failure 500 "Something went wrong while processing request"
+// @success 204 {object} responses.PerfumeResponse "No perfumes found"
+// @failure 500 {object} responses.PerfumeResponse "Something went wrong while processing request"
 // @router /get [get]
 func SelectHandler(w http.ResponseWriter, r *http.Request) {
 	p := getSelectionParameters(r)
