@@ -50,3 +50,22 @@ class Perfume:
             f"\t{self._repr_property('volume', self.volume)},\n"
             f"\t{self._repr_property('link', self.link)}\n)\n"
         )
+
+
+class GluedPerfume(Perfume):
+    volumes: list[int]
+    links: list[str]
+
+    def __init__(self, perfume: Perfume):
+        super().__init__(
+            brand=perfume.brand,
+            name=perfume.name,
+            perfume_type=perfume.perfume_type,
+            sex=perfume.sex,
+            family=perfume.family,
+            upper_notes=perfume.upper_notes,
+            middle_notes=perfume.middle_notes,
+            base_notes=perfume.base_notes,
+        )
+        self.volumes = [perfume.volume]
+        self.links = [perfume.link]
