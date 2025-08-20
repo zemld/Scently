@@ -12,14 +12,15 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/models"
 )
 
-func Update(params *UpdateParameters, perfumes []models.Perfume) {
+func Update(params *UpdateParameters, perfumes []models.Perfume) UpdateStatus {
 	config := config.NewConfig()
 	ctx, cancel := internal.CreateContext(config)
 	defer cancel()
 
 	conn, err := pgx.Connect(ctx, config.GetConnectionString())
 	if err != nil {
-		log.Fatalf("Unable to connect to database: %v\n", err)
+		log.Printf("Unable to connect to database: %v\n", err)
+		return *NewUpdateStatus(false)
 	}
 	defer conn.Close(ctx)
 
@@ -28,14 +29,14 @@ func Update(params *UpdateParameters, perfumes []models.Perfume) {
 
 	if params.IsTruncate {
 		if !truncate(ctx, tx) {
-			return
+			return *NewUpdateStatus(false)
 		}
 	}
 
-	upsert(ctx, tx, perfumes)
+	updateStatus := upsert(ctx, tx, perfumes)
 
 	tx.Commit(ctx)
-	log.Println("Perfume table updated successfully")
+	return *updateStatus
 }
 
 func truncate(ctx context.Context, tx pgx.Tx) bool {
@@ -48,16 +49,24 @@ func truncate(ctx context.Context, tx pgx.Tx) bool {
 	return true
 }
 
-func upsert(ctx context.Context, tx pgx.Tx, perfumes []models.Perfume) {
+func upsert(ctx context.Context, tx pgx.Tx, perfumes []models.Perfume) *UpdateStatus {
+	updateStatus := NewUpdateStatus(true)
 	for i, perfume := range perfumes {
 		updateSavepointStatus(ctx, tx, constants.Savepoint, i)
 		_, err := tx.Exec(ctx, constants.Update, perfume.Unpack()...)
 		if err != nil {
 			log.Printf("Error updating perfume %s %s: %v\n", perfume.Brand, perfume.Name, err)
 			updateSavepointStatus(ctx, tx, constants.RollbackSavepoint, i)
+			updateStatus.FailedPerfumes = append(updateStatus.FailedPerfumes, perfume)
+			updateStatus.State.FailedCount++
+			continue
 		}
 		updateSavepointStatus(ctx, tx, constants.ReleaseSavepoint, i)
+		updateStatus.SuccessfulPerfumes = append(updateStatus.SuccessfulPerfumes, perfume)
+		updateStatus.State.SuccessfulCount++
 	}
+
+	return updateStatus
 }
 
 func updateSavepointStatus(ctx context.Context, tx pgx.Tx, cmd string, i int) {
