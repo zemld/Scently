@@ -1,5 +1,14 @@
 basePath: /v1/perfumes
 definitions:
+  core.ProcessedState:
+    properties:
+      failed_count:
+        type: integer
+      success:
+        type: boolean
+      successful_count:
+        type: integer
+    type: object
   models.Perfume:
     properties:
       base_notes:
@@ -40,6 +49,15 @@ definitions:
           $ref: '#/definitions/models.Perfume'
         type: array
     type: object
+  responses.PerfumeResponse:
+    properties:
+      perfumes:
+        items:
+          $ref: '#/definitions/models.Perfume'
+        type: array
+      state:
+        $ref: '#/definitions/core.ProcessedState'
+    type: object
 info:
   contact: {}
   description: Microservice which operates over perfume database
@@ -64,9 +82,11 @@ paths:
         "200":
           description: Found perfumes
           schema:
-            $ref: '#/definitions/responses.PerfumeCollection'
+            $ref: '#/definitions/responses.PerfumeResponse'
         "204":
           description: No perfumes found
+        "500":
+          description: Something went wrong while processing request
       summary: Get list of perfumes
       tags:
       - Perfumes

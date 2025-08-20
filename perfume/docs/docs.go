@@ -43,11 +43,14 @@ const docTemplate = `{
                     "200": {
                         "description": "Found perfumes",
                         "schema": {
-                            "$ref": "#/definitions/responses.PerfumeCollection"
+                            "$ref": "#/definitions/responses.PerfumeResponse"
                         }
                     },
                     "204": {
                         "description": "No perfumes found"
+                    },
+                    "500": {
+                        "description": "Something went wrong while processing request"
                     }
                 }
             }
@@ -97,6 +100,20 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "core.ProcessedState": {
+            "type": "object",
+            "properties": {
+                "failed_count": {
+                    "type": "integer"
+                },
+                "success": {
+                    "type": "boolean"
+                },
+                "successful_count": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.Perfume": {
             "type": "object",
             "properties": {
@@ -155,6 +172,20 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/models.Perfume"
                     }
+                }
+            }
+        },
+        "responses.PerfumeResponse": {
+            "type": "object",
+            "properties": {
+                "perfumes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Perfume"
+                    }
+                },
+                "state": {
+                    "$ref": "#/definitions/core.ProcessedState"
                 }
             }
         }
