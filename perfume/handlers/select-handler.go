@@ -10,6 +10,15 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/models"
 )
 
+// @description Get info about perfumes. Can accept brand and name parameters
+// @tags Perfumes
+// @summary Get list of perfumes
+// @produce json
+// @param brand query string false "Brand of the perfume"
+// @param name query string false "Name of the perfume"
+// @success 200 {object} responses.PerfumeCollection "Found perfumes"
+// @success 204 "No perfumes found"
+// @router /get [get]
 func SelectHandler(w http.ResponseWriter, r *http.Request) {
 	p := getSelectionParameters(r)
 	perfumes := core.Select(p)

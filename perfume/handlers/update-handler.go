@@ -11,6 +11,16 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/models"
 )
 
+// @description Update database state about perfumes. Can truncate table
+// @tags Perfumes
+// @summary Update perfumes
+// @accept json
+// @param hard query boolean false "Is hard update"
+// @param password query string false "Password for hard update"
+// @param perfumes body responses.PerfumeCollection true "List of perfumes to update"
+// @success 200 "Update successful"
+// @failure 400 "Wrong perfumes format"
+// @router /update [post]
 func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	p := getUpdateParametersFromRequest(r)
 	perfumes, err := getPerfumesToUpdate(r)
