@@ -42,14 +42,14 @@ definitions:
           type: integer
         type: array
     type: object
-  responses.PerfumeCollection:
+  util.PerfumeCollection:
     properties:
       perfumes:
         items:
           $ref: '#/definitions/models.Perfume'
         type: array
     type: object
-  responses.PerfumeResponse:
+  util.PerfumeResponse:
     properties:
       perfumes:
         items:
@@ -57,6 +57,19 @@ definitions:
         type: array
       state:
         $ref: '#/definitions/core.ProcessedState'
+    type: object
+  util.UpdateResponse:
+    properties:
+      failed_perfumes:
+        items:
+          $ref: '#/definitions/models.Perfume'
+        type: array
+      state:
+        $ref: '#/definitions/core.ProcessedState'
+      successful_perfumes:
+        items:
+          $ref: '#/definitions/models.Perfume'
+        type: array
     type: object
 info:
   contact: {}
@@ -82,15 +95,15 @@ paths:
         "200":
           description: Found perfumes
           schema:
-            $ref: '#/definitions/responses.PerfumeResponse'
+            $ref: '#/definitions/util.PerfumeResponse'
         "204":
           description: No perfumes found
           schema:
-            $ref: '#/definitions/responses.PerfumeResponse'
+            $ref: '#/definitions/util.PerfumeResponse'
         "500":
           description: Something went wrong while processing request
           schema:
-            $ref: '#/definitions/responses.PerfumeResponse'
+            $ref: '#/definitions/util.PerfumeResponse'
       summary: Get list of perfumes
       tags:
       - Perfumes
@@ -113,14 +126,20 @@ paths:
         name: perfumes
         required: true
         schema:
-          $ref: '#/definitions/responses.PerfumeCollection'
+          $ref: '#/definitions/util.PerfumeCollection'
       responses:
         "200":
           description: Update successful
+          schema:
+            $ref: '#/definitions/util.UpdateResponse'
         "400":
           description: Wrong perfumes format
+          schema:
+            $ref: '#/definitions/util.UpdateResponse'
         "500":
           description: Something went wrong while update perfumes state
+          schema:
+            $ref: '#/definitions/util.UpdateResponse'
       summary: Update perfumes
       tags:
       - Perfumes

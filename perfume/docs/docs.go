@@ -43,19 +43,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Found perfumes",
                         "schema": {
-                            "$ref": "#/definitions/responses.PerfumeResponse"
+                            "$ref": "#/definitions/util.PerfumeResponse"
                         }
                     },
                     "204": {
                         "description": "No perfumes found",
                         "schema": {
-                            "$ref": "#/definitions/responses.PerfumeResponse"
+                            "$ref": "#/definitions/util.PerfumeResponse"
                         }
                     },
                     "500": {
                         "description": "Something went wrong while processing request",
                         "schema": {
-                            "$ref": "#/definitions/responses.PerfumeResponse"
+                            "$ref": "#/definitions/util.PerfumeResponse"
                         }
                     }
                 }
@@ -90,19 +90,28 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/responses.PerfumeCollection"
+                            "$ref": "#/definitions/util.PerfumeCollection"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Update successful"
+                        "description": "Update successful",
+                        "schema": {
+                            "$ref": "#/definitions/util.UpdateResponse"
+                        }
                     },
                     "400": {
-                        "description": "Wrong perfumes format"
+                        "description": "Wrong perfumes format",
+                        "schema": {
+                            "$ref": "#/definitions/util.UpdateResponse"
+                        }
                     },
                     "500": {
-                        "description": "Something went wrong while update perfumes state"
+                        "description": "Something went wrong while update perfumes state",
+                        "schema": {
+                            "$ref": "#/definitions/util.UpdateResponse"
+                        }
                     }
                 }
             }
@@ -173,7 +182,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.PerfumeCollection": {
+        "util.PerfumeCollection": {
             "type": "object",
             "properties": {
                 "perfumes": {
@@ -184,7 +193,7 @@ const docTemplate = `{
                 }
             }
         },
-        "responses.PerfumeResponse": {
+        "util.PerfumeResponse": {
             "type": "object",
             "properties": {
                 "perfumes": {
@@ -195,6 +204,26 @@ const docTemplate = `{
                 },
                 "state": {
                     "$ref": "#/definitions/core.ProcessedState"
+                }
+            }
+        },
+        "util.UpdateResponse": {
+            "type": "object",
+            "properties": {
+                "failed_perfumes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Perfume"
+                    }
+                },
+                "state": {
+                    "$ref": "#/definitions/core.ProcessedState"
+                },
+                "successful_perfumes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Perfume"
+                    }
                 }
             }
         }
