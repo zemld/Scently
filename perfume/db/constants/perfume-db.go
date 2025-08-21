@@ -10,7 +10,7 @@ const (
 		"  CHECK (VALUE IS NOT NULL AND LENGTH(btrim(VALUE)) > 0); " +
 		"END IF; " +
 		"END $$;"
-	CreateTable = "CREATE TABLE IF NOT EXISTS perfumes " +
+	CreatePerfumesTable = "CREATE TABLE IF NOT EXISTS perfumes " +
 		"(" +
 		"brand public.nonempty_text_field, " +
 		"name public.nonempty_text_field, " +
@@ -20,15 +20,21 @@ const (
 		"upper_notes TEXT[] NOT NULL, " +
 		"middle_notes TEXT[] NOT NULL, " +
 		"base_notes TEXT[] NOT NULL, " +
-		"volumes INT[] NOT NULL, " +
-		"links TEXT[] NOT NULL, " +
 		"PRIMARY KEY (brand, name)" +
-		")"
+		");"
+	CreateLinksTable = "CREATE TABLE IF NOT EXISTS perfume_links " +
+		"(" +
+		"brand public.nonempty_text_field, " +
+		"name public.nonempty_text_field, " +
+		"link public.nonempty_text_field, " +
+		"volume INTEGER NOT NULL, " +
+		"PRIMARY KEY (brand, name, volume)" +
+		");"
 
-	Update = "INSERT INTO perfumes (" +
-		"brand, name, perfume_type, sex, family, upper_notes, middle_notes, base_notes, volumes, links" +
+	UpdatePerfumes = "INSERT INTO perfumes (" +
+		"brand, name, perfume_type, sex, family, upper_notes, middle_notes, base_notes" +
 		") VALUES (" +
-		"$1, $2, $3, $4, $5, $6, $7, $8, $9, $10" +
+		"$1, $2, $3, $4, $5, $6, $7, $8" +
 		") " +
 		"ON CONFLICT (brand, name) DO UPDATE SET " +
 		"perfume_type = EXCLUDED.perfume_type, " +
@@ -36,13 +42,22 @@ const (
 		"family = EXCLUDED.family, " +
 		"upper_notes = EXCLUDED.upper_notes, " +
 		"middle_notes = EXCLUDED.middle_notes, " +
-		"base_notes = EXCLUDED.base_notes, " +
-		"volumes = EXCLUDED.volumes, " +
-		"links = EXCLUDED.links"
+		"base_notes = EXCLUDED.base_notes"
+	UpdatePerfumeLinks = "INSERT INTO perfume_links " +
+		"(" +
+		"brand, name, link, volume" +
+		") VALUES (" +
+		"$1, $2, $3, $4" +
+		") " +
+		"ON CONFLICT (brand, name, volume) DO UPDATE SET " +
+		"link = EXCLUDED.link"
 
-	Select = "SELECT * FROM perfumes"
+	Select = "SELECT perfumes.*, volume, link " +
+		"FROM perfumes " +
+		"LEFT JOIN perfume_links ON " +
+		"perfumes.brand = perfume_links.brand AND perfumes.name = perfume_links.name"
 
-	Truncate = "TRUNCATE ONLY perfumes"
+	Truncate = "TRUNCATE perfumes, perfume_links;"
 
 	Savepoint         = "SAVEPOINT perfume_update_"
 	ReleaseSavepoint  = "RELEASE SAVEPOINT perfume_update_"
