@@ -140,11 +140,8 @@
                 "family": {
                     "type": "string"
                 },
-                "links": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                "link": {
+                    "type": "string"
                 },
                 "middle_notes": {
                     "type": "array",
@@ -167,11 +164,8 @@
                         "type": "string"
                     }
                 },
-                "volumes": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
+                "volume": {
+                    "type": "integer"
                 }
             }
         },

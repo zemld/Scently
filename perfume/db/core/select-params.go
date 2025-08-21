@@ -29,13 +29,13 @@ func (p *SelectParameters) WithName(name string) *SelectParameters {
 func (p *SelectParameters) getQuery() string {
 	query := constants.Select
 	if p.Brand != "" && p.Name != "" {
-		return fmt.Sprintf("%s WHERE brand = $1 AND name = $2", query)
+		return fmt.Sprintf("%s WHERE perfumes.brand = $1 AND perfumes.name = $2", query)
 	}
 	if p.Brand != "" {
-		return fmt.Sprintf("%s WHERE brand = $1", query)
+		return fmt.Sprintf("%s WHERE perfumes.brand = $1", query)
 	}
 	if p.Name != "" {
-		return fmt.Sprintf("%s WHERE name = $1", query)
+		return fmt.Sprintf("%s WHERE perfumes.name = $1", query)
 	}
 	return query
 }

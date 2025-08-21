@@ -29,7 +29,10 @@ func setupDatabase(ctx context.Context, conn *pgx.Conn) {
 	if _, err := conn.Exec(ctx, constants.NonEmptyTextField); err != nil {
 		log.Fatalf("Unable to create nonempty_text_field domain: %v\n", err)
 	}
-	if _, err := conn.Exec(ctx, constants.CreateTable); err != nil {
-		log.Fatalf("Unable to create table: %v\n", err)
+	if _, err := conn.Exec(ctx, constants.CreatePerfumesTable); err != nil {
+		log.Fatalf("Unable to create perfumes table: %v\n", err)
+	}
+	if _, err := conn.Exec(ctx, constants.CreateLinksTable); err != nil {
+		log.Fatalf("Unable to create perfume_links table: %v\n", err)
 	}
 }

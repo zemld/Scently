@@ -147,11 +147,8 @@ const docTemplate = `{
                 "family": {
                     "type": "string"
                 },
-                "links": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                "link": {
+                    "type": "string"
                 },
                 "middle_notes": {
                     "type": "array",
@@ -174,11 +171,8 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "volumes": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
+                "volume": {
+                    "type": "integer"
                 }
             }
         },
