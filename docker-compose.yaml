@@ -2,6 +2,10 @@ services:
   perfume-updater:
     build:
       context: parser
+    environment:
+      HARD_UPDATE_PASSWORD_FILE: /run/secrets/hard_update_password
+    secrets:
+      - hard_update_password
     ports:
       - "8090:8090"
 

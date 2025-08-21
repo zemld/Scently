@@ -4,6 +4,7 @@ from perfume_info_collector.gold_apple import parse_pages_to_perfumes
 from apscheduler.schedulers.background import BackgroundScheduler
 import asyncio
 import httpx
+import os
 
 UPLOAD_PERFUME_INFO = "http://db-api:8089/v1/perfumes/update"
 
@@ -35,10 +36,24 @@ def glue_perfumes(perfumes: list[Perfume]) -> list[GluedPerfume]:
     return list(glued_perfumes.values())
 
 
+def get_hard_update_key() -> str:
+    hard_update_key: str
+    try:
+        file = os.getenv("HARD_UPDATE_PASSWORD_FILE")
+        with open(file, "r") as f:
+            hard_update_key = f.read().strip()
+    except Exception as e:
+        print(f"Error reading hard update key: {e}")
+        hard_update_key = "default_key"
+    return hard_update_key
+
+
 async def _upload_perfumes_async(url: str, payload: dict) -> str:
     timeout = httpx.Timeout(10.0, read=30.0)
     async with httpx.AsyncClient(timeout=timeout) as client:
-        r = await client.post(url, json=payload)
+        r = await client.post(
+            url, json=payload, params={"hard": True, "password": get_hard_update_key()}
+        )
         r.raise_for_status()
         return r.text
 
