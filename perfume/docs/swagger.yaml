@@ -19,10 +19,8 @@ definitions:
         type: string
       family:
         type: string
-      links:
-        items:
-          type: string
-        type: array
+      link:
+        type: string
       middle_notes:
         items:
           type: string
@@ -37,10 +35,8 @@ definitions:
         items:
           type: string
         type: array
-      volumes:
-        items:
-          type: integer
-        type: array
+      volume:
+        type: integer
     type: object
   util.PerfumeCollection:
     properties:
