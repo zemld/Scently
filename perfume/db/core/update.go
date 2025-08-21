@@ -42,10 +42,10 @@ func Update(params *UpdateParameters, perfumes []models.Perfume) UpdateStatus {
 func truncate(ctx context.Context, tx pgx.Tx) bool {
 	_, err := tx.Exec(ctx, constants.Truncate)
 	if err != nil {
-		log.Printf("Error truncating perfume table: %v\n", err)
+		log.Printf("Error truncating tables: %v\n", err)
 		return false
 	}
-	log.Println("Perfume table truncated successfully")
+	log.Println("Perfume tables truncated successfully")
 	return true
 }
 
@@ -53,9 +53,10 @@ func upsert(ctx context.Context, tx pgx.Tx, perfumes []models.Perfume) *UpdateSt
 	updateStatus := NewUpdateStatus(true)
 	for i, perfume := range perfumes {
 		updateSavepointStatus(ctx, tx, constants.Savepoint, i)
-		_, err := tx.Exec(ctx, constants.Update, perfume.Unpack()...)
-		if err != nil {
-			log.Printf("Error updating perfume %s %s: %v\n", perfume.Brand, perfume.Name, err)
+		_, err := tx.Exec(ctx, constants.UpdatePerfumes, perfume.UnpackProperties()...)
+		_, linkErr := tx.Exec(ctx, constants.UpdatePerfumeLinks, perfume.UnpackLinkedFields()...)
+		if err != nil || linkErr != nil {
+			log.Printf("Error updating perfume %s %s: %v\n, %v\n", perfume.Brand, perfume.Name, err, linkErr)
 			updateSavepointStatus(ctx, tx, constants.RollbackSavepoint, i)
 			updateStatus.FailedPerfumes = append(updateStatus.FailedPerfumes, perfume)
 			updateStatus.State.FailedCount++

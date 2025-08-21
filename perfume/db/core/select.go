@@ -41,8 +41,8 @@ func Select(params *SelectParameters) ([]models.Perfume, ProcessedState) {
 			&perfume.UpperNotes,
 			&perfume.MiddleNotes,
 			&perfume.BaseNotes,
-			&perfume.Volumes,
-			&perfume.Links)
+			&perfume.Volume,
+			&perfume.Link)
 		if err != nil {
 			log.Printf("Error scanning row: %v\n", err)
 			processedState.FailedCount++
