@@ -150,11 +150,11 @@ def process_perfume(perfumes: list[Perfume], link: str, page: str):
     perfume.link = link
     if perfume:
         with LOCK:
-            perfumes.append(perfume)
+            perfumes.add(perfume)
 
 
-def process_links(links: list[str]) -> list[Perfume]:
-    perfumes = []
+def process_links(links: list[str]) -> set[Perfume]:
+    perfumes = set()
     with ThreadPoolExecutor(max_workers=10) as executor:
         futures = {executor.submit(get_page_content, link): link for link in links}
         for fut in as_completed(futures):
