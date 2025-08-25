@@ -2,6 +2,9 @@ package internal
 
 import (
 	"context"
+	"encoding/json"
+	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -20,11 +23,27 @@ func GetPerfumes(p util.GetParameters) []models.Perfume {
 	r, _ := http.NewRequestWithContext(ctx, "GET", getPerfumesUrl, nil)
 	updateQuery(r, p)
 
-	// TODO: add response parsing
-	perfumeResponse, _ := http.DefaultClient.Do(r)
+	perfumeResponse, err := http.DefaultClient.Do(r)
+	if err != nil {
+		log.Printf("Can't get perfumes: %v", err)
+		return nil
+	}
 	defer perfumeResponse.Body.Close()
 
-	return []models.Perfume{}
+	if perfumeResponse.StatusCode != http.StatusOK {
+		log.Printf("Bad response status: %v", perfumeResponse.Status)
+		return nil
+	}
+	body, err := io.ReadAll(perfumeResponse.Body)
+	if err != nil {
+		log.Printf("Can't read response body: %v", err)
+		return nil
+	}
+
+	var perfumes models.PerfumeResponse
+	json.Unmarshal(body, &perfumes)
+	log.Printf("Got %d perfumes", len(perfumes.Perfumes))
+	return perfumes.Perfumes
 }
 
 func updateQuery(r *http.Request, p util.GetParameters) {
