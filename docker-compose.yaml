@@ -38,6 +38,13 @@ services:
     volumes:
       - perfume_volume:/var/lib/postgresql/data
     
+  core:
+    build:
+      context: perfumist
+    ports:
+      - "8088:8088"
+    depends_on:
+      - db-api
 
 volumes:
   perfume_volume:
