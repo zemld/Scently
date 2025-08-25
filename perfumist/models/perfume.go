@@ -15,6 +15,9 @@ type Perfume struct {
 
 type GluedPerfume struct {
 	Perfume
-	Volumes []int    `json:"volumes"`
-	Links   []string `json:"links"`
+	Links map[int]string `json:"links"`
+}
+
+func NewGluedPerfume(p Perfume) GluedPerfume {
+	return GluedPerfume{Perfume: p, Links: map[int]string{p.Volume: p.Link}}
 }
