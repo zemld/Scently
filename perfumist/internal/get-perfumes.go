@@ -16,7 +16,7 @@ const (
 	getPerfumesUrl = "http://db-api:8089/v1/perfumes/get"
 )
 
-func GetPerfumes(p util.GetParameters) []models.Perfume {
+func GetPerfumes(p util.GetParameters) ([]models.Perfume, bool) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -26,24 +26,24 @@ func GetPerfumes(p util.GetParameters) []models.Perfume {
 	perfumeResponse, err := http.DefaultClient.Do(r)
 	if err != nil {
 		log.Printf("Can't get perfumes: %v", err)
-		return nil
+		return nil, false
 	}
 	defer perfumeResponse.Body.Close()
 
-	if perfumeResponse.StatusCode != http.StatusOK {
+	if perfumeResponse.StatusCode >= 500 {
 		log.Printf("Bad response status: %v", perfumeResponse.Status)
-		return nil
+		return nil, false
 	}
 	body, err := io.ReadAll(perfumeResponse.Body)
 	if err != nil {
 		log.Printf("Can't read response body: %v", err)
-		return nil
+		return nil, false
 	}
 
 	var perfumes models.PerfumeResponse
 	json.Unmarshal(body, &perfumes)
 	log.Printf("Got %d perfumes", len(perfumes.Perfumes))
-	return perfumes.Perfumes
+	return perfumes.Perfumes, true
 }
 
 func updateQuery(r *http.Request, p util.GetParameters) {

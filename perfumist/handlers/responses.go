@@ -2,7 +2,7 @@ package handlers
 
 import "github.com/zemld/PerfumeRecommendationSystem/perfumist/models"
 
-type rankedPerfume struct {
+type rankedPerfumeWithProps struct {
 	Perfume models.GluedPerfume `json:"perfume"`
 	Rank    int                 `json:"rank"`
 }
@@ -14,7 +14,7 @@ type inputPerfume struct {
 }
 
 type SuggestResponse struct {
-	Input     inputPerfume    `json:"input"`
-	Suggested []rankedPerfume `json:"suggested"`
-	Success   bool            `json:"success"`
+	Input     inputPerfume             `json:"input"`
+	Suggested []rankedPerfumeWithProps `json:"suggested"`
+	Success   bool                     `json:"success"`
 }

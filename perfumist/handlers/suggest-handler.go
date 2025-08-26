@@ -28,24 +28,21 @@ func SuggestHandler(w http.ResponseWriter, r *http.Request) {
 	var suggested []perplexity.RankedPerfume = nil
 	suggested = append(suggested, perplexity.RankedPerfume{Brand: "Marc Jacobs", Name: "Daisy Love", Rank: 1})
 	suggested = append(suggested, perplexity.RankedPerfume{Brand: "Jardin de Parfums", Name: "UNIQUE LOVE LETTER", Rank: 2})
+	suggested = append(suggested, perplexity.RankedPerfume{Brand: "Chloé", Name: "Nomade", Rank: 3})
 	// TODO: обновить респонс (поле Success) и тут же может быть 500 ошибка
 
 	filtered := filterSuggests(input.Brand, input.Name, suggested)
-	var result []rankedPerfume
-	for _, suggestedPerfume := range filtered {
-		p := util.NewGetParameters().WithBrand(suggestedPerfume.Brand).WithName(suggestedPerfume.Name)
-		suggestedPerfumesWithProps := internal.GetPerfumes(*p)
-		if suggestedPerfumesWithProps == nil {
-			continue
-		}
-		glued := util.GluePerfumes(suggestedPerfumesWithProps)
-		result = append(result, rankedPerfume{Perfume: glued[0], Rank: suggestedPerfume.Rank})
+	enriched, ok := enrichSuggestedPerfumes(filtered)
+	if !ok {
+		suggestResponse.Success = false
+		util.WriteResponse(w, suggestResponse, http.StatusInternalServerError)
+		return
 	}
-	if len(result) == 0 {
+	if len(enriched) == 0 {
 		util.WriteResponse(w, suggestResponse, http.StatusNoContent)
 		return
 	}
-	suggestResponse.Suggested = result
+	suggestResponse.Suggested = enriched
 	util.WriteResponse(w, suggestResponse, http.StatusOK)
 }
 
@@ -77,4 +74,19 @@ func filterSuggests(inputBrand string, inputName string, suggests []perplexity.R
 	return filtered
 }
 
-// func GetSuggestedPerfumesProperties()
+func enrichSuggestedPerfumes(suggested []perplexity.RankedPerfume) ([]rankedPerfumeWithProps, bool) {
+	var result []rankedPerfumeWithProps
+	for _, suggestedPerfume := range suggested {
+		p := util.NewGetParameters().WithBrand(suggestedPerfume.Brand).WithName(suggestedPerfume.Name)
+		suggestedPerfumesWithProps, ok := internal.GetPerfumes(*p)
+		if !ok {
+			return nil, false
+		}
+		if suggestedPerfumesWithProps == nil {
+			continue
+		}
+		glued := util.GluePerfumes(suggestedPerfumesWithProps)
+		result = append(result, rankedPerfumeWithProps{Perfume: glued[0], Rank: suggestedPerfume.Rank})
+	}
+	return result, true
+}
