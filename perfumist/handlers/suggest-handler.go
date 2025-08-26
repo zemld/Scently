@@ -34,7 +34,11 @@ func SuggestHandler(w http.ResponseWriter, r *http.Request) {
 	var result []rankedPerfume
 	for _, suggestedPerfume := range filtered {
 		p := util.NewGetParameters().WithBrand(suggestedPerfume.Brand).WithName(suggestedPerfume.Name)
-		suggestedPerfumesWithProps := internal.GetPerfumes(*p)
+		suggestedPerfumesWithProps, ok := internal.GetPerfumes(*p)
+		if !ok {
+			util.WriteResponse(w, suggestResponse, http.StatusInternalServerError)
+			return
+		}
 		if suggestedPerfumesWithProps == nil {
 			continue
 		}
