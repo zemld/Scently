@@ -30,8 +30,9 @@ func SuggestHandler(w http.ResponseWriter, r *http.Request) {
 	suggested = append(suggested, perplexity.RankedPerfume{Brand: "Jardin de Parfums", Name: "UNIQUE LOVE LETTER", Rank: 2})
 	// TODO: обновить респонс (поле Success) и тут же может быть 500 ошибка
 
+	filtered := filterSuggests(input.Brand, input.Name, suggested)
 	var result []rankedPerfume
-	for _, suggestedPerfume := range suggested {
+	for _, suggestedPerfume := range filtered {
 		p := util.NewGetParameters().WithBrand(suggestedPerfume.Brand).WithName(suggestedPerfume.Name)
 		suggestedPerfumesWithProps := internal.GetPerfumes(*p)
 		if suggestedPerfumesWithProps == nil {
@@ -59,6 +60,21 @@ func parseQuery(r *http.Request, suggestResponse *SuggestResponse) (util.GetPara
 		return util.GetParameters{}, false
 	}
 	return *util.NewGetParameters().WithBrand(brand).WithName(name), true
+}
+
+func filterSuggests(inputBrand string, inputName string, suggests []perplexity.RankedPerfume) []perplexity.RankedPerfume {
+	var filtered []perplexity.RankedPerfume
+	currentRank := 1
+	for _, s := range suggests {
+		if s.Brand == inputBrand && s.Name == inputName {
+			continue
+		}
+		f := s
+		f.Rank = currentRank
+		currentRank++
+		filtered = append(filtered, f)
+	}
+	return filtered
 }
 
 // func GetSuggestedPerfumesProperties()
