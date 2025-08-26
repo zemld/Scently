@@ -31,7 +31,7 @@ func SuggestHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: обновить респонс (поле Success) и тут же может быть 500 ошибка
 
 	filtered := filterSuggests(input.Brand, input.Name, suggested)
-	var result []rankedPerfume
+	var result []rankedPerfumeWithProps
 	for _, suggestedPerfume := range filtered {
 		p := util.NewGetParameters().WithBrand(suggestedPerfume.Brand).WithName(suggestedPerfume.Name)
 		suggestedPerfumesWithProps, ok := internal.GetPerfumes(*p)
@@ -43,7 +43,7 @@ func SuggestHandler(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		glued := util.GluePerfumes(suggestedPerfumesWithProps)
-		result = append(result, rankedPerfume{Perfume: glued[0], Rank: suggestedPerfume.Rank})
+		result = append(result, rankedPerfumeWithProps{Perfume: glued[0], Rank: suggestedPerfume.Rank})
 	}
 	if len(result) == 0 {
 		util.WriteResponse(w, suggestResponse, http.StatusNoContent)
@@ -80,5 +80,3 @@ func filterSuggests(inputBrand string, inputName string, suggests []perplexity.R
 	}
 	return filtered
 }
-
-// func GetSuggestedPerfumesProperties()
