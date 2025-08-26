@@ -1,0 +1,162 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Mircoservice with bussiness logic for perfume suggestions",
+        "title": "Perfume Suggestion Service",
+        "contact": {},
+        "version": "1.0"
+    },
+    "basePath": "/v1/suggest",
+    "paths": {
+        "/perfume": {
+            "get": {
+                "description": "Get suggests for perfumes. Accept brand and name and recommends 4+- perfumes which user probably will like.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Perfumes"
+                ],
+                "summary": "Suggests some perfumes",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Brand of the perfume which you like",
+                        "name": "brand",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name of the perfume which you like",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Suggested perfumes",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SuggestResponse"
+                        }
+                    },
+                    "204": {
+                        "description": "No perfumes found for suggestion",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SuggestResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Incorrect parameters",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SuggestResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SuggestResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "handlers.SuggestResponse": {
+            "type": "object",
+            "properties": {
+                "input": {
+                    "$ref": "#/definitions/handlers.inputPerfume"
+                },
+                "success": {
+                    "type": "boolean"
+                },
+                "suggested": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.rankedPerfumeWithProps"
+                    }
+                }
+            }
+        },
+        "handlers.inputPerfume": {
+            "type": "object",
+            "properties": {
+                "brand": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "ok": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "handlers.rankedPerfumeWithProps": {
+            "type": "object",
+            "properties": {
+                "perfume": {
+                    "$ref": "#/definitions/models.GluedPerfume"
+                },
+                "rank": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.GluedPerfume": {
+            "type": "object",
+            "properties": {
+                "brand": {
+                    "type": "string"
+                },
+                "links": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "properties": {
+                    "$ref": "#/definitions/models.PerfumeProperties"
+                }
+            }
+        },
+        "models.PerfumeProperties": {
+            "type": "object",
+            "properties": {
+                "base_notes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "family": {
+                    "type": "string"
+                },
+                "middle_notes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "sex": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "upper_notes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,107 @@
+basePath: /v1/suggest
+definitions:
+  handlers.SuggestResponse:
+    properties:
+      input:
+        $ref: '#/definitions/handlers.inputPerfume'
+      success:
+        type: boolean
+      suggested:
+        items:
+          $ref: '#/definitions/handlers.rankedPerfumeWithProps'
+        type: array
+    type: object
+  handlers.inputPerfume:
+    properties:
+      brand:
+        type: string
+      name:
+        type: string
+      ok:
+        type: boolean
+    type: object
+  handlers.rankedPerfumeWithProps:
+    properties:
+      perfume:
+        $ref: '#/definitions/models.GluedPerfume'
+      rank:
+        type: integer
+    type: object
+  models.GluedPerfume:
+    properties:
+      brand:
+        type: string
+      links:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        type: string
+      properties:
+        $ref: '#/definitions/models.PerfumeProperties'
+    type: object
+  models.PerfumeProperties:
+    properties:
+      base_notes:
+        items:
+          type: string
+        type: array
+      family:
+        type: string
+      middle_notes:
+        items:
+          type: string
+        type: array
+      sex:
+        type: string
+      type:
+        type: string
+      upper_notes:
+        items:
+          type: string
+        type: array
+    type: object
+info:
+  contact: {}
+  description: Mircoservice with bussiness logic for perfume suggestions
+  title: Perfume Suggestion Service
+  version: "1.0"
+paths:
+  /perfume:
+    get:
+      description: Get suggests for perfumes. Accept brand and name and recommends
+        4+- perfumes which user probably will like.
+      parameters:
+      - description: Brand of the perfume which you like
+        in: query
+        name: brand
+        required: true
+        type: string
+      - description: Name of the perfume which you like
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Suggested perfumes
+          schema:
+            $ref: '#/definitions/handlers.SuggestResponse'
+        "204":
+          description: No perfumes found for suggestion
+          schema:
+            $ref: '#/definitions/handlers.SuggestResponse'
+        "400":
+          description: Incorrect parameters
+          schema:
+            $ref: '#/definitions/handlers.SuggestResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.SuggestResponse'
+      summary: Suggests some perfumes
+      tags:
+      - Perfumes
+swagger: "2.0"
