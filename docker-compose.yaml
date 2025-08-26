@@ -44,7 +44,7 @@ services:
     ports:
       - "8088:8088"
     depends_on:
-      - db-api
+      - perfume
 
 volumes:
   perfume_volume:
