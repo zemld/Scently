@@ -26,5 +26,6 @@ func main() {
 	fs := http.FileServer(http.Dir("./docs"))
 	r.Handle("/docs/*", http.StripPrefix("/docs/", fs))
 	r.Get("/swagger/*", httpSwagger.Handler(httpSwagger.URL("http://localhost:8089/docs/swagger.json")))
+
 	http.ListenAndServe(":8089", r)
 }
