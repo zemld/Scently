@@ -8,11 +8,17 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/util"
 )
 
-// 200 я получаю список духов
-// 204 я не получаю ничего
-// 400 я не передал бренд или название
-// 500 какой-то трабл случился
-// /v1/suggest/perfume?brand=string&name=string
+// @description Get suggests for perfumes. Accept brand and name and recommends 4+- perfumes which user probably will like.
+// @tags Perfumes
+// @summary Suggests some perfumes
+// @produce json
+// @param brand query string true "Brand of the perfume which you like"
+// @param name query string true "Name of the perfume which you like"
+// @success 200 {object} SuggestResponse "Suggested perfumes"
+// @success 204 {object} SuggestResponse "No perfumes found for suggestion"
+// @failure 400 {object} SuggestResponse "Incorrect parameters"
+// @failure 500 {object} SuggestResponse
+// @router /perfume [get]
 func SuggestHandler(w http.ResponseWriter, r *http.Request) {
 	var suggestResponse SuggestResponse
 	input, ok := parseQuery(r, &suggestResponse)

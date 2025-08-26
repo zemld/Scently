@@ -4,15 +4,24 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/handlers"
 )
 
+// @title Perfume Suggestion Service
+// @version 1.0
+// @description Mircoservice with bussiness logic for perfume suggestions
+// @BasePath /v1/suggest
 func main() {
 	r := chi.NewRouter()
 
-	r.Route("/v1", func(r chi.Router) {
-		r.Get("/suggest/perfume", handlers.SuggestHandler)
+	r.Route("/v1/suggest", func(r chi.Router) {
+		r.Get("/perfume", handlers.SuggestHandler)
 	})
+
+	fs := http.FileServer(http.Dir("./docs"))
+	r.Handle("/docs/*", http.StripPrefix("/docs/", fs))
+	r.Get("/swagger/*", httpSwagger.Handler(httpSwagger.URL("http://localhost:8088/docs/swagger.json")))
 
 	http.ListenAndServe(":8088", r)
 }
