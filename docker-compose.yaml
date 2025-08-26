@@ -9,7 +9,7 @@ services:
     ports:
       - "8090:8090"
 
-  db-api:
+  perfume:
     build:
       context: perfume
     env_file:
@@ -38,7 +38,7 @@ services:
     volumes:
       - perfume_volume:/var/lib/postgresql/data
     
-  core:
+  perfumist:
     build:
       context: perfumist
     ports:

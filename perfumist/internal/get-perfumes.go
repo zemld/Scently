@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	getPerfumesUrl = "http://db-api:8089/v1/perfumes/get"
+	getPerfumesUrl = "http://perfume:8089/v1/perfumes/get"
 )
 
 func GetPerfumes(p util.GetParameters) ([]models.Perfume, bool) {
