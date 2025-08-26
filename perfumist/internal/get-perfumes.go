@@ -30,7 +30,7 @@ func GetPerfumes(p util.GetParameters) ([]models.Perfume, bool) {
 	}
 	defer perfumeResponse.Body.Close()
 
-	if perfumeResponse.StatusCode >= 300 {
+	if perfumeResponse.StatusCode >= 500 {
 		log.Printf("Bad response status: %v", perfumeResponse.Status)
 		return nil, false
 	}
