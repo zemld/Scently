@@ -1,4 +1,4 @@
-from models.perfume import Perfume, GluedPerfume
+from models.perfume import Perfume
 from url_collectors.gold_apple import collect_links_from_sitemap
 from perfume_info_collector.gold_apple import parse_pages_to_perfumes
 from apscheduler.schedulers.background import BackgroundScheduler

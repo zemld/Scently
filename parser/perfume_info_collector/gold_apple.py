@@ -10,6 +10,7 @@ LOCK = Lock()
 DIR = Path.cwd() / "collected_urls"
 PROPERTIES_CNT = 14
 
+# TODO: remove filter values
 TYPE_FILTER = (
     "духи",
     "туалетная вода",
