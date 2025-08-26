@@ -36,12 +36,12 @@ func NewGluedPerfume(p Perfume) GluedPerfume {
 	return GluedPerfume{
 		Brand:      p.Brand,
 		Name:       p.Name,
-		Properties: p.GetProperties(),
+		Properties: p.getProperties(),
 		Links:      map[int]string{p.Volume: p.Link},
 	}
 }
 
-func (p *Perfume) GetProperties() PerfumeProperties {
+func (p *Perfume) getProperties() PerfumeProperties {
 	encodedPerfume, _ := json.Marshal(*p)
 	var props PerfumeProperties
 	json.Unmarshal(encodedPerfume, &props)
