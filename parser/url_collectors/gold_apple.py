@@ -89,7 +89,7 @@ def get_sitemaps() -> list[str]:
         return []
 
 
-def get_urls_from_sitemap(sitemap: str, limit: int) -> list[str]:
+def get_urls_from_sitemap(sitemap: str, limit: int | None = None) -> list[str]:
     headers = {"User-Agent": "Mozilla/5.0"}
 
     try:
