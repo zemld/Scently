@@ -1,3 +1,4 @@
+import json
 from bs4 import BeautifulSoup, element
 import re
 import requests
@@ -10,7 +11,7 @@ LOCK = Lock()
 DIR = Path.cwd() / "collected_urls"
 PROPERTIES_CNT = 14
 
-SPLIT_NOTES_PATTERN = r",\s*|\s+и\s+"
+SPLIT_NOTES_PATTERN = r",\s*|\s+и\s+|\s+-\s+|\s+–\s+"
 
 
 def get_page_content(link: str) -> tuple[str, str]:
@@ -167,6 +168,5 @@ def parse_pages_to_perfumes() -> list[Perfume]:
 
 if __name__ == "__main__":
     perfumes = parse_pages_to_perfumes()
-    with open("goldapple_perfumes.txt", "w") as f:
-        for perfume in perfumes:
-            f.write(str(perfume))
+    with open("goldapple_perfumes.json", "w") as f:
+        json.dump([p.to_dict() for p in perfumes], f, ensure_ascii=False, indent=4)
