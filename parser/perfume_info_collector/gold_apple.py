@@ -10,7 +10,7 @@ LOCK = Lock()
 DIR = Path.cwd() / "collected_urls"
 PROPERTIES_CNT = 14
 
-SPLIT_NOTES_PATTERN = r"(,\s*)|(\s+и\s+)"
+SPLIT_NOTES_PATTERN = r",\s*|\s+и\s+"
 
 
 def get_page_content(link: str) -> tuple[str, str]:
