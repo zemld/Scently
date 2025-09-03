@@ -6,6 +6,7 @@ from models.perfume import Perfume
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
+from perfume_info_collector.map_notes import load_notes_map
 
 LOCK = Lock()
 DIR = Path.cwd() / "collected_urls"
@@ -88,12 +89,21 @@ def parse_properties(soup: BeautifulSoup) -> list[str]:
         return []
 
 
+def get_canonized_note(canonization: dict[str, str], note: str) -> str | None:
+    for key_note, canon_note in canonization.items():
+        if key_note in note:
+            return canon_note
+    return None
+
+
 def get_notes(notes: str) -> list[str]:
     notes = notes.lower()
     notes_list = re.split(SPLIT_NOTES_PATTERN, notes)
     notes_list = [note.strip() for note in notes_list if note.strip()]
     notes_list[-1] = notes_list[-1].strip(".")
-    return notes_list
+    canonization = load_notes_map()
+    canonized_notes = [get_canonized_note(canonization, note) for note in notes_list]
+    return canonized_notes
 
 
 def get_volume(volume: str) -> int:
