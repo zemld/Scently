@@ -10,14 +10,7 @@ LOCK = Lock()
 DIR = Path.cwd() / "collected_urls"
 PROPERTIES_CNT = 14
 
-# TODO: remove filter values
-TYPE_FILTER = (
-    "духи",
-    "туалетная вода",
-    "парфюмерная вода",
-    "экстракт",
-    "одеколон",
-)
+SPLIT_NOTES_PATTERN = r"[,|и]"
 
 
 def get_page_content(link: str) -> tuple[str, str]:
@@ -96,7 +89,7 @@ def parse_properties(soup: BeautifulSoup) -> list[str]:
 
 def get_notes(notes: str) -> list[str]:
     notes = notes.lower()
-    notes_list = notes.split(",")
+    notes_list = re.split(SPLIT_NOTES_PATTERN, notes)
     notes_list = [note.strip() for note in notes_list if note.strip()]
     notes_list[-1] = notes_list[-1].strip(".")
     return notes_list
