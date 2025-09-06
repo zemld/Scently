@@ -3,7 +3,7 @@ class Perfume:
     name: str
     perfume_type: str
     sex: str
-    family: str
+    family: list[str]
     upper_notes: list[str]
     middle_notes: list[str]
     base_notes: list[str]
@@ -16,7 +16,7 @@ class Perfume:
         name: str = "",
         perfume_type: str = "",
         sex: str = "unisex",
-        family: str = "",
+        family: list[str] = [],
         upper_notes: list[str] = [],
         middle_notes: list[str] = [],
         base_notes: list[str] = [],

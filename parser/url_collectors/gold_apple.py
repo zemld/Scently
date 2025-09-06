@@ -1,27 +1,10 @@
-import time
-import re
 from pathlib import Path
 import requests
-from requests import HTTPError
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from url_collectors.check_url import is_perfume_url, is_product_url
 
-PRODUCT_URL_RE = re.compile(r"^https://goldapple\.ru/\d{6,}-[a-z0-9-]+$", re.IGNORECASE)
 OUTPUT_DIR = Path.cwd() / "collected_urls"
-
-_PERFUME = [
-    re.compile(r"\bпарфюмированная\s+вода\b", re.IGNORECASE),
-    re.compile(r"\bпарфюмерная\s+вода\b", re.IGNORECASE),
-    re.compile(r"\bтуалетная\s+вода\b", re.IGNORECASE),
-    re.compile(r"\bэкстракт\s+духов\b", re.IGNORECASE),
-    re.compile(r"\bдухи\b", re.IGNORECASE),
-    re.compile(r"\beau\s*de\s*parfum\b", re.IGNORECASE),
-    re.compile(r"\beau\s*de\s*toilette\b", re.IGNORECASE),
-    re.compile(r"\beau\s*de\s*cologne\b", re.IGNORECASE),
-    re.compile(r"\bEDP\b", re.IGNORECASE),
-    re.compile(r"\bEDT\b", re.IGNORECASE),
-    re.compile(r"\bEDC\b", re.IGNORECASE),
-]
 
 
 def _get_output_file(index: int) -> Path:
@@ -37,39 +20,6 @@ def normalize_href(href: str) -> str | None:
         href = "https://goldapple.ru" + href
     href = href.split("?", 1)[0].rstrip("/")
     return href
-
-
-def is_product_url(href: str) -> bool:
-    return bool(PRODUCT_URL_RE.match(href))
-
-
-def _is_perfume_html(html: str) -> bool:
-    soup = BeautifulSoup(html, "lxml")
-    return any(rx.search(soup.title.string.strip()) for rx in _PERFUME)
-
-
-class PerfumeResponse:
-    url: str
-    is_perfume: bool
-    is_retry_needed: bool
-
-
-def _is_perfume_url(url: str, timeout: int = 12) -> PerfumeResponse:
-    time.sleep(1)
-    answer = PerfumeResponse()
-    answer.url = url
-    answer.is_retry_needed = False
-    try:
-        r = requests.get(url, timeout=timeout, headers={"User-Agent": "Mozilla/5.0"})
-        r.raise_for_status()
-        answer.is_perfume = _is_perfume_html(r.content)
-        return answer
-    except HTTPError as e:
-        print(f"HTTPError: {e}")
-        answer.is_retry_needed = e.response.status_code == 429
-        answer.is_perfume = False
-    except Exception:
-        return False
 
 
 def get_sitemaps() -> list[str]:
@@ -89,7 +39,7 @@ def get_sitemaps() -> list[str]:
         return []
 
 
-def get_urls_from_sitemap(sitemap: str, limit: int) -> list[str]:
+def get_urls_from_sitemap(sitemap: str, limit: int | None = None) -> list[str]:
     headers = {"User-Agent": "Mozilla/5.0"}
 
     try:
@@ -123,7 +73,7 @@ def process_urls(urls: ProcessedUrls, max_workers: int = 16) -> ProcessedUrls:
     processed = ProcessedUrls()
     print(f"Processing {len(urls.to_process)} URLs...")
     with ThreadPoolExecutor(max_workers=max_workers) as ex:
-        futs = {ex.submit(_is_perfume_url, u): u for u in urls.to_process}
+        futs = {ex.submit(is_perfume_url, u): u for u in urls.to_process}
         for fut in as_completed(futs):
             u = futs[fut]
             try:
