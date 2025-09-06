@@ -16,7 +16,7 @@
 бук;beech
 беламбр;belambra
 берез;birch
-ел;spruce
+ель;spruce
 блэквуд;blackwood
 светлое дерев;blonde wood
 розовое дерев;rosewood
@@ -48,11 +48,13 @@
 эвкалипт;eucalyptus
 пихт;fir
 гваяк;guaiac
+гуаяков;guaiac
+гваяков;guaiac
 хиб;hiba
 хинок;hinoki
 ладан;incienso
 сандал;sandalwood
-дерев;ironwood
+железное дерев;ironwood
 ишпинк;ishpink
 софор;kowhai
 кьяр;kyara
@@ -71,7 +73,7 @@
 дубовый мох;oakmoss
 сант;palo santo
 памплвуд;pamplewood
-кор;paperbark
+кора;paperbark
 папирус;papyrus
 сосн;pine
 слив;plum
@@ -83,7 +85,7 @@
 саман;saman
 сандалор;sandalore
 сассфрас;sassafras
-дерев;satinwood
+атласное дерев;satinwood
 опилк;sawdust
 секвой;sequoia
 платан;sycamore
@@ -96,3 +98,4 @@
 волфвуд;wolfwood
 древесные ноты;woody
 йохимб;yohimbe
+мох;moss

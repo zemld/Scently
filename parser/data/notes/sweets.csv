@@ -12,11 +12,11 @@
 бонбон;bonbon
 хлеб;bread
 бриош;brioche
-сахар;brown sugar
+коричневый сахар;brown sugar
 браун;brownie
 буббал;bubbaloo
 резинк;bubble gum
-сахар;burnt sugar
+карамелизированный сахар;burnt sugar
 масл;butter
 крем;buttercream
 ирис;butterscotch
@@ -59,6 +59,7 @@
 гурман;gourmand
 халв;halva
 мед;honey
+мёд;honey
 сот;honeycomb
 орхат;horchata
 морожен;ice cream
@@ -90,7 +91,8 @@
 брецел;pretzel
 профитрол;profiterole
 пудинг;pudding
-соленая карамел;salted caramel
+соленая карамель;salted caramel
+солёная карамель;salted caramel
 сорбет;sorbet
 суфл;souffle
 посыпк;sprinkles

@@ -2,7 +2,7 @@
 анис;anise
 асафетид;asafoetida
 лавр;bay
-перец;bengal pepper
+бенгальский перец;bengal pepper
 бирьян;biryani
 тмин;caraway
 кардамон;cardamom
@@ -22,22 +22,22 @@
 пажитник;fenugreek
 галангал;galanga
 имбир;ginger
-перец;guinea pepper
+гвинейский перец;guinea pepper
 специ;indian spices
-санш;japanese pepper
+японский перец;japanese pepper
 солодк;licorice
 мацис;mace
 горчиц;mustard seed
-орех;nutmeg
-нот;oily notes
-нот;oriental notes
+мускатный орех;nutmeg
+оливковые нот;oily notes
+восточные нот;oriental notes
 перец;pepper
 пимент;pimento
-перец;pink pepper
+розовый перец;pink pepper
 шафран;saffron
 сафралеин;safraleine
 кунжут;sesame
-нот;spicy notes
+пряные нот;spicy notes
 бадьян;star anise
 сум;sumac
 тамаринд;tamarind
@@ -46,3 +46,4 @@
 тосканол;toscanol
 ванил;vanilla
 васаб;wasabi
+тонка;tonka beans
