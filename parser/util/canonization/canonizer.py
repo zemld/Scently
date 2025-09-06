@@ -4,11 +4,12 @@ from util.levenshtein_distance import get_levenshtein_distance
 
 
 class Canonizer:
-    levenshtein_diff = 2
+    _levenshtein_diff = 2
     mapping: dict[str, str]
 
-    def __init__(self, mapping_path: Path):
+    def __init__(self, mapping_path: Path, levenshtein_diff: int = 2):
         self.mapping = self._load_mapping(mapping_path)
+        self._levenshtein_diff = levenshtein_diff
 
     def _load_mapping(self, path: Path) -> dict[str, str]:
         mapping = {}
@@ -37,11 +38,11 @@ class Canonizer:
         return result
 
     def _canonize_with_levenshtein(self, item: str) -> str | None:
-        lev_diff = self.levenshtein_diff + 1
+        lev_diff = self._levenshtein_diff + 1
         result = None
         for key in self.mapping.keys():
             lev_dist = get_levenshtein_distance(item, key)
-            if lev_dist < lev_diff and lev_dist <= self.levenshtein_diff:
+            if lev_dist < lev_diff and lev_dist <= self._levenshtein_diff:
                 result = self.mapping[key]
                 lev_diff = lev_dist
         return result
