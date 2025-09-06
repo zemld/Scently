@@ -46,11 +46,18 @@ class Canonizer:
                 lev_diff = lev_dist
         return result
 
-    def canonize(self, item: str) -> str | None:
-        exact = self._canonize_with_exact(item)
+    def _canonize_with_word(self, word: str) -> str | None:
+        exact = self._canonize_with_exact(word)
         if exact:
             return exact
-        prefix = self._canonize_with_prefix(item)
+        prefix = self._canonize_with_prefix(word)
         if prefix:
             return prefix
-        return self._canonize_with_levenshtein(item)
+        return self._canonize_with_levenshtein(word)
+
+    def canonize(self, words: list[str]) -> str | None:
+        for word in words:
+            canonized = self._canonize_with_word(word)
+            if canonized:
+                return canonized
+        return None

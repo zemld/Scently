@@ -47,13 +47,6 @@ class NoteCanonizer(Canonizer):
         "ых",
     )
 
-    def _canonize_by_words(self, note: list[str]) -> str | None:
-        for word in note:
-            canonized = super().canonize(word)
-            if canonized:
-                return canonized
-        return None
-
     def _preprocess_note(self, note_words: list[str]) -> list[str]:
         return [word.strip(",. ") for word in note_words if word.strip(",. ")]
 
@@ -75,10 +68,10 @@ class NoteCanonizer(Canonizer):
             if word not in self._meaningless_words
         ]
         without_adjectives, adjectives = self._divide_with_adjectives(essential_words)
-        canonized = self._canonize_by_words(without_adjectives)
+        canonized = super().canonize(without_adjectives)
         if canonized:
             return canonized
-        canonized = self._canonize_by_words(adjectives)
+        canonized = super().canonize(adjectives)
         if canonized:
             return canonized
         return super()._canonize_with_levenshtein(note)
