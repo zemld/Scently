@@ -78,7 +78,7 @@ class NoteCanonizer(Canonizer):
         canonized = self._canonize_by_words(without_adjectives)
         if canonized:
             return canonized
-        canonized = self._canonize_by_words(essential_words)
+        canonized = self._canonize_by_words(adjectives)
         if canonized:
             return canonized
         return super()._canonize_with_levenshtein(note)
