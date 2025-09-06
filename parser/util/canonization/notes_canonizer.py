@@ -48,7 +48,7 @@ class NoteCanonizer(Canonizer):
     )
 
     def _preprocess_note(self, note_words: list[str]) -> list[str]:
-        return [word.strip(",. ") for word in note_words if word.strip(",. ")]
+        return [word.strip(",. \n") for word in note_words if word.strip(",. ")]
 
     def _divide_with_adjectives(self, words: list[str]) -> tuple[list[str], list[str]]:
         without_adjectives = [
