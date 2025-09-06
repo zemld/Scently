@@ -18,7 +18,9 @@ definitions:
       brand:
         type: string
       family:
-        type: string
+        items:
+          type: string
+        type: array
       link:
         type: string
       middle_notes:

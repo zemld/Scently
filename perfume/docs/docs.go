@@ -145,7 +145,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "family": {
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "link": {
                     "type": "string"

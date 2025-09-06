@@ -16,10 +16,10 @@ const (
 		"name public.nonempty_text_field, " +
 		"perfume_type public.nonempty_text_field, " +
 		"sex public.nonempty_text_field, " +
-		"family public.nonempty_text_field, " +
-		"upper_notes TEXT[] NOT NULL, " +
-		"middle_notes TEXT[] NOT NULL, " +
-		"base_notes TEXT[] NOT NULL, " +
+		"family public.nonempty_text_field[], " +
+		"upper_notes public.nonempty_text_field[], " +
+		"middle_notes public.nonempty_text_field[], " +
+		"base_notes public.nonempty_text_field[], " +
 		"PRIMARY KEY (brand, name)" +
 		");"
 	CreateLinksTable = "CREATE TABLE IF NOT EXISTS perfume_links " +
