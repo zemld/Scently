@@ -6,7 +6,7 @@ from models.perfume import Perfume
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
-from util.canonize_note import canonize_note
+from util.canonization.canonize_note import canonize_note
 
 LOCK = Lock()
 DIR = Path.cwd() / "collected_urls"
