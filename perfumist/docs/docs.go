@@ -143,7 +143,10 @@ const docTemplate = `{
                     }
                 },
                 "family": {
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "middle_notes": {
                     "type": "array",

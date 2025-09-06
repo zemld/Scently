@@ -7,7 +7,7 @@ type Perfume struct {
 	Name        string   `json:"name"`
 	Type        string   `json:"type"`
 	Sex         string   `json:"sex"`
-	Family      string   `json:"family"`
+	Family      []string `json:"family"`
 	UpperNotes  []string `json:"upper_notes"`
 	MiddleNotes []string `json:"middle_notes"`
 	BaseNotes   []string `json:"base_notes"`

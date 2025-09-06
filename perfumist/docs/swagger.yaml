@@ -47,7 +47,9 @@ definitions:
           type: string
         type: array
       family:
-        type: string
+        items:
+          type: string
+        type: array
       middle_notes:
         items:
           type: string
