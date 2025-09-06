@@ -7,6 +7,7 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
 from util.canonization.canonize_note import canonize_note
+from util.canonization.canonize_sex import canonize_sex
 
 LOCK = Lock()
 DIR = Path.cwd() / "collected_urls"
@@ -110,7 +111,7 @@ def get_properties(soup: BeautifulSoup) -> Perfume | None:
         return None
     perfume = Perfume(
         perfume_type=properties[1].lower(),
-        sex=properties[3].lower(),
+        sex=canonize_sex(properties[3].lower()),
         family=properties[5].lower(),
         upper_notes=get_notes(properties[7]),
         middle_notes=get_notes(properties[9]),
