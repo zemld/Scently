@@ -6,14 +6,27 @@ from models.perfume import Perfume
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
-from util.canonization.canonize_note import canonize_note
-from util.canonization.canonize_sex import canonize_sex
+from util.canonization.notes_canonizer import NoteCanonizer
+from util.canonization.canonizer import Canonizer
+from util.canonization.type_canonizer import TypeCanonizer
 
 LOCK = Lock()
 DIR = Path.cwd() / "collected_urls"
 PROPERTIES_CNT = 14
 
 SPLIT_NOTES_PATTERN = r",\s*|\s+и\s+|\s+-\s+|\s+–\s+"
+
+NOTE_MAPPING_PATH = Path.cwd() / "data/notes/"
+NOTES_CANONIZER = NoteCanonizer(NOTE_MAPPING_PATH)
+
+SEX_MAPPING_PATH = Path.cwd() / "data/sex/"
+SEX_CANONIZER = Canonizer(SEX_MAPPING_PATH)
+
+FAMILIES_MAPPING_PATH = Path.cwd() / "data/families/"
+FAMILIES_CANONIZER = Canonizer(FAMILIES_MAPPING_PATH)
+
+TYPES_MAPPING_PATH = Path.cwd() / "data/types/"
+TYPES_CANONIZER = TypeCanonizer(TYPES_MAPPING_PATH)
 
 
 def get_page_content(link: str) -> tuple[str, str]:
@@ -95,7 +108,7 @@ def get_notes(notes: str) -> list[str]:
     notes_list = re.split(SPLIT_NOTES_PATTERN, notes)
     notes_list = [note.strip() for note in notes_list if note.strip()]
     notes_list[-1] = notes_list[-1].strip(".")
-    canonized_notes = [canonize_note(note) for note in notes_list]
+    canonized_notes = [NOTES_CANONIZER.canonize_note(note) for note in notes_list]
     canonized_notes = [note for note in canonized_notes if note]
     return canonized_notes
 
@@ -105,19 +118,32 @@ def get_volume(volume: str) -> int:
     return int(re.search(int_rx, volume).group(0)) if re.search(int_rx, volume) else 0
 
 
+def get_families(families: str) -> list[str]:
+    families = families.lower()
+    families_list = [family.strip().lower() for family in families.split(",")]
+    canonized_families = [
+        FAMILIES_CANONIZER.canonize([family]) for family in families_list
+    ]
+    canonized_families = [family for family in canonized_families if family]
+    return canonized_families
+
+
 def get_properties(soup: BeautifulSoup) -> Perfume | None:
     properties = parse_properties(soup)
     if not properties or len(properties) < PROPERTIES_CNT:
         return None
-    perfume = Perfume(
-        perfume_type=properties[1].lower(),
-        sex=canonize_sex(properties[3].lower()),
-        family=properties[5].lower(),
-        upper_notes=get_notes(properties[7]),
-        middle_notes=get_notes(properties[9]),
-        base_notes=get_notes(properties[11]),
-        volume=get_volume(properties[13]),
-    )
+    try:
+        perfume = Perfume(
+            perfume_type=TYPES_CANONIZER.canonize_type(properties[1].lower().strip()),
+            sex=SEX_CANONIZER.canonize(properties[3].lower().split()),
+            family=get_families(properties[5]),
+            upper_notes=get_notes(properties[7]),
+            middle_notes=get_notes(properties[9]),
+            base_notes=get_notes(properties[11]),
+            volume=get_volume(properties[13]),
+        )
+    except Exception as e:
+        perfume = None
     return perfume
 
 
