@@ -1,4 +1,4 @@
-from util.map_notes import load_notes_map
+from util.canonization.map_notes import load_notes_map
 from util.levenshtein_distance import get_levenshtein_distance
 from pathlib import Path
 
