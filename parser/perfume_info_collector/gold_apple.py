@@ -9,6 +9,7 @@ from threading import Lock
 from util.canonization.notes_canonizer import NoteCanonizer
 from util.canonization.canonizer import Canonizer
 from util.canonization.type_canonizer import TypeCanonizer
+import time
 
 LOCK = Lock()
 DIR = Path.cwd() / "collected_urls"
@@ -30,6 +31,7 @@ TYPES_CANONIZER = TypeCanonizer(TYPES_MAPPING_PATH)
 
 
 def get_page_content(link: str) -> tuple[str, str]:
+    time.sleep(1)
     headers = {"User-Agent": "Mozilla/5.0"}
     try:
         r = requests.get(link, timeout=20, headers=headers)
