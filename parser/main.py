@@ -34,7 +34,6 @@ async def _upload_perfumes_async(url: str, payload: dict) -> str:
 def update_perfumes():
     collect_links_from_sitemap()
     perfumes = parse_pages_to_perfumes()
-    print(f"Before glue: {len(perfumes)} perfumes")
 
     payload = {"perfumes": [p.to_dict() for p in perfumes]}
 
