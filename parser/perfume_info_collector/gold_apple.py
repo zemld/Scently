@@ -64,7 +64,10 @@ def get_brand_info(soup: BeautifulSoup) -> Brand:
         brand_info = [
             tag.string.strip() for tag in brand_tag.find_all("div") if tag.string
         ]
-        return Brand(brand_info[0], brand_info[1])
+        if len(brand_info) == 2:
+            return Brand(brand_info[0], brand_info[1])
+        elif len(brand_info) == 1:
+            return Brand(brand_info[0])
     except Exception as e:
         return Brand()
 
