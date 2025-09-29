@@ -4,9 +4,17 @@ import (
 	"net/http"
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/perplexity"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/similarity"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/models"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/util"
 )
+
+const suggestsCount = 4
+
+type gluedPerfumeWithScore struct {
+	models.GluedPerfume
+	Score float64
+}
 
 // @description Get suggests for perfumes. Accept brand and name and recommends 4+- perfumes which user probably will like.
 // @tags Perfumes
@@ -21,35 +29,41 @@ import (
 // @router /perfume [get]
 func SuggestHandler(w http.ResponseWriter, r *http.Request) {
 	var suggestResponse SuggestResponse
-	input, ok := parseQuery(r, &suggestResponse)
+	params, ok := parseQuery(r, &suggestResponse)
 	if !ok {
 		util.WriteResponse(w, suggestResponse, http.StatusBadRequest)
 		return
 	}
-
-	// perplexity
-	// TODO: implement perplexity + check perfume existence
-	_ = input
-
-	var suggested []perplexity.RankedPerfume = nil
-	suggested = append(suggested, perplexity.RankedPerfume{Brand: "Marc Jacobs", Name: "Daisy Love", Rank: 1})
-	suggested = append(suggested, perplexity.RankedPerfume{Brand: "Jardin de Parfums", Name: "UNIQUE LOVE LETTER", Rank: 2})
-	suggested = append(suggested, perplexity.RankedPerfume{Brand: "Chloé", Name: "Nomade", Rank: 3})
-	// TODO: обновить респонс (поле Success) и тут же может быть 500 ошибка
-
-	filtered := filterSuggests(input.Brand, input.Name, suggested)
-	enriched, ok := enrichSuggestedPerfumes(filtered)
+	// TODO: эти запросы нужно посылать параллельно
+	favouriteRawPerfumes, ok := internal.GetPerfumes(params)
 	if !ok {
 		suggestResponse.Success = false
 		util.WriteResponse(w, suggestResponse, http.StatusInternalServerError)
 		return
 	}
-	if len(enriched) == 0 {
-		util.WriteResponse(w, suggestResponse, http.StatusNoContent)
+	favouritePerfume := internal.Glue(favouriteRawPerfumes)[0]
+	allRawPerfumes, ok := internal.GetPerfumes(*util.NewGetParameters())
+	if !ok {
+		suggestResponse.Success = false
+		util.WriteResponse(w, suggestResponse, http.StatusInternalServerError)
 		return
 	}
-	suggestResponse.Suggested = enriched
-	util.WriteResponse(w, suggestResponse, http.StatusOK)
+
+	allPerfumes := internal.Glue(allRawPerfumes)
+	mostSimilar := make([]gluedPerfumeWithScore, suggestsCount)
+	for _, perfume := range allPerfumes {
+		if favouritePerfume.Equal(perfume) {
+			continue
+		}
+		similarityScore := similarity.GetPerfumeSimilarityScore(favouritePerfume.Properties, perfume.Properties)
+		updateMostSimilarIfNeeded(mostSimilar, perfume, similarityScore)
+	}
+	fillResponseWithSuggestions(&suggestResponse, mostSimilar)
+	if suggestResponse.Success {
+		util.WriteResponse(w, suggestResponse, http.StatusOK)
+	} else {
+		util.WriteResponse(w, suggestResponse, http.StatusNoContent)
+	}
 }
 
 func parseQuery(r *http.Request, suggestResponse *SuggestResponse) (util.GetParameters, bool) {
@@ -65,34 +79,34 @@ func parseQuery(r *http.Request, suggestResponse *SuggestResponse) (util.GetPara
 	return *util.NewGetParameters().WithBrand(brand).WithName(name), true
 }
 
-func filterSuggests(inputBrand string, inputName string, suggests []perplexity.RankedPerfume) []perplexity.RankedPerfume {
-	var filtered []perplexity.RankedPerfume
-	currentRank := 1
-	for _, s := range suggests {
-		if s.Brand == inputBrand && s.Name == inputName {
-			continue
+func updateMostSimilarIfNeeded(mostSimilar []gluedPerfumeWithScore, perfume models.GluedPerfume, similarityScore float64) {
+	current := perfume
+	for i := range mostSimilar {
+		if similarityScore > mostSimilar[i].Score {
+			tmp := mostSimilar[i]
+			mostSimilar[i].Score = similarityScore
+			mostSimilar[i].GluedPerfume = current
+			current = tmp.GluedPerfume
+			similarityScore = tmp.Score
 		}
-		f := s
-		f.Rank = currentRank
-		currentRank++
-		filtered = append(filtered, f)
 	}
-	return filtered
 }
 
-func enrichSuggestedPerfumes(suggested []perplexity.RankedPerfume) ([]rankedPerfumeWithProps, bool) {
-	var result []rankedPerfumeWithProps
-	for _, suggestedPerfume := range suggested {
-		p := util.NewGetParameters().WithBrand(suggestedPerfume.Brand).WithName(suggestedPerfume.Name)
-		suggestedPerfumesWithProps, ok := internal.GetPerfumes(*p)
-		if !ok {
-			return nil, false
+func fillResponseWithSuggestions(response *SuggestResponse, suggestions []gluedPerfumeWithScore) {
+	for i, suggestion := range suggestions {
+		if suggestion.Score == 0 {
+			break
 		}
-		if suggestedPerfumesWithProps == nil {
-			continue
-		}
-		glued := util.GluePerfumes(suggestedPerfumesWithProps)
-		result = append(result, rankedPerfumeWithProps{Perfume: glued[0], Rank: suggestedPerfume.Rank})
+		response.Suggested = append(
+			response.Suggested,
+			rankedPerfumeWithProps{
+				Rank:    i + 1,
+				Perfume: suggestion.GluedPerfume,
+			})
 	}
-	return result, true
+	if len(response.Suggested) > 0 {
+		response.Success = true
+	} else {
+		response.Success = false
+	}
 }

@@ -43,6 +43,9 @@ func GetPerfumes(p util.GetParameters) ([]models.Perfume, bool) {
 	var perfumes models.PerfumeResponse
 	json.Unmarshal(body, &perfumes)
 	log.Printf("Got %d perfumes", len(perfumes.Perfumes))
+	if len(perfumes.Perfumes) == 0 {
+		return perfumes.Perfumes, false
+	}
 	return perfumes.Perfumes, true
 }
 
