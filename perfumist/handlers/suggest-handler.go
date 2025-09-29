@@ -36,12 +36,14 @@ func SuggestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	favouriteRawPerfumes, ok := internal.GetPerfumes(params)
 	if !ok {
+		suggestResponse.Success = false
 		util.WriteResponse(w, suggestResponse, http.StatusInternalServerError)
 		return
 	}
 	favouritePerfume := internal.Glue(favouriteRawPerfumes)[0]
 	allRawPerfumes, ok := internal.GetPerfumes(*util.NewGetParameters())
 	if !ok {
+		suggestResponse.Success = false
 		util.WriteResponse(w, suggestResponse, http.StatusInternalServerError)
 		return
 	}
