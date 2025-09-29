@@ -34,6 +34,7 @@ func SuggestHandler(w http.ResponseWriter, r *http.Request) {
 		util.WriteResponse(w, suggestResponse, http.StatusBadRequest)
 		return
 	}
+	// TODO: эти запросы нужно посылать параллельно
 	favouriteRawPerfumes, ok := internal.GetPerfumes(params)
 	if !ok {
 		suggestResponse.Success = false
