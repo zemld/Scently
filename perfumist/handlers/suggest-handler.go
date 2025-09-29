@@ -49,6 +49,9 @@ func SuggestHandler(w http.ResponseWriter, r *http.Request) {
 	allPerfumes := internal.Glue(allRawPerfumes)
 	mostSimilar := make([]gluedPerfumeWithScore, suggestsCount)
 	for _, perfume := range allPerfumes {
+		if favouritePerfume.Equal(perfume) {
+			continue
+		}
 		similarityScore := similarity.GetPerfumeSimilarityScore(favouritePerfume.Properties, perfume.Properties)
 		updateMostSimilarIfNeeded(mostSimilar, perfume, similarityScore)
 	}
