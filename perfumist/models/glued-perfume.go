@@ -15,3 +15,7 @@ func NewGluedPerfume(p Perfume) GluedPerfume {
 		Links:      map[int]string{p.Volume: p.Link},
 	}
 }
+
+func (g GluedPerfume) Equal(other GluedPerfume) bool {
+	return g.Brand == other.Brand && g.Name == other.Name
+}
