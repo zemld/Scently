@@ -9,7 +9,7 @@ const (
 	female = "female"
 )
 
-func GetPerfumeSimilarityScore(first models.Perfume, second models.Perfume) float64 {
+func GetPerfumeSimilarityScore(first models.PerfumeProperties, second models.PerfumeProperties) float64 {
 	if first.Sex == male && second.Sex == female || first.Sex == female && second.Sex == male {
 		return 0
 	}
