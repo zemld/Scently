@@ -60,6 +60,21 @@ class PageParser(ABC):
             volume,
         )
 
+    def _canonize(self, item: str | list[str], canonizer: Canonizer) -> str | list[str]:
+        if not canonizer:
+            return item
+
+        if isinstance(item, str):
+            return self._canonize_string(item, canonizer)
+        return self._canonize_list(item, canonizer)
+
+    def _canonize_list(self, items: list[str], canonizer: Canonizer) -> list[str]:
+        canonized_items = [self._canonize_string(item, canonizer) for item in items]
+        return [item for item in canonized_items if item]
+
+    def _canonize_string(self, item: str, canonizer: Canonizer) -> str:
+        return canonizer.canonize(item)
+
     @abstractmethod
     def _parse_brand(self, page: BeautifulSoup) -> str:
         pass
