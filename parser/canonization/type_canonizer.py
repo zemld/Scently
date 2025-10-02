@@ -1,9 +1,9 @@
-from util.canonization.canonizer import Canonizer
+from canonization.canonizer import Canonizer
 from util.levenshtein_distance import get_levenshtein_distance
 
 
 class TypeCanonizer(Canonizer):
-    def canonize_type(self, perfume_type: str) -> str | None:
+    def canonize(self, perfume_type: str) -> str | None:
         exact = super()._canonize_with_exact(perfume_type)
         if exact:
             return exact
