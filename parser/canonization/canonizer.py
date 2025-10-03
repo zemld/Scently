@@ -1,6 +1,6 @@
 from pathlib import Path
 import csv
-from util.levenshtein_distance import get_levenshtein_distance
+from canonization.levenshtein_distance import get_levenshtein_distance
 
 
 class Canonizer:
