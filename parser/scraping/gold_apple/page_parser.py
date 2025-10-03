@@ -18,6 +18,7 @@ class GoldApplePageParser(PageParser):
             return ""
         return super()._canonize(brand_info[0], self._brand_canonizer)
 
+    @staticmethod
     def _is_brand_tag(tag: element.Tag) -> bool:
         return tag.has_attr("text") and tag.get("text") == "Бренд"
 
@@ -27,6 +28,7 @@ class GoldApplePageParser(PageParser):
             return ""
         return super()._canonize(name_tag[0].string.strip(), self._name_canonizer)
 
+    @staticmethod
     def _is_name_tag(tag: element.Tag) -> bool:
         return (
             tag.name == "span"
@@ -35,7 +37,7 @@ class GoldApplePageParser(PageParser):
             and tag.has_attr("class")
         )
 
-    def _parse_properties(page: BeautifulSoup) -> list[str]:
+    def _parse_properties(self, page: BeautifulSoup) -> list[str]:
         properties_title_rx = re.compile("Подробные характеристики", re.IGNORECASE)
         properties_title = page.find_all(string=properties_title_rx)
         if not properties_title:
@@ -60,7 +62,7 @@ class GoldApplePageParser(PageParser):
         props = self._parse_properties(page)
         if not props or len(props) < 4:
             return ""
-        return super()._canonize(props[3], self._sex_canonizer)
+        return super()._canonize(props[3].lower().split(), self._sex_canonizer)
 
     def _parse_families(self, page) -> list[str]:
         props = self._parse_properties(page)
@@ -74,11 +76,12 @@ class GoldApplePageParser(PageParser):
 
     def _parse_notes(self, notes: str) -> list[str]:
         notes_list = [
-            super()._canonize(note.strip().lower(), self._notes_canonizer)
+            note.strip(" .,").lower()
             for note in re.split(self._split_notes_pattern, notes)
             if note.strip()
         ]
-        return [note for note in notes_list if note]
+        canonized = super()._canonize(notes_list, self._notes_canonizer)
+        return [note for note in canonized if note]
 
     def _parse_upper_notes(self, page) -> list[str]:
         props = self._parse_properties(page)

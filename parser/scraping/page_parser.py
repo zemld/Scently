@@ -38,11 +38,10 @@ class PageParser(ABC):
         middle_notes = self._parse_middle_notes(page)
         base_notes = self._parse_base_notes(page)
         volume = self._parse_volume(page)
-
         if (
             any(item == "" for item in (brand, name, perfume_type, sex))
             or any(
-                len(item) for item in (families, upper_notes, middle_notes, base_notes)
+                not item for item in (families, upper_notes, middle_notes, base_notes)
             )
             or volume == 0
         ):
@@ -69,11 +68,10 @@ class PageParser(ABC):
         return self._canonize_list(item, canonizer)
 
     def _canonize_list(self, items: list[str], canonizer: Canonizer) -> list[str]:
-        canonized_items = [self._canonize_string(item, canonizer) for item in items]
-        return [item for item in canonized_items if item]
+        return canonizer.canonize(items)
 
     def _canonize_string(self, item: str, canonizer: Canonizer) -> str:
-        return canonizer.canonize(item)
+        return canonizer.canonize([item])
 
     @abstractmethod
     def _parse_brand(self, page: BeautifulSoup) -> str:
