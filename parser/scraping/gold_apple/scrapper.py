@@ -1,5 +1,5 @@
 from scraping.scrapper import Scrapper
-from util.send_request import send_request
+from util.send_request import get_page
 from models.perfume import Perfume
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -18,7 +18,7 @@ class GoldAppleScrapper(Scrapper):
 
         sitemaps = [
             sitemap.find("loc").string
-            for sitemap in send_request(sitemaps_url).find_all("sitemap")
+            for sitemap in get_page(sitemaps_url).find_all("sitemap")
         ]
         self._sitemaps = [sitemap for sitemap in sitemaps if sitemap]
         self._page_parser = page_parser
@@ -30,7 +30,7 @@ class GoldAppleScrapper(Scrapper):
         print(f"Scraping sitemap {self._sitemaps[index]}.")
         if index + 1 > len(self._sitemaps):
             return None
-        links_page = send_request(self._sitemaps[index])
+        links_page = get_page(self._sitemaps[index])
         if not links_page:
             print("Unable to scrap.")
             return []
@@ -59,7 +59,7 @@ class GoldAppleScrapper(Scrapper):
     def fetch_perfume(self, link) -> Perfume | None:
         time.sleep(1)
 
-        page = send_request(link)
+        page = get_page(link)
         if not page:
             return None
 
