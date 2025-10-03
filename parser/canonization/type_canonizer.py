@@ -3,7 +3,10 @@ from canonization.levenshtein_distance import get_levenshtein_distance
 
 
 class TypeCanonizer(Canonizer):
-    def canonize(self, perfume_type: str) -> str | None:
+    def canonize(self, perfume_type: list[str]) -> str | None:
+        if not perfume_type:
+            return None
+        perfume_type = perfume_type[0]
         exact = super()._canonize_with_exact(perfume_type)
         if exact:
             return exact
