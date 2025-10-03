@@ -1,0 +1,74 @@
+from scraping.scrapper import Scrapper
+from util.send_request import send_request
+from models.perfume import Perfume
+import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from threading import Lock
+import time
+from scraping.page_parser import PageParser
+
+
+class GoldAppleScrapper(Scrapper):
+    _product_url_re = re.compile(
+        r"^https://goldapple\.ru/\d{6,}-[a-z0-9-]+$", re.IGNORECASE
+    )
+
+    def __init__(self, page_parser: PageParser):
+        sitemaps_url = "https://goldapple.ru/sitemap.xml"
+
+        sitemaps = [
+            sitemap.find("loc").string
+            for sitemap in send_request(sitemaps_url).find_all("sitemap")
+        ]
+        self._sitemaps = [sitemap for sitemap in sitemaps if sitemap]
+        self._page_parser = page_parser
+
+    def _is_product_link(self, link: str) -> bool:
+        return bool(self._product_url_re.match(link))
+
+    def scrap_sitemap(self, index) -> list[Perfume]:
+        print(f"Scraping sitemap {self._sitemaps[index]}.")
+        if index + 1 > len(self._sitemaps):
+            return None
+        links_page = send_request(self._sitemaps[index])
+        if not links_page:
+            print("Unable to scrap.")
+            return []
+
+        links = [link.string.strip() for link in links_page.find_all("loc")]
+        product_links = [link for link in links if link and self._is_product_link(link)]
+        print(f"Found {len(product_links)} in sitemap.")
+
+        product_links = product_links[:100]
+        perfumes = []
+        locker = Lock()
+        with ThreadPoolExecutor(self._workers) as ex:
+            futures = {
+                ex.submit(self.fetch_perfume, link): link for link in product_links
+            }
+            for fut in as_completed(futures):
+                perfume = futures[fut]
+                if not perfume:
+                    continue
+                with locker:
+                    perfumes.append(perfume)
+
+        print(f"Collected {len(perfumes)}.")
+        return perfumes
+
+    def fetch_perfume(self, link) -> Perfume | None:
+        time.sleep(1)
+
+        page = send_request(link)
+        if not page:
+            return None
+
+        if not any(rx.search(page.title.string.strip()) for rx in self._perfumes_re):
+            return None
+
+        perfume = self._page_parser.parse_perfume_from_page(page)
+        if not perfume:
+            return None
+
+        perfume.link = link
+        return perfume
