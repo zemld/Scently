@@ -21,7 +21,7 @@ import (
 // @failure 400 {object} UpdateResponse "Wrong perfumes format"
 // @failure 500 {object} UpdateResponse "Something went wrong while update perfumes state"
 // @router /update [post]
-func UpdateHandler(w http.ResponseWriter, r *http.Request) {
+func Update(w http.ResponseWriter, r *http.Request) {
 	p := getUpdateParametersFromRequest(r)
 	perfumes, err := getPerfumesToUpdate(r)
 	if err != nil {

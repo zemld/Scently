@@ -26,7 +26,7 @@ type gluedPerfumeWithScore struct {
 // @failure 400 {object} SuggestResponse "Incorrect parameters"
 // @failure 500 {object} SuggestResponse
 // @router /perfume [get]
-func SuggestHandler(w http.ResponseWriter, r *http.Request) {
+func Suggest(w http.ResponseWriter, r *http.Request) {
 	var suggestResponse SuggestResponse
 	params, ok := parseQuery(r, &suggestResponse)
 	if !ok {
@@ -47,8 +47,8 @@ func SuggestHandler(w http.ResponseWriter, r *http.Request) {
 		WriteResponse(w, suggestResponse, http.StatusInternalServerError)
 		return
 	}
-
 	allPerfumes := app.Glue(allRawPerfumes)
+
 	mostSimilar := make([]gluedPerfumeWithScore, suggestsCount)
 	for _, perfume := range allPerfumes {
 		if favouritePerfume.Equal(perfume) {
@@ -57,6 +57,7 @@ func SuggestHandler(w http.ResponseWriter, r *http.Request) {
 		similarityScore := app.GetPerfumeSimilarityScore(favouritePerfume.Properties, perfume.Properties)
 		updateMostSimilarIfNeeded(mostSimilar, perfume, similarityScore)
 	}
+
 	fillResponseWithSuggestions(&suggestResponse, mostSimilar)
 	if suggestResponse.Success {
 		WriteResponse(w, suggestResponse, http.StatusOK)

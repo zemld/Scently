@@ -18,9 +18,9 @@ func main() {
 	r := chi.NewRouter()
 
 	r.Route("/v1/perfumes", func(r chi.Router) {
-		r.Get("/get", handlers.SelectHandler)
+		r.Get("/get", handlers.Select)
 		// /v1/perfumes/update?hard:bool&password=string
-		r.Post("/update", handlers.UpdateHandler)
+		r.Post("/update", handlers.Update)
 	})
 
 	fs := http.FileServer(http.Dir("./docs"))

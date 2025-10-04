@@ -16,7 +16,7 @@ func main() {
 	r := chi.NewRouter()
 
 	r.Route("/v1/suggest", func(r chi.Router) {
-		r.Get("/perfume", handlers.SuggestHandler)
+		r.Get("/perfume", handlers.Suggest)
 	})
 
 	fs := http.FileServer(http.Dir("./docs"))

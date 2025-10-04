@@ -17,7 +17,7 @@ import (
 // @success 204 {object} PerfumeResponse "No perfumes found"
 // @failure 500 {object} PerfumeResponse "Something went wrong while processing request"
 // @router /get [get]
-func SelectHandler(w http.ResponseWriter, r *http.Request) {
+func Select(w http.ResponseWriter, r *http.Request) {
 	p := getSelectionParameters(r)
 	perfumes, status := core.Select(p)
 	response := PerfumeResponse{Perfumes: perfumes, State: status}
