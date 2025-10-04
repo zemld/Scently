@@ -1,10 +1,10 @@
-package internal
+package core
 
 import (
 	"context"
 	"time"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/db/config"
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/config"
 )
 
 func CreateContext(c *config.Config) (context.Context, context.CancelFunc) {

@@ -6,15 +6,30 @@ import (
 	"log"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/db/config"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/db/constants"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/db/internal"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/models"
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/config"
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/constants"
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
 )
+
+type UpdateStatus struct {
+	SuccessfulPerfumes []models.Perfume `json:"successful_perfumes"`
+	FailedPerfumes     []models.Perfume `json:"failed_perfumes"`
+	State              ProcessedState   `json:"state"`
+}
+
+func NewUpdateStatus(success bool) *UpdateStatus {
+	status := UpdateStatus{
+		SuccessfulPerfumes: []models.Perfume{},
+		FailedPerfumes:     []models.Perfume{},
+		State:              NewProcessedState(),
+	}
+	status.State.Success = success
+	return &status
+}
 
 func Update(params *UpdateParameters, perfumes []models.Perfume) UpdateStatus {
 	config := config.NewConfig()
-	ctx, cancel := internal.CreateContext(config)
+	ctx, cancel := CreateContext(config)
 	defer cancel()
 
 	conn, err := pgx.Connect(ctx, config.GetConnectionString())

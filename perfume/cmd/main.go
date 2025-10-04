@@ -5,8 +5,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	httpSwagger "github.com/swaggo/http-swagger"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/db/core"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/handlers"
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/core"
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/handlers"
 )
 
 // @title Perfume DB API
@@ -18,9 +18,9 @@ func main() {
 	r := chi.NewRouter()
 
 	r.Route("/v1/perfumes", func(r chi.Router) {
-		r.Get("/get", handlers.SelectHandler)
+		r.Get("/get", handlers.Select)
 		// /v1/perfumes/update?hard:bool&password=string
-		r.Post("/update", handlers.UpdateHandler)
+		r.Post("/update", handlers.Update)
 	})
 
 	fs := http.FileServer(http.Dir("./docs"))

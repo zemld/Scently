@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/db/constants"
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/constants"
 )
 
 type SelectParameters struct {

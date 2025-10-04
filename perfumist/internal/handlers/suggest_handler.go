@@ -3,10 +3,9 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/similarity"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/models"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/util"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/app"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/util"
 )
 
 const suggestsCount = 4
@@ -27,42 +26,43 @@ type gluedPerfumeWithScore struct {
 // @failure 400 {object} SuggestResponse "Incorrect parameters"
 // @failure 500 {object} SuggestResponse
 // @router /perfume [get]
-func SuggestHandler(w http.ResponseWriter, r *http.Request) {
+func Suggest(w http.ResponseWriter, r *http.Request) {
 	var suggestResponse SuggestResponse
 	params, ok := parseQuery(r, &suggestResponse)
 	if !ok {
-		util.WriteResponse(w, suggestResponse, http.StatusBadRequest)
+		WriteResponse(w, suggestResponse, http.StatusBadRequest)
 		return
 	}
 	// TODO: эти запросы нужно посылать параллельно
-	favouriteRawPerfumes, ok := internal.GetPerfumes(params)
+	favouriteRawPerfumes, ok := app.GetPerfumes(params)
 	if !ok {
 		suggestResponse.Success = false
-		util.WriteResponse(w, suggestResponse, http.StatusInternalServerError)
+		WriteResponse(w, suggestResponse, http.StatusInternalServerError)
 		return
 	}
-	favouritePerfume := internal.Glue(favouriteRawPerfumes)[0]
-	allRawPerfumes, ok := internal.GetPerfumes(*util.NewGetParameters())
+	favouritePerfume := app.Glue(favouriteRawPerfumes)[0]
+	allRawPerfumes, ok := app.GetPerfumes(*util.NewGetParameters())
 	if !ok {
 		suggestResponse.Success = false
-		util.WriteResponse(w, suggestResponse, http.StatusInternalServerError)
+		WriteResponse(w, suggestResponse, http.StatusInternalServerError)
 		return
 	}
+	allPerfumes := app.Glue(allRawPerfumes)
 
-	allPerfumes := internal.Glue(allRawPerfumes)
 	mostSimilar := make([]gluedPerfumeWithScore, suggestsCount)
 	for _, perfume := range allPerfumes {
 		if favouritePerfume.Equal(perfume) {
 			continue
 		}
-		similarityScore := similarity.GetPerfumeSimilarityScore(favouritePerfume.Properties, perfume.Properties)
+		similarityScore := app.GetPerfumeSimilarityScore(favouritePerfume.Properties, perfume.Properties)
 		updateMostSimilarIfNeeded(mostSimilar, perfume, similarityScore)
 	}
+
 	fillResponseWithSuggestions(&suggestResponse, mostSimilar)
 	if suggestResponse.Success {
-		util.WriteResponse(w, suggestResponse, http.StatusOK)
+		WriteResponse(w, suggestResponse, http.StatusOK)
 	} else {
-		util.WriteResponse(w, suggestResponse, http.StatusNoContent)
+		WriteResponse(w, suggestResponse, http.StatusNoContent)
 	}
 }
 

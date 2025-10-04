@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	httpSwagger "github.com/swaggo/http-swagger"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/handlers"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/handlers"
 )
 
 // @title Perfume Suggestion Service
@@ -16,7 +16,7 @@ func main() {
 	r := chi.NewRouter()
 
 	r.Route("/v1/suggest", func(r chi.Router) {
-		r.Get("/perfume", handlers.SuggestHandler)
+		r.Get("/perfume", handlers.Suggest)
 	})
 
 	fs := http.FileServer(http.Dir("./docs"))
