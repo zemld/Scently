@@ -1,7 +1,7 @@
 package similarity
 
 import (
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/models"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
 )
 
 const (

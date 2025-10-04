@@ -1,9 +1,9 @@
-package internal
+package app
 
 import (
 	"fmt"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/models"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
 )
 
 func Glue(perfumes []models.Perfume) []models.GluedPerfume {

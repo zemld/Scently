@@ -1,6 +1,6 @@
 package similarity
 
-import "github.com/zemld/PerfumeRecommendationSystem/perfumist/models"
+import "github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
 
 func getNotesSimilarityScore(first models.PerfumeProperties, second models.PerfumeProperties) float64 {
 	upperNotesSimilarityScore := getListSimilarityScore(first.UpperNotes, second.UpperNotes)

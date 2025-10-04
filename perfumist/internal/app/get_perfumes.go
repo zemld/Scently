@@ -1,4 +1,4 @@
-package internal
+package app
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/models"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/util"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/util"
 )
 
 const (

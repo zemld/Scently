@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	httpSwagger "github.com/swaggo/http-swagger"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/handlers"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/handlers"
 )
 
 // @title Perfume Suggestion Service
