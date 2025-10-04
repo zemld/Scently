@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/app"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/app/similarity"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/util"
 )
@@ -55,7 +54,7 @@ func SuggestHandler(w http.ResponseWriter, r *http.Request) {
 		if favouritePerfume.Equal(perfume) {
 			continue
 		}
-		similarityScore := similarity.GetPerfumeSimilarityScore(favouritePerfume.Properties, perfume.Properties)
+		similarityScore := app.GetPerfumeSimilarityScore(favouritePerfume.Properties, perfume.Properties)
 		updateMostSimilarIfNeeded(mostSimilar, perfume, similarityScore)
 	}
 	fillResponseWithSuggestions(&suggestResponse, mostSimilar)
