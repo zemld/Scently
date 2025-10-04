@@ -9,6 +9,35 @@ definitions:
       successful_count:
         type: integer
     type: object
+  handlers.PerfumeCollection:
+    properties:
+      perfumes:
+        items:
+          $ref: '#/definitions/models.Perfume'
+        type: array
+    type: object
+  handlers.PerfumeResponse:
+    properties:
+      perfumes:
+        items:
+          $ref: '#/definitions/models.Perfume'
+        type: array
+      state:
+        $ref: '#/definitions/core.ProcessedState'
+    type: object
+  handlers.UpdateResponse:
+    properties:
+      failed_perfumes:
+        items:
+          $ref: '#/definitions/models.Perfume'
+        type: array
+      state:
+        $ref: '#/definitions/core.ProcessedState'
+      successful_perfumes:
+        items:
+          $ref: '#/definitions/models.Perfume'
+        type: array
+    type: object
   models.Perfume:
     properties:
       base_notes:
@@ -40,35 +69,6 @@ definitions:
       volume:
         type: integer
     type: object
-  util.PerfumeCollection:
-    properties:
-      perfumes:
-        items:
-          $ref: '#/definitions/models.Perfume'
-        type: array
-    type: object
-  util.PerfumeResponse:
-    properties:
-      perfumes:
-        items:
-          $ref: '#/definitions/models.Perfume'
-        type: array
-      state:
-        $ref: '#/definitions/core.ProcessedState'
-    type: object
-  util.UpdateResponse:
-    properties:
-      failed_perfumes:
-        items:
-          $ref: '#/definitions/models.Perfume'
-        type: array
-      state:
-        $ref: '#/definitions/core.ProcessedState'
-      successful_perfumes:
-        items:
-          $ref: '#/definitions/models.Perfume'
-        type: array
-    type: object
 info:
   contact: {}
   description: Microservice which operates over perfume database
@@ -93,15 +93,15 @@ paths:
         "200":
           description: Found perfumes
           schema:
-            $ref: '#/definitions/util.PerfumeResponse'
+            $ref: '#/definitions/handlers.PerfumeResponse'
         "204":
           description: No perfumes found
           schema:
-            $ref: '#/definitions/util.PerfumeResponse'
+            $ref: '#/definitions/handlers.PerfumeResponse'
         "500":
           description: Something went wrong while processing request
           schema:
-            $ref: '#/definitions/util.PerfumeResponse'
+            $ref: '#/definitions/handlers.PerfumeResponse'
       summary: Get list of perfumes
       tags:
       - Perfumes
@@ -124,20 +124,20 @@ paths:
         name: perfumes
         required: true
         schema:
-          $ref: '#/definitions/util.PerfumeCollection'
+          $ref: '#/definitions/handlers.PerfumeCollection'
       responses:
         "200":
           description: Update successful
           schema:
-            $ref: '#/definitions/util.UpdateResponse'
+            $ref: '#/definitions/handlers.UpdateResponse'
         "400":
           description: Wrong perfumes format
           schema:
-            $ref: '#/definitions/util.UpdateResponse'
+            $ref: '#/definitions/handlers.UpdateResponse'
         "500":
           description: Something went wrong while update perfumes state
           schema:
-            $ref: '#/definitions/util.UpdateResponse'
+            $ref: '#/definitions/handlers.UpdateResponse'
       summary: Update perfumes
       tags:
       - Perfumes

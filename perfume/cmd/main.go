@@ -5,8 +5,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	httpSwagger "github.com/swaggo/http-swagger"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/db/core"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/handlers"
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/core"
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/handlers"
 )
 
 // @title Perfume DB API

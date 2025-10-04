@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/db/core"
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/core"
 )
 
 func getUpdateParametersFromRequest(r *http.Request) *core.UpdateParameters {

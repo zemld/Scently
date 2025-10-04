@@ -4,14 +4,13 @@ import (
 	"log"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/db/config"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/db/internal"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/models"
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/config"
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
 )
 
 func Select(params *SelectParameters) ([]models.Perfume, ProcessedState) {
 	config := config.NewConfig()
-	ctx, cancel := internal.CreateContext(config)
+	ctx, cancel := CreateContext(config)
 	defer cancel()
 
 	conn, err := pgx.Connect(ctx, config.GetConnectionString())
