@@ -110,6 +110,9 @@ const docTemplate = `{
                 },
                 "rank": {
                     "type": "integer"
+                },
+                "score": {
+                    "type": "number"
                 }
             }
         },

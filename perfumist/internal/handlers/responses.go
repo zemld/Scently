@@ -10,6 +10,7 @@ import (
 type rankedPerfumeWithProps struct {
 	Perfume models.GluedPerfume `json:"perfume"`
 	Rank    int                 `json:"rank"`
+	Score   float64             `json:"similarity_score"`
 }
 
 type inputPerfume struct {

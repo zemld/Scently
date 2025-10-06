@@ -26,6 +26,8 @@ definitions:
         $ref: '#/definitions/models.GluedPerfume'
       rank:
         type: integer
+      score:
+        type: number
     type: object
   models.GluedPerfume:
     properties:
