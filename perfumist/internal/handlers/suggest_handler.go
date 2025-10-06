@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"context"
 	"math"
 	"net/http"
+	"time"
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/app"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
@@ -34,21 +36,22 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 		WriteResponse(w, suggestResponse, http.StatusBadRequest)
 		return
 	}
-	// TODO: эти запросы нужно посылать параллельно
-	favouriteRawPerfumes, ok := app.GetPerfumes(params)
+
+	favouritePerfumesChan := make(chan perfumesFetchAndGlueResult)
+	allPerfumesChan := make(chan perfumesFetchAndGlueResult)
+	go getAndGluePerfumesAsync(params, favouritePerfumesChan)
+	go getAndGluePerfumesAsync(*util.NewGetParameters(), allPerfumesChan)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	favoritePerfumes, allPerfumes, ok := fetchPerfumeResults(ctx, favouritePerfumesChan, allPerfumesChan)
 	if !ok {
 		suggestResponse.Success = false
 		WriteResponse(w, suggestResponse, http.StatusInternalServerError)
 		return
 	}
-	favouritePerfume := app.Glue(favouriteRawPerfumes)[0]
-	allRawPerfumes, ok := app.GetPerfumes(*util.NewGetParameters())
-	if !ok {
-		suggestResponse.Success = false
-		WriteResponse(w, suggestResponse, http.StatusInternalServerError)
-		return
-	}
-	allPerfumes := app.Glue(allRawPerfumes)
+	favouritePerfume := favoritePerfumes[0]
 
 	mostSimilar := make([]gluedPerfumeWithScore, suggestsCount)
 	for _, perfume := range allPerfumes {
@@ -78,6 +81,48 @@ func parseQuery(r *http.Request, suggestResponse *SuggestResponse) (util.GetPara
 		return util.GetParameters{}, false
 	}
 	return *util.NewGetParameters().WithBrand(brand).WithName(name), true
+}
+
+type perfumesFetchAndGlueResult struct {
+	Perfumes []models.GluedPerfume
+	Ok       bool
+}
+
+func getAndGluePerfumesAsync(params util.GetParameters, results chan<- perfumesFetchAndGlueResult) {
+	defer close(results)
+	perfumes, ok := app.GetPerfumes(params)
+	if !ok {
+		results <- perfumesFetchAndGlueResult{Perfumes: nil, Ok: false}
+		return
+	}
+	results <- perfumesFetchAndGlueResult{Perfumes: app.Glue(perfumes), Ok: true}
+}
+
+func fetchPerfumeResults(ctx context.Context, favChan <-chan perfumesFetchAndGlueResult, allChan <-chan perfumesFetchAndGlueResult) ([]models.GluedPerfume, []models.GluedPerfume, bool) {
+	var favs []models.GluedPerfume
+	var all []models.GluedPerfume
+
+	select {
+	case favResult := <-favChan:
+		favs = favResult.Perfumes
+		select {
+		case allResult := <-allChan:
+			all = allResult.Perfumes
+		case <-ctx.Done():
+			return favs, all, false
+		}
+	case allResult := <-allChan:
+		all = allResult.Perfumes
+		select {
+		case favResult := <-favChan:
+			favs = favResult.Perfumes
+		case <-ctx.Done():
+			return favs, all, false
+		}
+	case <-ctx.Done():
+		return favs, all, false
+	}
+	return favs, all, true
 }
 
 func updateMostSimilarIfNeeded(mostSimilar []gluedPerfumeWithScore, perfume models.GluedPerfume, similarityScore float64) {
