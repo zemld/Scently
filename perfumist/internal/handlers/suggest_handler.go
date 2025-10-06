@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"math"
 	"net/http"
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/app"
@@ -102,6 +103,7 @@ func fillResponseWithSuggestions(response *SuggestResponse, suggestions []gluedP
 			rankedPerfumeWithProps{
 				Rank:    i + 1,
 				Perfume: suggestion.GluedPerfume,
+				Score:   math.Round(suggestion.Score*100) / 100,
 			})
 	}
 	if len(response.Suggested) > 0 {
