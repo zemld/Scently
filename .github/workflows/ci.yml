@@ -1,0 +1,17 @@
+name: CI
+
+on:
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    call-go-template:
+        strategy:
+            matrix:
+                service:
+                    - perfume
+                    - perfumist
+        uses: ./.github/workflows/go-template.yml
+        with:
+            service: ${{ matrix.service }}
