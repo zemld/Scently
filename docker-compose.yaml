@@ -21,9 +21,9 @@ services:
       - perfume_db_password
       - hard_update_password
     ports:
-       - "8089:8089"
+      - "8089:8089"
     depends_on:
-       - perfume-db
+      - perfume-db
 
   perfume-db:
     image: postgres:latest
@@ -37,20 +37,34 @@ services:
       - "5432:5432"
     volumes:
       - perfume_volume:/var/lib/postgresql/data
-    
+
   perfumist:
     build:
       context: perfumist
     ports:
       - "8088:8088"
+    environment:
+      REDIS_PASSWORD: redis_password
     depends_on:
       - perfume
 
+  redis_cache:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    environment:
+      REDIS_PASSWORD: redis_password
+    volumes:
+      - redis_data:/data
+
 volumes:
   perfume_volume:
+  redis_data:
 
 secrets:
   perfume_db_password:
     file: ./secrets/perfume_db_password.txt
   hard_update_password:
     file: ./secrets/hard_update_password.txt
+  redis_password:
+    file: ./secrets/redis_password.txt

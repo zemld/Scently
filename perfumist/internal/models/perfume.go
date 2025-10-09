@@ -61,3 +61,9 @@ type PerfumeResponse struct {
 	Perfumes []Perfume `json:"perfumes"`
 	State    State     `json:"state"`
 }
+
+type RankedPerfumeWithProps struct {
+	Perfume GluedPerfume `json:"perfume"`
+	Rank    int          `json:"rank"`
+	Score   float64      `json:"similarity_score"`
+}
