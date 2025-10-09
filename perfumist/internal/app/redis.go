@@ -11,14 +11,10 @@ import (
 )
 
 const cacheTTL = 3600 * time.Second
-const timeout = time.Second
 
-func LookupCache(requestedPerfume models.Perfume) ([]models.RankedPerfumeWithProps, error) {
+func LookupCache(ctx context.Context, requestedPerfume models.Perfume) ([]models.RankedPerfumeWithProps, error) {
 	key := getCacheKey(requestedPerfume)
 	client := rdb.GetRedisClient()
-
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
 
 	cached, err := client.Get(ctx, key).Result()
 	if err != nil {
@@ -31,7 +27,7 @@ func LookupCache(requestedPerfume models.Perfume) ([]models.RankedPerfumeWithPro
 	return result, nil
 }
 
-func Cache(requestedPerfume models.Perfume, toCache []models.RankedPerfumeWithProps) error {
+func Cache(ctx context.Context, requestedPerfume models.Perfume, toCache []models.RankedPerfumeWithProps) error {
 	encoded, err := json.Marshal(toCache)
 	if err != nil {
 		return err
@@ -39,9 +35,6 @@ func Cache(requestedPerfume models.Perfume, toCache []models.RankedPerfumeWithPr
 
 	client := rdb.GetRedisClient()
 	key := getCacheKey(requestedPerfume)
-
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
 
 	if err := client.Set(ctx, key, encoded, cacheTTL).Err(); err != nil {
 		return err
