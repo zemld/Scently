@@ -7,12 +7,6 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
 )
 
-type rankedPerfumeWithProps struct {
-	Perfume models.GluedPerfume `json:"perfume"`
-	Rank    int                 `json:"rank"`
-	Score   float64             `json:"similarity_score"`
-}
-
 type inputPerfume struct {
 	Brand string `json:"brand"`
 	Name  string `json:"name"`
@@ -20,9 +14,9 @@ type inputPerfume struct {
 }
 
 type SuggestResponse struct {
-	Input     inputPerfume             `json:"input"`
-	Suggested []rankedPerfumeWithProps `json:"suggested"`
-	Success   bool                     `json:"success"`
+	Input     inputPerfume                    `json:"input"`
+	Suggested []models.RankedPerfumeWithProps `json:"suggested"`
+	Success   bool                            `json:"success"`
 }
 
 func WriteResponse(w http.ResponseWriter, response any, status int) {

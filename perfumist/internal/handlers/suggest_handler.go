@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"log"
 	"math"
 	"net/http"
 	"time"
@@ -37,6 +38,13 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	suggests, err := app.LookupCache(models.Perfume{Brand: params.Brand, Name: params.Name})
+	if err == nil && suggests != nil {
+		suggestResponse.Suggested = suggests
+		WriteResponse(w, suggestResponse, http.StatusOK)
+		return
+	}
+
 	favouritePerfumesChan := make(chan perfumesFetchAndGlueResult)
 	allPerfumesChan := make(chan perfumesFetchAndGlueResult)
 	go getAndGluePerfumesAsync(params, favouritePerfumesChan)
@@ -67,6 +75,11 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 		WriteResponse(w, suggestResponse, http.StatusOK)
 	} else {
 		WriteResponse(w, suggestResponse, http.StatusNoContent)
+	}
+
+	err = app.Cache(models.Perfume{Brand: params.Brand, Name: params.Name}, suggestResponse.Suggested)
+	if err != nil {
+		log.Printf("Cannot cache: %v\n", err)
 	}
 }
 
@@ -145,7 +158,7 @@ func fillResponseWithSuggestions(response *SuggestResponse, suggestions []gluedP
 		}
 		response.Suggested = append(
 			response.Suggested,
-			rankedPerfumeWithProps{
+			models.RankedPerfumeWithProps{
 				Rank:    i + 1,
 				Perfume: suggestion.GluedPerfume,
 				Score:   math.Round(suggestion.Score*100) / 100,
