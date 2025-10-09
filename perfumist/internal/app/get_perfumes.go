@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/util"
@@ -16,37 +15,34 @@ const (
 	getPerfumesUrl = "http://perfume:8089/v1/perfumes/get"
 )
 
-func GetPerfumes(p util.GetParameters) ([]models.Perfume, bool) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
+func GetPerfumes(ctx context.Context, p util.GetParameters) ([]models.Perfume, int) {
 	r, _ := http.NewRequestWithContext(ctx, "GET", getPerfumesUrl, nil)
 	updateQuery(r, p)
 
 	perfumeResponse, err := http.DefaultClient.Do(r)
 	if err != nil {
 		log.Printf("Can't get perfumes: %v", err)
-		return nil, false
+		return nil, http.StatusInternalServerError
 	}
 	defer perfumeResponse.Body.Close()
 
 	if perfumeResponse.StatusCode >= 500 {
 		log.Printf("Bad response status: %v", perfumeResponse.Status)
-		return nil, false
+		return nil, perfumeResponse.StatusCode
 	}
 	body, err := io.ReadAll(perfumeResponse.Body)
 	if err != nil {
 		log.Printf("Can't read response body: %v", err)
-		return nil, false
+		return nil, http.StatusInternalServerError
 	}
 
 	var perfumes models.PerfumeResponse
 	json.Unmarshal(body, &perfumes)
 	log.Printf("Got %d perfumes", len(perfumes.Perfumes))
 	if len(perfumes.Perfumes) == 0 {
-		return perfumes.Perfumes, false
+		return perfumes.Perfumes, http.StatusNoContent
 	}
-	return perfumes.Perfumes, true
+	return perfumes.Perfumes, http.StatusOK
 }
 
 func updateQuery(r *http.Request, p util.GetParameters) {
