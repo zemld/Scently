@@ -38,37 +38,26 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	suggests, err := app.LookupCache(models.Perfume{Brand: params.Brand, Name: params.Name})
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	suggests, err := app.LookupCache(ctx, models.Perfume{Brand: params.Brand, Name: params.Name})
 	if err == nil && suggests != nil {
 		suggestResponse.Suggested = suggests
+		suggestResponse.Success = true
 		WriteResponse(w, suggestResponse, http.StatusOK)
 		return
 	}
 
-	favouritePerfumesChan := make(chan perfumesFetchAndGlueResult)
-	allPerfumesChan := make(chan perfumesFetchAndGlueResult)
-	go getAndGluePerfumesAsync(params, favouritePerfumesChan)
-	go getAndGluePerfumesAsync(*util.NewGetParameters(), allPerfumesChan)
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-	defer cancel()
-
-	favoritePerfumes, allPerfumes, ok := fetchPerfumeResults(ctx, favouritePerfumesChan, allPerfumesChan)
-	if !ok {
+	favouritePerfumes, allPerfumes, status := fetchPerfumes(ctx, params)
+	if status != http.StatusOK {
 		suggestResponse.Success = false
-		WriteResponse(w, suggestResponse, http.StatusInternalServerError)
+		WriteResponse(w, suggestResponse, status)
 		return
 	}
-	favouritePerfume := favoritePerfumes[0]
+	favouritePerfume := favouritePerfumes[0]
 
-	mostSimilar := make([]gluedPerfumeWithScore, suggestsCount)
-	for _, perfume := range allPerfumes {
-		if favouritePerfume.Equal(perfume) {
-			continue
-		}
-		similarityScore := app.GetPerfumeSimilarityScore(favouritePerfume.Properties, perfume.Properties)
-		updateMostSimilarIfNeeded(mostSimilar, perfume, similarityScore)
-	}
+	mostSimilar := foundSimilarities(favouritePerfume, allPerfumes)
 
 	fillResponseWithSuggestions(&suggestResponse, mostSimilar)
 	if suggestResponse.Success {
@@ -77,7 +66,7 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 		WriteResponse(w, suggestResponse, http.StatusNoContent)
 	}
 
-	err = app.Cache(models.Perfume{Brand: params.Brand, Name: params.Name}, suggestResponse.Suggested)
+	err = app.Cache(ctx, models.Perfume{Brand: params.Brand, Name: params.Name}, suggestResponse.Suggested)
 	if err != nil {
 		log.Printf("Cannot cache: %v\n", err)
 	}
@@ -87,7 +76,6 @@ func parseQuery(r *http.Request, suggestResponse *SuggestResponse) (util.GetPara
 	brand := r.URL.Query().Get("brand")
 	name := r.URL.Query().Get("name")
 	suggestResponse.Input = inputPerfume{Brand: brand, Name: name, Ok: true}
-	suggestResponse.Success = true
 	if brand == "" || name == "" {
 		suggestResponse.Input.Ok = false
 		suggestResponse.Success = false
@@ -96,46 +84,72 @@ func parseQuery(r *http.Request, suggestResponse *SuggestResponse) (util.GetPara
 	return *util.NewGetParameters().WithBrand(brand).WithName(name), true
 }
 
+func fetchPerfumes(ctx context.Context, params util.GetParameters) ([]models.GluedPerfume, []models.GluedPerfume, int) {
+	favouritePerfumesChan := make(chan perfumesFetchAndGlueResult)
+	allPerfumesChan := make(chan perfumesFetchAndGlueResult)
+	go getAndGluePerfumesAsync(ctx, params, favouritePerfumesChan)
+	go getAndGluePerfumesAsync(ctx, *util.NewGetParameters(), allPerfumesChan)
+
+	return fetchPerfumeResults(ctx, favouritePerfumesChan, allPerfumesChan)
+}
+
 type perfumesFetchAndGlueResult struct {
 	Perfumes []models.GluedPerfume
-	Ok       bool
+	Status   int
 }
 
-func getAndGluePerfumesAsync(params util.GetParameters, results chan<- perfumesFetchAndGlueResult) {
+func getAndGluePerfumesAsync(ctx context.Context, params util.GetParameters, results chan<- perfumesFetchAndGlueResult) {
 	defer close(results)
-	perfumes, ok := app.GetPerfumes(params)
-	if !ok {
-		results <- perfumesFetchAndGlueResult{Perfumes: nil, Ok: false}
+	perfumes, status := app.GetPerfumes(ctx, params)
+	if status != http.StatusOK {
+		results <- perfumesFetchAndGlueResult{Perfumes: nil, Status: status}
 		return
 	}
-	results <- perfumesFetchAndGlueResult{Perfumes: app.Glue(perfumes), Ok: true}
+	results <- perfumesFetchAndGlueResult{Perfumes: app.Glue(perfumes), Status: status}
 }
 
-func fetchPerfumeResults(ctx context.Context, favChan <-chan perfumesFetchAndGlueResult, allChan <-chan perfumesFetchAndGlueResult) ([]models.GluedPerfume, []models.GluedPerfume, bool) {
+func fetchPerfumeResults(ctx context.Context, favChan <-chan perfumesFetchAndGlueResult, allChan <-chan perfumesFetchAndGlueResult) ([]models.GluedPerfume, []models.GluedPerfume, int) {
 	var favs []models.GluedPerfume
 	var all []models.GluedPerfume
+	var status int
 
 	select {
 	case favResult := <-favChan:
 		favs = favResult.Perfumes
+		status = favResult.Status
 		select {
 		case allResult := <-allChan:
 			all = allResult.Perfumes
+			status = int(math.Max(float64(status), float64(allResult.Status)))
 		case <-ctx.Done():
-			return favs, all, false
+			return favs, all, http.StatusInternalServerError
 		}
 	case allResult := <-allChan:
 		all = allResult.Perfumes
+		status = allResult.Status
 		select {
 		case favResult := <-favChan:
 			favs = favResult.Perfumes
+			status = int(math.Max(float64(status), float64(allResult.Status)))
 		case <-ctx.Done():
-			return favs, all, false
+			return favs, all, http.StatusInternalServerError
 		}
 	case <-ctx.Done():
-		return favs, all, false
+		return favs, all, http.StatusInternalServerError
 	}
-	return favs, all, true
+	return favs, all, status
+}
+
+func foundSimilarities(favourite models.GluedPerfume, all []models.GluedPerfume) []gluedPerfumeWithScore {
+	mostSimilar := make([]gluedPerfumeWithScore, suggestsCount)
+	for _, perfume := range all {
+		if favourite.Equal(perfume) {
+			continue
+		}
+		similarityScore := app.GetPerfumeSimilarityScore(favourite.Properties, perfume.Properties)
+		updateMostSimilarIfNeeded(mostSimilar, perfume, similarityScore)
+	}
+	return mostSimilar
 }
 
 func updateMostSimilarIfNeeded(mostSimilar []gluedPerfumeWithScore, perfume models.GluedPerfume, similarityScore float64) {
