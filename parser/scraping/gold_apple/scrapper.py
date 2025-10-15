@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
 import time
 from scraping.page_parser import PageParser
+from tqdm import tqdm
 
 
 class GoldAppleScrapper(Scrapper):
@@ -39,19 +40,20 @@ class GoldAppleScrapper(Scrapper):
         product_links = [link for link in links if link and self._is_product_link(link)]
         print(f"Found {len(product_links)} in sitemap.")
 
-        product_links = product_links[:100]
         perfumes = []
         locker = Lock()
-        with ThreadPoolExecutor(self._workers) as ex:
-            futures = {
-                ex.submit(self.fetch_perfume, link): link for link in product_links
-            }
-            for fut in as_completed(futures):
-                perfume = futures[fut]
-                if not perfume:
-                    continue
-                with locker:
-                    perfumes.append(perfume)
+        with tqdm(total=len(product_links), desc="Scraping products") as pbar:
+            with ThreadPoolExecutor(self._workers) as ex:
+                futures = {
+                    ex.submit(self.fetch_perfume, link): link for link in product_links
+                }
+                for fut in as_completed(futures):
+                    perfume = fut.result()
+                    pbar.update(1)
+                    if not perfume:
+                        continue
+                    with locker:
+                        perfumes.append(perfume)
 
         print(f"Collected {len(perfumes)}.")
         return perfumes
