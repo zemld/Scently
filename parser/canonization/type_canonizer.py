@@ -17,6 +17,4 @@ class TypeCanonizer(Canonizer):
             if lev_dist < lev_diff:
                 lev_diff = lev_dist
                 result = self.mapping[key]
-        if not result:
-            raise ValueError(f"Cannot canonize type: {perfume_type}")
         return result

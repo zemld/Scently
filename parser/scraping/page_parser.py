@@ -40,8 +40,10 @@ class PageParser(ABC):
         volume = self._parse_volume(page)
         if (
             any(item == "" for item in (brand, name, perfume_type, sex))
+            or any(item is None for item in (brand, name, perfume_type, sex))
             or any(
-                not item for item in (families, upper_notes, middle_notes, base_notes)
+                item is None
+                for item in (families, upper_notes, middle_notes, base_notes)
             )
             or volume == 0
         ):
