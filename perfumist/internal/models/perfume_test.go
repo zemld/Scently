@@ -1,0 +1,61 @@
+package models
+
+import "testing"
+
+func TestNewGluedPerfume_AndEqual(t *testing.T) {
+	t.Parallel()
+
+	p := Perfume{
+		Brand:       "A",
+		Name:        "X",
+		Type:        "edt",
+		Sex:         "male",
+		Family:      []string{"woody"},
+		UpperNotes:  []string{"bergamot"},
+		MiddleNotes: []string{"lavender"},
+		BaseNotes:   []string{"cedar"},
+		Link:        "link",
+		Volume:      50,
+	}
+
+	g := NewGluedPerfume(p)
+	if g.Brand != p.Brand || g.Name != p.Name {
+		t.Fatalf("brand/name not copied")
+	}
+	if g.Properties.Sex != p.Sex || g.Properties.Type != p.Type {
+		t.Fatalf("properties not copied correctly: %+v", g.Properties)
+	}
+	if len(g.Links) != 1 || g.Links[50] != "link" {
+		t.Fatalf("links not initialized correctly: %+v", g.Links)
+	}
+
+	if !g.Equal(NewGluedPerfume(p)) {
+		t.Fatalf("Equal should be true for same brand+name")
+	}
+
+	other := GluedPerfume{Brand: "A", Name: "Y"}
+	if g.Equal(other) {
+		t.Fatalf("Equal should be false for different name")
+	}
+}
+
+func TestGetProperties(t *testing.T) {
+	t.Parallel()
+
+	p := Perfume{
+		Brand:       "A",
+		Name:        "X",
+		Type:        "edt",
+		Sex:         "male",
+		Family:      []string{"woody"},
+		UpperNotes:  []string{"bergamot"},
+		MiddleNotes: []string{"lavender"},
+		BaseNotes:   []string{"cedar"},
+		Link:        "link",
+		Volume:      50,
+	}
+	props := p.getProperties()
+	if props.Type != p.Type || props.Sex != p.Sex || len(props.Family) != 1 {
+		t.Fatalf("properties mapping incorrect: %+v", props)
+	}
+}
