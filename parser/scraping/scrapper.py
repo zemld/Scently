@@ -1,7 +1,8 @@
-from abc import ABC, abstractmethod
-from models.perfume import Perfume
-import time
 import re
+import time
+from abc import ABC, abstractmethod
+
+from models.perfume import Perfume
 from scraping.page_parser import PageParser
 
 
@@ -33,7 +34,8 @@ class Scrapper(ABC):
 
     def scrap_all_accuratly(self) -> list[Perfume]:
         perfumes = []
-        for i in range(len(self.sitemaps)):
-            perfumes.append(self.scrap_sitemap(i))
+        for i in range(len(self._sitemaps)):
+            sitemap_perfumes = self.scrap_sitemap(i)
+            perfumes.extend(sitemap_perfumes)
             time.sleep(3600)
         return perfumes

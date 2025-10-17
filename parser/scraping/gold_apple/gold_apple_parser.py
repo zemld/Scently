@@ -1,6 +1,8 @@
-from scraping.page_parser import PageParser
-from bs4 import BeautifulSoup, element
 import re
+
+from bs4 import BeautifulSoup, element
+
+from scraping.page_parser import PageParser
 
 
 class GoldApplePageParser(PageParser):
@@ -16,7 +18,12 @@ class GoldApplePageParser(PageParser):
         ]
         if not brand_info:
             return ""
-        return super()._canonize(brand_info[0], self._brand_canonizer)
+        if self._brand_canonizer:
+            result = super()._canonize(brand_info[0], self._brand_canonizer)
+            if isinstance(result, str):
+                return result
+            return str(brand_info[0])
+        return str(brand_info[0])
 
     @staticmethod
     def _is_brand_tag(tag: element.Tag) -> bool:
@@ -26,7 +33,12 @@ class GoldApplePageParser(PageParser):
         name_tag = page.find_all(self._is_name_tag)
         if not name_tag or not name_tag[0].string:
             return ""
-        return super()._canonize(name_tag[0].string.strip(), self._name_canonizer)
+        if self._name_canonizer:
+            result = super()._canonize(name_tag[0].string.strip(), self._name_canonizer)
+            if isinstance(result, str):
+                return result
+            return str(name_tag[0].string.strip())
+        return str(name_tag[0].string.strip())
 
     @staticmethod
     def _is_name_tag(tag: element.Tag) -> bool:
@@ -43,35 +55,53 @@ class GoldApplePageParser(PageParser):
         if not properties_title:
             return []
         try:
-            section = properties_title[0].parent.parent if properties_title else None
+            if not properties_title or not properties_title[0].parent:
+                return []
+            section = properties_title[0].parent.parent
+            if section is None:
+                return []
             raw_properties = section.find_all("span")
             properties = []
             for prop in raw_properties:
-                properties.append(prop.string.strip().lower())
+                if prop.string is not None:
+                    properties.append(prop.string.strip().lower())
             return properties
-        except Exception as e:
+        except Exception:
             return []
 
-    def _parse_type(self, page) -> str:
+    def _parse_type(self, page: BeautifulSoup) -> str:
         props = self._parse_properties(page)
         if not props or len(props) < 2:
             return ""
-        return super()._canonize(props[1], self._type_canonizer)
+        if self._type_canonizer:
+            result = super()._canonize(props[1], self._type_canonizer)
+            return result if isinstance(result, str) else props[1]
+        return props[1]
 
-    def _parse_sex(self, page) -> str:
+    def _parse_sex(self, page: BeautifulSoup) -> str:
         props = self._parse_properties(page)
         if not props or len(props) < 4:
             return ""
-        return super()._canonize(props[3].lower().split(), self._sex_canonizer)
+        if self._sex_canonizer:
+            result = super()._canonize(props[3].lower().split(), self._sex_canonizer)
+            return result if isinstance(result, str) else props[3]
+        return props[3]
 
-    def _parse_families(self, page) -> list[str]:
+    def _parse_families(self, page: BeautifulSoup) -> list[str]:
         props = self._parse_properties(page)
         if not props or len(props) < 6:
             return []
-        families = [
-            super()._canonize(family.strip().lower(), self._family_canonizer)
-            for family in props[5].split(",")
-        ]
+        families = []
+        for family in props[5].split(","):
+            if self._family_canonizer:
+                result = super()._canonize(
+                    family.strip().lower(), self._family_canonizer
+                )
+                families.append(
+                    result if isinstance(result, str) else family.strip().lower()
+                )
+            else:
+                families.append(family.strip().lower())
         return [family for family in families if family]
 
     def _parse_notes(self, notes: str) -> list[str]:
@@ -80,34 +110,33 @@ class GoldApplePageParser(PageParser):
             for note in re.split(self._split_notes_pattern, notes)
             if note.strip()
         ]
-        canonized = super()._canonize(notes_list, self._notes_canonizer)
-        return [note for note in canonized if note]
+        if self._notes_canonizer:
+            canonized = super()._canonize(notes_list, self._notes_canonizer)
+            return [note for note in canonized if note]
+        return [note for note in notes_list if note]
 
-    def _parse_upper_notes(self, page) -> list[str]:
+    def _parse_upper_notes(self, page: BeautifulSoup) -> list[str]:
         props = self._parse_properties(page)
         if not props or len(props) < 8:
             return []
         return self._parse_notes(props[7])
 
-    def _parse_middle_notes(self, page) -> list[str]:
+    def _parse_middle_notes(self, page: BeautifulSoup) -> list[str]:
         props = self._parse_properties(page)
         if not props or len(props) < 10:
             return []
         return self._parse_notes(props[9])
 
-    def _parse_base_notes(self, page) -> list[str]:
+    def _parse_base_notes(self, page: BeautifulSoup) -> list[str]:
         props = self._parse_properties(page)
         if not props or len(props) < 12:
             return []
         return self._parse_notes(props[11])
 
-    def _parse_volume(self, page) -> int:
+    def _parse_volume(self, page: BeautifulSoup) -> int:
         props = self._parse_properties(page)
         if not props or len(props) < 14:
             return 0
         int_rx = re.compile(r"\d+")
-        return (
-            int(re.search(int_rx, props[13]).group(0))
-            if re.search(int_rx, props[13])
-            else 0
-        )
+        match = re.search(int_rx, props[13])
+        return int(match.group(0)) if match else 0
