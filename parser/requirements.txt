@@ -4,3 +4,5 @@ lxml
 apscheduler
 httpx
 tqdm
+types-requests
+types-tqdm
