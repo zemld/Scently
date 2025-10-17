@@ -37,3 +37,7 @@ lint.select = [
 strict = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
+
+[[tool.mypy.overrides]]
+module = ["tqdm", "httpx"]
+ignore_missing_imports = true

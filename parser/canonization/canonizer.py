@@ -1,5 +1,6 @@
-from pathlib import Path
 import csv
+from pathlib import Path
+
 from canonization.levenshtein_distance import get_levenshtein_distance
 
 
@@ -14,13 +15,13 @@ class Canonizer:
     def _load_mapping(self, path: Path) -> dict[str, str]:
         mapping = {}
         for file in path.glob("*.csv"):
-            with open(file, "r") as f:
+            with open(file) as f:
                 rows = csv.reader(f, delimiter=";")
                 for row in rows:
                     try:
                         key, value = row[0].strip(), row[1].strip()
                         mapping[key] = value
-                    except Exception as e:
+                    except Exception:
                         continue
         return mapping
 

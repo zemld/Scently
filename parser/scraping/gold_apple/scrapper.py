@@ -1,12 +1,14 @@
-from scraping.scrapper import Scrapper
-from util.send_request import get_page
-from models.perfume import Perfume
 import re
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
-import time
+
+from tqdm import tqdm  # type: ignore[import-untyped]
+
+from models.perfume import Perfume
 from scraping.page_parser import PageParser
-from tqdm import tqdm
+from scraping.scrapper import Scrapper
+from util.send_request import get_page
 
 
 class GoldAppleScrapper(Scrapper):
@@ -17,26 +19,32 @@ class GoldAppleScrapper(Scrapper):
     def __init__(self, page_parser: PageParser):
         sitemaps_url = "https://goldapple.ru/sitemap.xml"
 
-        sitemaps = [
-            sitemap.find("loc").string
-            for sitemap in get_page(sitemaps_url).find_all("sitemap")
-        ]
+        sitemap_page = get_page(sitemaps_url)
+        sitemaps: list[str] = []
+        if sitemap_page:
+            for sitemap in sitemap_page.find_all("sitemap"):
+                loc_tag = sitemap.find("loc")
+                if loc_tag and loc_tag.string:
+                    sitemaps.append(loc_tag.string)
         self._sitemaps = [sitemap for sitemap in sitemaps if sitemap]
         self._page_parser = page_parser
 
     def _is_product_link(self, link: str) -> bool:
         return bool(self._product_url_re.match(link))
 
-    def scrap_sitemap(self, index) -> list[Perfume]:
+    def scrap_sitemap(self, index: int) -> list[Perfume]:
         print(f"Scraping sitemap {self._sitemaps[index]}.")
         if index + 1 > len(self._sitemaps):
-            return None
+            return []
         links_page = get_page(self._sitemaps[index])
         if not links_page:
             print("Unable to scrap.")
             return []
 
-        links = [link.string.strip() for link in links_page.find_all("loc")]
+        links = []
+        for link in links_page.find_all("loc"):
+            if link.string:
+                links.append(link.string.strip())
         product_links = [link for link in links if link and self._is_product_link(link)]
         print(f"Found {len(product_links)} in sitemap.")
 
@@ -58,14 +66,18 @@ class GoldAppleScrapper(Scrapper):
         print(f"Collected {len(perfumes)}.")
         return perfumes
 
-    def fetch_perfume(self, link) -> Perfume | None:
+    def fetch_perfume(self, link: str) -> Perfume | None:
         time.sleep(1)
 
         page = get_page(link)
         if not page:
             return None
 
-        if not any(rx.search(page.title.string.strip()) for rx in self._perfumes_re):
+        if (
+            not page.title
+            or not page.title.string
+            or not any(rx.search(page.title.string.strip()) for rx in self._perfumes_re)
+        ):
             return None
 
         perfume = self._page_parser.parse_perfume_from_page(page)
