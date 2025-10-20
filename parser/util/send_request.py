@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 
 
-def get_page(link: str) -> BeautifulSoup:
+def get_page(link: str) -> BeautifulSoup | None:
     headers = {"User-Agent": "Mozilla/5.0"}
 
     try:

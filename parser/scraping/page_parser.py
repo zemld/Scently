@@ -1,25 +1,27 @@
 from abc import ABC, abstractmethod
+
 from bs4 import BeautifulSoup
-from models.perfume import Perfume
+
 from canonization.canonizer import Canonizer
+from models.perfume import Perfume
 
 
 class PageParser(ABC):
-    _brand_canonizer: Canonizer
-    _name_canonizer: Canonizer
-    _type_canonizer: Canonizer
-    _sex_canonizer: Canonizer
-    _family_canonizer: Canonizer
-    _notes_canonizer: Canonizer
+    _brand_canonizer: Canonizer | None
+    _name_canonizer: Canonizer | None
+    _type_canonizer: Canonizer | None
+    _sex_canonizer: Canonizer | None
+    _family_canonizer: Canonizer | None
+    _notes_canonizer: Canonizer | None
 
     def __init__(
         self,
-        brand_canonizer: Canonizer = None,
-        name_canonizer: Canonizer = None,
-        type_canonizer: Canonizer = None,
-        sex_canonizer: Canonizer = None,
-        family_canonizer: Canonizer = None,
-        notes_canonizer: Canonizer = None,
+        brand_canonizer: Canonizer | None = None,
+        name_canonizer: Canonizer | None = None,
+        type_canonizer: Canonizer | None = None,
+        sex_canonizer: Canonizer | None = None,
+        family_canonizer: Canonizer | None = None,
+        notes_canonizer: Canonizer | None = None,
     ):
         self._brand_canonizer = brand_canonizer
         self._name_canonizer = name_canonizer
@@ -61,7 +63,9 @@ class PageParser(ABC):
             volume,
         )
 
-    def _canonize(self, item: str | list[str], canonizer: Canonizer) -> str | list[str]:
+    def _canonize(
+        self, item: str | list[str], canonizer: Canonizer | None
+    ) -> str | list[str]:
         if not canonizer:
             return item
 
@@ -70,10 +74,12 @@ class PageParser(ABC):
         return self._canonize_list(item, canonizer)
 
     def _canonize_list(self, items: list[str], canonizer: Canonizer) -> list[str]:
-        return canonizer.canonize(items)
+        result = canonizer.canonize(items)
+        return list(result) if result is not None else []
 
     def _canonize_string(self, item: str, canonizer: Canonizer) -> str:
-        return canonizer.canonize([item])
+        result = canonizer.canonize([item])
+        return result if result is not None else item
 
     @abstractmethod
     def _parse_brand(self, page: BeautifulSoup) -> str:

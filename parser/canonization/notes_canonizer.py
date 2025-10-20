@@ -57,10 +57,12 @@ class NoteCanonizer(Canonizer):
         adjectives = [word for word in words if word.endswith(self._adjective_endings)]
         return without_adjectives, adjectives
 
-    def canonize(self, notes: list[str]) -> list[str]:
+    def canonize_notes(self, notes: list[str]) -> list[str]:
         canonized = []
         for note in notes:
-            canonized.append(self._canonize_note(note))
+            canonized_note = self._canonize_note(note)
+            if canonized_note:
+                canonized.append(canonized_note)
         return canonized
 
     def _canonize_note(self, note: str) -> str | None:
