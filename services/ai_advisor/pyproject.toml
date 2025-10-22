@@ -1,0 +1,32 @@
+[project]
+name = "ai_suggester"
+version = "0.1.0"
+requires-python = ">=3.13"
+description = "AI Suggester"
+dependencies = [
+    "fastapi>=0.119.1",
+    "openai>=2.6.0",
+    "uvicorn>=0.38.0",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "mypy>=1.18.2",
+    "ruff>=0.14.0",
+]
+
+[tool.ruff]
+line-length = 88
+lint.select = [
+    "E",
+    "F",
+    "I",
+    "B",
+    "UP",
+    "N",
+]
+
+[tool.mypy]
+strict = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true

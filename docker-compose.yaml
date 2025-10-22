@@ -57,6 +57,14 @@ services:
     volumes:
       - redis_data:/data
 
+  ai_advisor:
+    build:
+      context: services/ai_advisor
+    env_file:
+      - ./secrets/ai_advisor.env
+    ports:
+      - "8087:8000"
+
 volumes:
   perfume_volume:
   redis_data:
