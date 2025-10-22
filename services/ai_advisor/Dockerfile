@@ -1,6 +1,6 @@
 FROM python:3.13-slim-bookworm
 
-ENV PYTHONPATH="/ai_advisor/src"
+ENV PYTHONPATH="/ai_advisor"
 
 WORKDIR /ai_advisor
 

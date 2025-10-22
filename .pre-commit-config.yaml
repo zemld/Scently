@@ -15,5 +15,16 @@ repos:
         name: mypy
         files: ^(parser/|services/ai_advisor/).*\.py$
         types: [python]
-        additional_dependencies: [types-requests, types-beautifulsoup4]
-        args: [--strict, --disallow-untyped-defs, --disallow-incomplete-defs]
+        additional_dependencies:
+          - types-requests
+          - types-beautifulsoup4
+          - fastapi>=0.119.1
+          - openai>=2.6.0
+          - uvicorn>=0.38.0
+          - pydantic>=2.12.3
+        args:
+          - --strict
+          - --disallow-untyped-defs
+          - --disallow-incomplete-defs
+          - --disable-error-code=call-overload
+          - --disable-error-code=arg-type

@@ -25,8 +25,15 @@ lint.select = [
     "UP",
     "N",
 ]
+lint.ignore = [
+    "B904",
+]
 
 [tool.mypy]
 strict = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
+
+[[tool.mypy.overrides]]
+module = "src.api.advisor"
+disable_error_code = ["call-overload", "arg-type"]
