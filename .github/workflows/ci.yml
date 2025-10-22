@@ -16,6 +16,11 @@ jobs:
         with:
             service: ${{ matrix.service }}
     python-checks:
+        strategy:
+            matrix:
+                service:
+                    - ai_advisor
+                    - parser
         uses: ./.github/workflows/python-template.yml
         with:
-            service: parser
+            service: ${{ matrix.service }}
