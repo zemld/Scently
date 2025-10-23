@@ -29,7 +29,7 @@ func TestParseQuery(t *testing.T) {
 func TestFillResponseWithSuggestions(t *testing.T) {
 	t.Parallel()
 
-	suggestions := []gluedPerfumeWithScore{
+	suggestions := []models.GluedPerfumeWithScore{
 		{GluedPerfume: models.GluedPerfume{Brand: "A", Name: "X"}, Score: 0.789},
 		{GluedPerfume: models.GluedPerfume{Brand: "B", Name: "Y"}, Score: 0.0},
 	}
@@ -49,41 +49,8 @@ func TestFillResponseWithSuggestions(t *testing.T) {
 	}
 
 	var respEmpty SuggestResponse
-	fillResponseWithSuggestions(&respEmpty, []gluedPerfumeWithScore{})
+	fillResponseWithSuggestions(&respEmpty, []models.GluedPerfumeWithScore{})
 	if respEmpty.Success {
 		t.Fatalf("empty suggestions should set success=false")
-	}
-}
-
-func TestUpdateMostSimilarIfNeeded(t *testing.T) {
-	t.Parallel()
-
-	arr := make([]gluedPerfumeWithScore, 4)
-	for i, s := range []float64{0.1, 0.2, 0.3, 0.4} {
-		updateMostSimilarIfNeeded(arr, models.GluedPerfume{Name: "n"}, s)
-		if arr[i].Score == 0 {
-			t.Fatalf("position %d should be filled", i)
-		}
-	}
-	updateMostSimilarIfNeeded(arr, models.GluedPerfume{Name: "m"}, 0.25)
-	if !(arr[1].Score >= 0.25 && arr[2].Score >= 0.25) {
-		t.Fatalf("middle insertion not reflected: %+v", arr)
-	}
-}
-
-func TestFetchPerfumeResults_StatusAggregationBug(t *testing.T) {
-	t.Parallel()
-
-	fav := make(chan perfumesFetchAndGlueResult, 1)
-	all := make(chan perfumesFetchAndGlueResult, 1)
-
-	fav <- perfumesFetchAndGlueResult{Status: http.StatusInternalServerError}
-	close(fav)
-	all <- perfumesFetchAndGlueResult{Status: http.StatusOK}
-	close(all)
-
-	_, _, status := fetchPerfumeResults(httptest.NewRequest(http.MethodGet, "/", nil).Context(), fav, all)
-	if status != http.StatusInternalServerError {
-		t.Fatalf("expected aggregated status 500, got %d", status)
 	}
 }

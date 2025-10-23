@@ -67,3 +67,8 @@ type RankedPerfumeWithProps struct {
 	Rank    int          `json:"rank"`
 	Score   float64      `json:"similarity_score"`
 }
+
+type GluedPerfumeWithScore struct {
+	GluedPerfume
+	Score float64
+}

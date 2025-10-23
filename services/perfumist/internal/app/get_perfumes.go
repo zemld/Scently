@@ -6,16 +6,67 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sync"
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/util"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 )
 
 const (
 	getPerfumesUrl = "http://perfume:8089/v1/perfumes/get"
 )
 
-func GetPerfumes(ctx context.Context, p util.GetParameters) ([]models.Perfume, int) {
+const (
+	badServerStatus = 500
+)
+
+func FetchPerfumes(ctx context.Context, params []parameters.RequestPerfume) ([]models.GluedPerfume, []models.GluedPerfume, int) {
+	favouritePerfumesChan := make(chan perfumesFetchAndGlueResult)
+	allPerfumesChan := make(chan perfumesFetchAndGlueResult, len(params)-1)
+
+	wg := sync.WaitGroup{}
+	wg.Add(len(params))
+
+	go getAndGluePerfumesAsync(ctx, params[0], favouritePerfumesChan, &wg)
+	for i := 1; i < len(params); i++ {
+		go getAndGluePerfumesAsync(ctx, params[i], allPerfumesChan, &wg)
+	}
+
+	go func() {
+		wg.Wait()
+		close(favouritePerfumesChan)
+		close(allPerfumesChan)
+	}()
+
+	fav, favStatus := fetchPerfumeResults(ctx, favouritePerfumesChan)
+	all, AllStatus := fetchPerfumeResults(ctx, allPerfumesChan)
+	if favStatus >= badServerStatus || AllStatus >= badServerStatus || len(all) == 0 {
+		return nil, nil, http.StatusInternalServerError
+	}
+	if len(fav) == 0 {
+		return nil, nil, http.StatusNoContent
+	}
+	return fav, all, http.StatusOK
+}
+
+type perfumesFetchAndGlueResult struct {
+	Perfumes []models.GluedPerfume
+	Status   int
+}
+
+func getAndGluePerfumesAsync(ctx context.Context, params parameters.RequestPerfume, results chan<- perfumesFetchAndGlueResult, wg *sync.WaitGroup) {
+	if wg != nil {
+		defer wg.Done()
+	}
+	perfumes, status := getPerfumes(ctx, params)
+	if status != http.StatusOK {
+		results <- perfumesFetchAndGlueResult{Perfumes: nil, Status: status}
+		return
+	}
+	results <- perfumesFetchAndGlueResult{Perfumes: Glue(perfumes), Status: status}
+}
+
+func getPerfumes(ctx context.Context, p parameters.RequestPerfume) ([]models.Perfume, int) {
 	r, _ := http.NewRequestWithContext(ctx, "GET", getPerfumesUrl, nil)
 	updateQuery(r, p)
 
@@ -26,7 +77,7 @@ func GetPerfumes(ctx context.Context, p util.GetParameters) ([]models.Perfume, i
 	}
 	defer perfumeResponse.Body.Close()
 
-	if perfumeResponse.StatusCode >= 500 {
+	if perfumeResponse.StatusCode >= badServerStatus {
 		log.Printf("Bad response status: %v", perfumeResponse.Status)
 		return nil, perfumeResponse.StatusCode
 	}
@@ -45,7 +96,7 @@ func GetPerfumes(ctx context.Context, p util.GetParameters) ([]models.Perfume, i
 	return perfumes.Perfumes, http.StatusOK
 }
 
-func updateQuery(r *http.Request, p util.GetParameters) {
+func updateQuery(r *http.Request, p parameters.RequestPerfume) {
 	addQueryParameter(r, "brand", p.Brand)
 	addQueryParameter(r, "name", p.Name)
 }
@@ -57,4 +108,26 @@ func addQueryParameter(r *http.Request, key string, value string) {
 	updatedQuery := r.URL.Query()
 	updatedQuery.Add(key, value)
 	r.URL.RawQuery = updatedQuery.Encode()
+}
+
+func fetchPerfumeResults(ctx context.Context, perfumesChan <-chan perfumesFetchAndGlueResult) ([]models.GluedPerfume, int) {
+	var perfumes []models.GluedPerfume
+	var status int
+
+	for {
+		select {
+		case result, ok := <-perfumesChan:
+			if !ok {
+				return perfumes, status
+			}
+			if result.Status >= badServerStatus {
+				return perfumes, result.Status
+			}
+			if result.Status == http.StatusOK {
+				perfumes = append(perfumes, result.Perfumes...)
+			}
+		case <-ctx.Done():
+			return nil, http.StatusInternalServerError
+		}
+	}
 }
