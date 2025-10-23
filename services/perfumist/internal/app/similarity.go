@@ -23,18 +23,18 @@ const (
 )
 
 func FoundSimilarities(favourite models.GluedPerfume, all []models.GluedPerfume, suggestsCount int) []models.GluedPerfumeWithScore {
-	mostSimilar := make([]models.GluedPerfumeWithScore, suggestsCount)
+	mostSimilar := make([]models.GluedPerfumeWithScore, 0, suggestsCount)
 	for _, perfume := range all {
 		if favourite.Equal(perfume) {
 			continue
 		}
 		similarityScore := GetPerfumeSimilarityScore(favourite.Properties, perfume.Properties)
-		updateMostSimilarIfNeeded(mostSimilar, perfume, similarityScore)
+		mostSimilar = updateMostSimilarIfNeeded(mostSimilar, perfume, similarityScore)
 	}
 	return mostSimilar
 }
 
-func updateMostSimilarIfNeeded(mostSimilar []models.GluedPerfumeWithScore, perfume models.GluedPerfume, similarityScore float64) {
+func updateMostSimilarIfNeeded(mostSimilar []models.GluedPerfumeWithScore, perfume models.GluedPerfume, similarityScore float64) []models.GluedPerfumeWithScore {
 	current := perfume
 	for i := range mostSimilar {
 		if similarityScore > mostSimilar[i].Score {
@@ -45,6 +45,13 @@ func updateMostSimilarIfNeeded(mostSimilar []models.GluedPerfumeWithScore, perfu
 			similarityScore = tmp.Score
 		}
 	}
+	if len(mostSimilar) < cap(mostSimilar) {
+		mostSimilar = append(mostSimilar, models.GluedPerfumeWithScore{
+			GluedPerfume: current,
+			Score:        similarityScore,
+		})
+	}
+	return mostSimilar
 }
 
 func GetPerfumeSimilarityScore(first models.PerfumeProperties, second models.PerfumeProperties) float64 {

@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -23,10 +24,14 @@ func AISuggest(ctx context.Context, params parameters.RequestPerfume) ([]models.
 	updateQuery(r, params)
 
 	response, err := http.DefaultClient.Do(r)
-	if err != nil || response.StatusCode != http.StatusOK {
+	if err != nil {
 		return nil, err
 	}
 	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get AI suggestions: %v", response.StatusCode)
+	}
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil || len(body) == 0 {
