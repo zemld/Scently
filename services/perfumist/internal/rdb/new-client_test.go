@@ -31,7 +31,7 @@ func TestGetRedisPassword(t *testing.T) {
 func TestGetRedisClient_ReusesInstance(t *testing.T) {
 	t.Parallel()
 
-	Client = nil
+	client = nil
 
 	c1 := GetRedisClient()
 	c2 := GetRedisClient()

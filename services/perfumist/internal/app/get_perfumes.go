@@ -106,7 +106,7 @@ func addQueryParameter(r *http.Request, key string, value string) {
 		return
 	}
 	updatedQuery := r.URL.Query()
-	updatedQuery.Add(key, value)
+	updatedQuery.Set(key, value)
 	r.URL.RawQuery = updatedQuery.Encode()
 }
 
