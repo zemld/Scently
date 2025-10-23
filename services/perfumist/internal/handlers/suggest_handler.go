@@ -82,6 +82,9 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 		WriteResponse(w, suggestResponse, http.StatusNoContent)
 	}
 
+	if !suggestResponse.Success || len(suggestResponse.Suggested) == 0 {
+		return
+	}
 	err = app.Cache(ctx, models.Perfume{Brand: params.Brand, Name: params.Name}, suggestResponse.Suggested)
 	if err != nil {
 		log.Printf("Cannot cache: %v\n", err)

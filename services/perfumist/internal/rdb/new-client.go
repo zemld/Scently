@@ -3,11 +3,15 @@ package rdb
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/redis/go-redis/v9"
 )
 
-var Client *redis.Client = nil
+var (
+	client *redis.Client = nil
+	once   sync.Once
+)
 
 const (
 	redisHost         = "redis_cache"
@@ -16,14 +20,13 @@ const (
 )
 
 func GetRedisClient() *redis.Client {
-	if Client != nil {
-		return Client
-	}
-	Client = redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%s", redisHost, redisPort),
-		Password: getRedisPassword(),
+	once.Do(func() {
+		client = redis.NewClient(&redis.Options{
+			Addr:     fmt.Sprintf("%s:%s", redisHost, redisPort),
+			Password: getRedisPassword(),
+		})
 	})
-	return Client
+	return client
 }
 
 func getRedisPassword() string {

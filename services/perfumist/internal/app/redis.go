@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/redis/go-redis/v9"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/rdb"
 )
@@ -17,6 +18,9 @@ func LookupCache(ctx context.Context, requestedPerfume models.Perfume) ([]models
 	client := rdb.GetRedisClient()
 
 	cached, err := client.Get(ctx, key).Result()
+	if err == redis.Nil {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}
