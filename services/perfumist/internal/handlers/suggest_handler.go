@@ -11,6 +11,7 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/app"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/rdb"
 )
 
 const suggestsCount = 4
@@ -48,7 +49,11 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), timeout)
 	defer cancel()
 
-	suggests, err := app.LookupCache(ctx, models.Perfume{Brand: params.Brand, Name: params.Name})
+	suggests, err := app.LookupCache(ctx, rdb.PerfumeCacheKey{
+		Brand:      params.Brand,
+		Name:       params.Name,
+		AdviseType: suggestResponse.Input.AdviseType,
+	})
 	if err == nil && suggests != nil {
 		suggestResponse.Suggested = suggests
 		suggestResponse.Success = true
@@ -65,7 +70,10 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if mostSimilar == nil {
-		favouritePerfumes, allPerfumes, status := app.FetchPerfumes(ctx, []parameters.RequestPerfume{params, *parameters.NewGet()})
+		favouritePerfumes, allPerfumes, status := app.FetchPerfumes(
+			ctx,
+			[]parameters.RequestPerfume{params, *parameters.NewGet()},
+		)
 		if status != http.StatusOK {
 			suggestResponse.Success = false
 			WriteResponse(w, suggestResponse, status)
@@ -85,7 +93,11 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 	if !suggestResponse.Success || len(suggestResponse.Suggested) == 0 {
 		return
 	}
-	err = app.Cache(ctx, models.Perfume{Brand: params.Brand, Name: params.Name}, suggestResponse.Suggested)
+	err = app.Cache(
+		ctx,
+		rdb.PerfumeCacheKey{Brand: params.Brand, Name: params.Name, AdviseType: suggestResponse.Input.AdviseType},
+		suggestResponse.Suggested,
+	)
 	if err != nil {
 		log.Printf("Cannot cache: %v\n", err)
 	}
@@ -108,6 +120,11 @@ func isValidQuery(params parameters.RequestPerfume) bool {
 
 func setInputToResponse(response *SuggestResponse, params parameters.RequestPerfume) {
 	response.Input = inputPerfume{Brand: params.Brand, Name: params.Name, Ok: true}
+	if params.UseAI {
+		response.Input.AdviseType = "AI"
+	} else {
+		response.Input.AdviseType = "Comparision"
+	}
 	if !isValidQuery(params) {
 		response.Input.Ok = false
 		response.Success = false

@@ -13,7 +13,7 @@ import (
 
 const cacheTTL = 3600 * time.Second
 
-func LookupCache(ctx context.Context, requestedPerfume models.Perfume) ([]models.RankedPerfumeWithProps, error) {
+func LookupCache(ctx context.Context, requestedPerfume rdb.PerfumeCacheKey) ([]models.RankedPerfumeWithProps, error) {
 	key := getCacheKey(requestedPerfume)
 	client := rdb.GetRedisClient()
 
@@ -31,7 +31,7 @@ func LookupCache(ctx context.Context, requestedPerfume models.Perfume) ([]models
 	return result, nil
 }
 
-func Cache(ctx context.Context, requestedPerfume models.Perfume, toCache []models.RankedPerfumeWithProps) error {
+func Cache(ctx context.Context, requestedPerfume rdb.PerfumeCacheKey, toCache []models.RankedPerfumeWithProps) error {
 	encoded, err := json.Marshal(toCache)
 	if err != nil {
 		return err
@@ -46,6 +46,6 @@ func Cache(ctx context.Context, requestedPerfume models.Perfume, toCache []model
 	return nil
 }
 
-func getCacheKey(perfume models.Perfume) string {
-	return fmt.Sprintf("%s:%s", perfume.Brand, perfume.Name)
+func getCacheKey(perfume rdb.PerfumeCacheKey) string {
+	return fmt.Sprintf("%s:%s:%s", perfume.Brand, perfume.Name, perfume.AdviseType)
 }

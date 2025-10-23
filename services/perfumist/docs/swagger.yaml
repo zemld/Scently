@@ -13,6 +13,8 @@ definitions:
     type: object
   handlers.inputPerfume:
     properties:
+      advise_type:
+        type: string
       brand:
         type: string
       name:

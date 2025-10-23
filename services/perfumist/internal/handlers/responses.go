@@ -8,9 +8,10 @@ import (
 )
 
 type inputPerfume struct {
-	Brand string `json:"brand"`
-	Name  string `json:"name"`
-	Ok    bool   `json:"ok"`
+	Brand      string `json:"brand"`
+	Name       string `json:"name"`
+	Ok         bool   `json:"ok"`
+	AdviseType string `json:"advise_type"`
 }
 
 type SuggestResponse struct {

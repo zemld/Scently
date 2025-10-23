@@ -97,6 +97,9 @@ const docTemplate = `{
         "handlers.inputPerfume": {
             "type": "object",
             "properties": {
+                "advise_type": {
+                    "type": "string"
+                },
                 "brand": {
                     "type": "string"
                 },

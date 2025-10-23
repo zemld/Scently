@@ -19,6 +19,12 @@ const (
 	redisPasswordFile = "REDIS_PASSWORD"
 )
 
+type PerfumeCacheKey struct {
+	Brand      string
+	Name       string
+	AdviseType string
+}
+
 func GetRedisClient() *redis.Client {
 	once.Do(func() {
 		client = redis.NewClient(&redis.Options{
