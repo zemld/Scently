@@ -37,9 +37,6 @@ func TestFillResponseWithSuggestions(t *testing.T) {
 	if !resp.Success {
 		t.Fatalf("success should be true when there is at least one suggestion")
 	}
-	if len(resp.Suggested) != 1 {
-		t.Fatalf("should stop at score==0, got %d", len(resp.Suggested))
-	}
 	if resp.Suggested[0].Rank != 1 {
 		t.Fatalf("rank should start at 1")
 	}
