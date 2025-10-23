@@ -29,15 +29,13 @@ def create_user_prompt(brand: str, name: str) -> str:
             Brand: {brand}
             Name: {name}
 
-            Return exactly 6 other perfumes that the user might also like.
+            Return exactly 4 other perfumes that the user might also like.
             Each item must include:
             - brand
             - name
 
             Respond strictly in this JSON format:
             [
-            {{"brand": "string", "name": "string"}},
-            {{"brand": "string", "name": "string"}},
             {{"brand": "string", "name": "string"}},
             {{"brand": "string", "name": "string"}},
             {{"brand": "string", "name": "string"}},

@@ -22,6 +22,38 @@ const (
 	baseNotesWeight   = 0.4
 )
 
+func FoundSimilarities(favourite models.GluedPerfume, all []models.GluedPerfume, suggestsCount int) []models.GluedPerfumeWithScore {
+	mostSimilar := make([]models.GluedPerfumeWithScore, 0, suggestsCount)
+	for _, perfume := range all {
+		if favourite.Equal(perfume) {
+			continue
+		}
+		similarityScore := GetPerfumeSimilarityScore(favourite.Properties, perfume.Properties)
+		mostSimilar = updateMostSimilarIfNeeded(mostSimilar, perfume, similarityScore)
+	}
+	return mostSimilar
+}
+
+func updateMostSimilarIfNeeded(mostSimilar []models.GluedPerfumeWithScore, perfume models.GluedPerfume, similarityScore float64) []models.GluedPerfumeWithScore {
+	current := perfume
+	for i := range mostSimilar {
+		if similarityScore > mostSimilar[i].Score {
+			tmp := mostSimilar[i]
+			mostSimilar[i].Score = similarityScore
+			mostSimilar[i].GluedPerfume = current
+			current = tmp.GluedPerfume
+			similarityScore = tmp.Score
+		}
+	}
+	if len(mostSimilar) < cap(mostSimilar) {
+		mostSimilar = append(mostSimilar, models.GluedPerfumeWithScore{
+			GluedPerfume: current,
+			Score:        similarityScore,
+		})
+	}
+	return mostSimilar
+}
+
 func GetPerfumeSimilarityScore(first models.PerfumeProperties, second models.PerfumeProperties) float64 {
 	if first.Sex == male && second.Sex == female || first.Sex == female && second.Sex == male {
 		return 0

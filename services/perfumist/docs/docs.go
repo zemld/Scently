@@ -39,6 +39,12 @@ const docTemplate = `{
                         "name": "name",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Use AI to suggest perfumes",
+                        "name": "use_ai",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -83,7 +89,7 @@ const docTemplate = `{
                 "suggested": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/handlers.rankedPerfumeWithProps"
+                        "$ref": "#/definitions/models.RankedPerfumeWithProps"
                     }
                 }
             }
@@ -91,6 +97,9 @@ const docTemplate = `{
         "handlers.inputPerfume": {
             "type": "object",
             "properties": {
+                "advise_type": {
+                    "type": "string"
+                },
                 "brand": {
                     "type": "string"
                 },
@@ -99,20 +108,6 @@ const docTemplate = `{
                 },
                 "ok": {
                     "type": "boolean"
-                }
-            }
-        },
-        "handlers.rankedPerfumeWithProps": {
-            "type": "object",
-            "properties": {
-                "perfume": {
-                    "$ref": "#/definitions/models.GluedPerfume"
-                },
-                "rank": {
-                    "type": "integer"
-                },
-                "score": {
-                    "type": "number"
                 }
             }
         },
@@ -168,6 +163,20 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "models.RankedPerfumeWithProps": {
+            "type": "object",
+            "properties": {
+                "perfume": {
+                    "$ref": "#/definitions/models.GluedPerfume"
+                },
+                "rank": {
+                    "type": "integer"
+                },
+                "similarity_score": {
+                    "type": "number"
                 }
             }
         }

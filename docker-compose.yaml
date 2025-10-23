@@ -36,13 +36,13 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - perfume_volume:/var/lib/postgresql/data
+      - perfume_volume:/var/lib/postgresql
 
   perfumist:
     build:
-      context: perfumist
+      context: services/perfumist
     ports:
-      - "8088:8088"
+      - "8088:8000"
     environment:
       REDIS_PASSWORD: redis_password
     depends_on:

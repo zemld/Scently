@@ -105,3 +105,19 @@ func TestGetListSimilarityScore(t *testing.T) {
 		t.Fatalf("disjoint expected 0, got %v", s)
 	}
 }
+
+func TestUpdateMostSimilarIfNeeded(t *testing.T) {
+	t.Parallel()
+
+	arr := make([]models.GluedPerfumeWithScore, 4)
+	for i, s := range []float64{0.1, 0.2, 0.3, 0.4} {
+		updateMostSimilarIfNeeded(arr, models.GluedPerfume{Name: "n"}, s)
+		if arr[i].Score == 0 {
+			t.Fatalf("position %d should be filled", i)
+		}
+	}
+	updateMostSimilarIfNeeded(arr, models.GluedPerfume{Name: "m"}, 0.25)
+	if !(arr[1].Score >= 0.25 && arr[2].Score >= 0.25) {
+		t.Fatalf("middle insertion not reflected: %+v", arr)
+	}
+}

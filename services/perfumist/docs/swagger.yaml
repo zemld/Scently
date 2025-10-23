@@ -8,26 +8,19 @@ definitions:
         type: boolean
       suggested:
         items:
-          $ref: '#/definitions/handlers.rankedPerfumeWithProps'
+          $ref: '#/definitions/models.RankedPerfumeWithProps'
         type: array
     type: object
   handlers.inputPerfume:
     properties:
+      advise_type:
+        type: string
       brand:
         type: string
       name:
         type: string
       ok:
         type: boolean
-    type: object
-  handlers.rankedPerfumeWithProps:
-    properties:
-      perfume:
-        $ref: '#/definitions/models.GluedPerfume'
-      rank:
-        type: integer
-      score:
-        type: number
     type: object
   models.GluedPerfume:
     properties:
@@ -65,6 +58,15 @@ definitions:
           type: string
         type: array
     type: object
+  models.RankedPerfumeWithProps:
+    properties:
+      perfume:
+        $ref: '#/definitions/models.GluedPerfume'
+      rank:
+        type: integer
+      similarity_score:
+        type: number
+    type: object
 info:
   contact: {}
   description: Mircoservice with bussiness logic for perfume suggestions
@@ -86,6 +88,10 @@ paths:
         name: name
         required: true
         type: string
+      - description: Use AI to suggest perfumes
+        in: query
+        name: use_ai
+        type: boolean
       produces:
       - application/json
       responses:

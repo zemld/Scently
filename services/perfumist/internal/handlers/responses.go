@@ -8,9 +8,10 @@ import (
 )
 
 type inputPerfume struct {
-	Brand string `json:"brand"`
-	Name  string `json:"name"`
-	Ok    bool   `json:"ok"`
+	Brand      string `json:"brand"`
+	Name       string `json:"name"`
+	Ok         bool   `json:"ok"`
+	AdviseType string `json:"advise_type"`
 }
 
 type SuggestResponse struct {
@@ -21,6 +22,6 @@ type SuggestResponse struct {
 
 func WriteResponse(w http.ResponseWriter, response any, status int) {
 	w.WriteHeader(status)
-	w.Header().Add("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
