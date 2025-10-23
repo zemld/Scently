@@ -15,6 +15,11 @@ import (
 
 const suggestsCount = 4
 
+const (
+	defaultTimeout = time.Second
+	aiTimeout      = time.Second * 6
+)
+
 // @description Get suggests for perfumes. Accept brand and name and recommends 4+- perfumes which user probably will like.
 // @tags Perfumes
 // @summary Suggests some perfumes
@@ -34,8 +39,11 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 		WriteResponse(w, suggestResponse, http.StatusBadRequest)
 		return
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	var timeout time.Duration = defaultTimeout
+	if params.UseAI {
+		timeout = aiTimeout
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), timeout)
 	defer cancel()
 
 	suggests, err := app.LookupCache(ctx, models.Perfume{Brand: params.Brand, Name: params.Name})
@@ -45,20 +53,26 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 		WriteResponse(w, suggestResponse, http.StatusOK)
 		return
 	}
-	// TODO: Implement AI suggestion
+
+	var mostSimilar []models.GluedPerfumeWithScore
 	if params.UseAI {
-
-	}
-	favouritePerfumes, allPerfumes, status := app.FetchPerfumes(ctx, []parameters.RequestPerfume{params, *parameters.NewGet()})
-	if status != http.StatusOK {
-		suggestResponse.Success = false
-		WriteResponse(w, suggestResponse, status)
-		return
+		aiSuggests, err := app.AISuggest(ctx, params)
+		if err == nil && aiSuggests != nil {
+			mostSimilar = aiSuggests
+		}
 	}
 
-	favouritePerfume := favouritePerfumes[0]
-	mostSimilar := app.FoundSimilarities(favouritePerfume, allPerfumes, suggestsCount)
+	if mostSimilar == nil {
+		favouritePerfumes, allPerfumes, status := app.FetchPerfumes(ctx, []parameters.RequestPerfume{params, *parameters.NewGet()})
+		if status != http.StatusOK {
+			suggestResponse.Success = false
+			WriteResponse(w, suggestResponse, status)
+			return
+		}
 
+		favouritePerfume := favouritePerfumes[0]
+		mostSimilar = app.FoundSimilarities(favouritePerfume, allPerfumes, suggestsCount)
+	}
 	fillResponseWithSuggestions(&suggestResponse, mostSimilar)
 	if suggestResponse.Success {
 		WriteResponse(w, suggestResponse, http.StatusOK)
@@ -91,9 +105,6 @@ func parseQuery(r *http.Request, suggestResponse *SuggestResponse) (parameters.R
 
 func fillResponseWithSuggestions(response *SuggestResponse, suggestions []models.GluedPerfumeWithScore) {
 	for i, suggestion := range suggestions {
-		if suggestion.Score == 0 {
-			break
-		}
 		response.Suggested = append(
 			response.Suggested,
 			models.RankedPerfumeWithProps{

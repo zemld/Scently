@@ -32,6 +32,12 @@
                         "name": "name",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Use AI to suggest perfumes",
+                        "name": "use_ai",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -76,7 +82,7 @@
                 "suggested": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/handlers.rankedPerfumeWithProps"
+                        "$ref": "#/definitions/models.RankedPerfumeWithProps"
                     }
                 }
             }
@@ -92,20 +98,6 @@
                 },
                 "ok": {
                     "type": "boolean"
-                }
-            }
-        },
-        "handlers.rankedPerfumeWithProps": {
-            "type": "object",
-            "properties": {
-                "perfume": {
-                    "$ref": "#/definitions/models.GluedPerfume"
-                },
-                "rank": {
-                    "type": "integer"
-                },
-                "score": {
-                    "type": "number"
                 }
             }
         },
@@ -161,6 +153,20 @@
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "models.RankedPerfumeWithProps": {
+            "type": "object",
+            "properties": {
+                "perfume": {
+                    "$ref": "#/definitions/models.GluedPerfume"
+                },
+                "rank": {
+                    "type": "integer"
+                },
+                "similarity_score": {
+                    "type": "number"
                 }
             }
         }
