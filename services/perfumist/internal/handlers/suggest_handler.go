@@ -33,12 +33,14 @@ const (
 // @failure 500 {object} SuggestResponse
 // @router /perfume [get]
 func Suggest(w http.ResponseWriter, r *http.Request) {
+	params := parseQuery(r)
 	var suggestResponse SuggestResponse
-	params, ok := parseQuery(r, &suggestResponse)
-	if !ok {
+	setInputToResponse(&suggestResponse, params)
+	if !isValidQuery(params) {
 		WriteResponse(w, suggestResponse, http.StatusBadRequest)
 		return
 	}
+
 	var timeout time.Duration = defaultTimeout
 	if params.UseAI {
 		timeout = aiTimeout
@@ -86,7 +88,7 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func parseQuery(r *http.Request, suggestResponse *SuggestResponse) (parameters.RequestPerfume, bool) {
+func parseQuery(r *http.Request) parameters.RequestPerfume {
 	brand := r.URL.Query().Get("brand")
 	name := r.URL.Query().Get("name")
 	useAI := r.URL.Query().Get("use_ai")
@@ -94,13 +96,19 @@ func parseQuery(r *http.Request, suggestResponse *SuggestResponse) (parameters.R
 	if err != nil {
 		useAIBool = false
 	}
-	suggestResponse.Input = inputPerfume{Brand: brand, Name: name, Ok: true}
-	if brand == "" || name == "" {
-		suggestResponse.Input.Ok = false
-		suggestResponse.Success = false
-		return parameters.RequestPerfume{}, false
+	return *parameters.NewGet().WithBrand(brand).WithName(name).WithUseAI(useAIBool)
+}
+
+func isValidQuery(params parameters.RequestPerfume) bool {
+	return params.Brand != "" && params.Name != ""
+}
+
+func setInputToResponse(response *SuggestResponse, params parameters.RequestPerfume) {
+	response.Input = inputPerfume{Brand: params.Brand, Name: params.Name, Ok: true}
+	if !isValidQuery(params) {
+		response.Input.Ok = false
+		response.Success = false
 	}
-	return *parameters.NewGet().WithBrand(brand).WithName(name).WithUseAI(useAIBool), true
 }
 
 func fillResponseWithSuggestions(response *SuggestResponse, suggestions []models.GluedPerfumeWithScore) {

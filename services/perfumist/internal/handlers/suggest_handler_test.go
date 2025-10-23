@@ -13,16 +13,15 @@ func TestParseQuery(t *testing.T) {
 	t.Parallel()
 
 	req := httptest.NewRequest(http.MethodGet, "/?brand=A&name=X", nil)
-	var resp SuggestResponse
-	p, ok := parseQuery(req, &resp)
-	if !ok || p.Brand != "A" || p.Name != "X" || !resp.Input.Ok {
-		t.Fatalf("parseQuery should succeed: %+v, ok=%v", p, ok)
+	p := parseQuery(req)
+	if p.Brand != "A" || p.Name != "X" || !isValidQuery(p) {
+		t.Fatalf("parseQuery should succeed: %+v", p)
 	}
 
 	req2 := httptest.NewRequest(http.MethodGet, "/?brand=A", nil)
-	var resp2 SuggestResponse
-	if _, ok := parseQuery(req2, &resp2); ok || resp2.Input.Ok || resp2.Success {
-		t.Fatalf("parseQuery should fail when name missing: %+v", resp2)
+	p2 := parseQuery(req2)
+	if p2.Brand != "A" || p2.Name != "" || isValidQuery(p2) {
+		t.Fatalf("parseQuery should fail when name missing: %+v", p2)
 	}
 }
 
