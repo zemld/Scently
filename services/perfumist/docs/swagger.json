@@ -34,6 +34,12 @@
                         "required": true
                     },
                     {
+                        "type": "string",
+                        "description": "For her or for him",
+                        "name": "sex",
+                        "in": "query"
+                    },
+                    {
                         "type": "boolean",
                         "description": "Use AI to suggest perfumes",
                         "name": "use_ai",
@@ -101,6 +107,9 @@
                 },
                 "ok": {
                     "type": "boolean"
+                },
+                "sex": {
+                    "type": "string"
                 }
             }
         },
@@ -124,6 +133,9 @@
                 },
                 "properties": {
                     "$ref": "#/definitions/models.PerfumeProperties"
+                },
+                "sex": {
+                    "type": "string"
                 }
             }
         },
@@ -147,9 +159,6 @@
                     "items": {
                         "type": "string"
                     }
-                },
-                "sex": {
-                    "type": "string"
                 },
                 "type": {
                     "type": "string"

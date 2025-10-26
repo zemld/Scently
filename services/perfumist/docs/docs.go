@@ -41,6 +41,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "type": "string",
+                        "description": "For her or for him",
+                        "name": "sex",
+                        "in": "query"
+                    },
+                    {
                         "type": "boolean",
                         "description": "Use AI to suggest perfumes",
                         "name": "use_ai",
@@ -108,6 +114,9 @@ const docTemplate = `{
                 },
                 "ok": {
                     "type": "boolean"
+                },
+                "sex": {
+                    "type": "string"
                 }
             }
         },
@@ -131,6 +140,9 @@ const docTemplate = `{
                 },
                 "properties": {
                     "$ref": "#/definitions/models.PerfumeProperties"
+                },
+                "sex": {
+                    "type": "string"
                 }
             }
         },
@@ -154,9 +166,6 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
-                },
-                "sex": {
-                    "type": "string"
                 },
                 "type": {
                     "type": "string"
