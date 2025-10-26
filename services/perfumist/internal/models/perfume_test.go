@@ -34,12 +34,25 @@ func TestNewGluedPerfume_AndEqual(t *testing.T) {
 	}
 
 	if !g.Equal(NewGluedPerfume(p)) {
-		t.Fatalf("Equal should be true for same brand+name")
+		t.Fatalf("Equal should be true for same brand+name+sex")
 	}
 
-	other := GluedPerfume{Brand: "A", Name: "Y"}
+	// Test different name
+	other := GluedPerfume{Brand: "A", Name: "Y", Sex: "male"}
 	if g.Equal(other) {
 		t.Fatalf("Equal should be false for different name")
+	}
+
+	// Test different sex
+	otherSex := GluedPerfume{Brand: "A", Name: "X", Sex: "female"}
+	if g.Equal(otherSex) {
+		t.Fatalf("Equal should be false for different sex")
+	}
+
+	// Test different brand
+	otherBrand := GluedPerfume{Brand: "B", Name: "X", Sex: "male"}
+	if g.Equal(otherBrand) {
+		t.Fatalf("Equal should be false for different brand")
 	}
 }
 

@@ -37,7 +37,7 @@ func NewGluedPerfume(p Perfume) GluedPerfume {
 }
 
 func (g GluedPerfume) Equal(other GluedPerfume) bool {
-	return g.Brand == other.Brand && g.Name == other.Name
+	return g.Brand == other.Brand && g.Name == other.Name && g.Sex == other.Sex
 }
 
 type PerfumeProperties struct {
