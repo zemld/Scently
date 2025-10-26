@@ -3,7 +3,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
 
-from tqdm import tqdm  # type: ignore[import-untyped]
+from tqdm import tqdm
 
 from models.perfume import Perfume
 from scraping.page_parser import PageParser

@@ -20,6 +20,8 @@ dependencies = [
 dev-dependencies = [
     "mypy>=1.18.2",
     "ruff>=0.14.0",
+    "types-requests>=2.31.0",
+    "types-tqdm>=4.67.0",
 ]
 
 [tool.ruff]
@@ -39,5 +41,5 @@ disallow_untyped_defs = true
 disallow_incomplete_defs = true
 
 [[tool.mypy.overrides]]
-module = ["tqdm", "httpx"]
+module = ["httpx"]
 ignore_missing_imports = true
