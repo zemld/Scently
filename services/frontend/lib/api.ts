@@ -50,6 +50,7 @@ export interface SuggestionResponse {
                 base_notes: string[]
             }
             links: Record<string, string>
+            image_url: string
         }
         rank: number
         similarity_score: number

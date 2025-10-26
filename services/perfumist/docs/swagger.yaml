@@ -3,12 +3,12 @@ definitions:
   handlers.SuggestResponse:
     properties:
       input:
-        $ref: '#/definitions/handlers.inputPerfume'
+        $ref: "#/definitions/handlers.inputPerfume"
       success:
         type: boolean
       suggested:
         items:
-          $ref: '#/definitions/models.RankedPerfumeWithProps'
+          $ref: "#/definitions/models.RankedPerfumeWithProps"
         type: array
     type: object
   handlers.inputPerfume:
@@ -26,6 +26,8 @@ definitions:
     properties:
       brand:
         type: string
+      image_url:
+        type: string
       links:
         additionalProperties:
           type: string
@@ -33,7 +35,7 @@ definitions:
       name:
         type: string
       properties:
-        $ref: '#/definitions/models.PerfumeProperties'
+        $ref: "#/definitions/models.PerfumeProperties"
     type: object
   models.PerfumeProperties:
     properties:
@@ -61,7 +63,7 @@ definitions:
   models.RankedPerfumeWithProps:
     properties:
       perfume:
-        $ref: '#/definitions/models.GluedPerfume'
+        $ref: "#/definitions/models.GluedPerfume"
       rank:
         type: integer
       similarity_score:
@@ -75,43 +77,44 @@ info:
 paths:
   /perfume:
     get:
-      description: Get suggests for perfumes. Accept brand and name and recommends
+      description:
+        Get suggests for perfumes. Accept brand and name and recommends
         4+- perfumes which user probably will like.
       parameters:
-      - description: Brand of the perfume which you like
-        in: query
-        name: brand
-        required: true
-        type: string
-      - description: Name of the perfume which you like
-        in: query
-        name: name
-        required: true
-        type: string
-      - description: Use AI to suggest perfumes
-        in: query
-        name: use_ai
-        type: boolean
+        - description: Brand of the perfume which you like
+          in: query
+          name: brand
+          required: true
+          type: string
+        - description: Name of the perfume which you like
+          in: query
+          name: name
+          required: true
+          type: string
+        - description: Use AI to suggest perfumes
+          in: query
+          name: use_ai
+          type: boolean
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Suggested perfumes
           schema:
-            $ref: '#/definitions/handlers.SuggestResponse'
+            $ref: "#/definitions/handlers.SuggestResponse"
         "204":
           description: No perfumes found for suggestion
           schema:
-            $ref: '#/definitions/handlers.SuggestResponse'
+            $ref: "#/definitions/handlers.SuggestResponse"
         "400":
           description: Incorrect parameters
           schema:
-            $ref: '#/definitions/handlers.SuggestResponse'
+            $ref: "#/definitions/handlers.SuggestResponse"
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.SuggestResponse'
+            $ref: "#/definitions/handlers.SuggestResponse"
       summary: Suggests some perfumes
       tags:
-      - Perfumes
+        - Perfumes
 swagger: "2.0"

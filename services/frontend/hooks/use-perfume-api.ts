@@ -40,8 +40,8 @@ export const usePerfumeAPI = () => {
                 type: item.perfume.properties.type,
                 family: item.perfume.properties.family,
                 sex: item.perfume.properties.sex,
-                links: item.perfume.links, // Передаем все ссылки для объемов
-                image: undefined // Убираем изображение из ссылок, используем fallback
+                links: item.perfume.links,
+                image: item.perfume.image_url
             }))
 
             setState({

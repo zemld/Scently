@@ -140,3 +140,34 @@ class GoldApplePageParser(PageParser):
         int_rx = re.compile(r"\d+")
         match = re.search(int_rx, props[13])
         return int(match.group(0)) if match else 0
+
+    def _parse_image_url(self, page: BeautifulSoup) -> str:
+        og_image = page.find("meta", property="og:image")
+        if og_image and hasattr(og_image, "get") and og_image.get("content"):
+            image_url = og_image.get("content")
+            if isinstance(image_url, str) and self._is_valid_image_url(image_url):
+                return image_url
+
+        return ""
+
+    @staticmethod
+    def _is_valid_image_url(url: str) -> bool:
+        if not url or not isinstance(url, str):
+            return False
+
+        invalid_patterns = [
+            "placeholder",
+            "no-image",
+            "default",
+            "empty",
+            "blank",
+            "loading",
+            "spinner",
+        ]
+
+        url_lower = url.lower()
+        if any(pattern in url_lower for pattern in invalid_patterns):
+            return False
+
+        valid_extensions = [".jpg", ".jpeg", ".png", ".webp", ".gif"]
+        return any(url_lower.endswith(ext) for ext in valid_extensions) or "?" in url

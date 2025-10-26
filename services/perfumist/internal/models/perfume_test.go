@@ -16,6 +16,7 @@ func TestNewGluedPerfume_AndEqual(t *testing.T) {
 		BaseNotes:   []string{"cedar"},
 		Link:        "link",
 		Volume:      50,
+		ImageUrl:    "url",
 	}
 
 	g := NewGluedPerfume(p)
@@ -27,6 +28,9 @@ func TestNewGluedPerfume_AndEqual(t *testing.T) {
 	}
 	if len(g.Links) != 1 || g.Links[50] != "link" {
 		t.Fatalf("links not initialized correctly: %+v", g.Links)
+	}
+	if g.ImageUrl != p.ImageUrl {
+		t.Fatalf("image url not copied correctly: %+v", g.ImageUrl)
 	}
 
 	if !g.Equal(NewGluedPerfume(p)) {

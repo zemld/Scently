@@ -1,7 +1,7 @@
 services:
   perfume-updater:
     build:
-      context: parser
+      context: services/parser
     environment:
       HARD_UPDATE_PASSWORD_FILE: /run/secrets/hard_update_password
     secrets:
@@ -11,7 +11,7 @@ services:
 
   perfume:
     build:
-      context: perfume
+      context: services/perfume
     env_file:
       - ./secrets/db.env
     environment:

@@ -13,6 +13,7 @@ type Perfume struct {
 	BaseNotes   []string `json:"base_notes"`
 	Link        string   `json:"link"`
 	Volume      int      `json:"volume"`
+	ImageUrl    string   `json:"image_url"`
 }
 
 type GluedPerfume struct {
@@ -20,6 +21,7 @@ type GluedPerfume struct {
 	Name       string            `json:"name"`
 	Properties PerfumeProperties `json:"properties"`
 	Links      map[int]string    `json:"links"`
+	ImageUrl   string            `json:"image_url"`
 }
 
 func NewGluedPerfume(p Perfume) GluedPerfume {
@@ -28,6 +30,7 @@ func NewGluedPerfume(p Perfume) GluedPerfume {
 		Name:       p.Name,
 		Properties: p.getProperties(),
 		Links:      map[int]string{p.Volume: p.Link},
+		ImageUrl:   p.ImageUrl,
 	}
 }
 

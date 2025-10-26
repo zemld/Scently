@@ -31,6 +31,7 @@ func TestPerfumeUnpackPropertiesAndLinkedFields(t *testing.T) {
 		p.UpperNotes,
 		p.MiddleNotes,
 		p.BaseNotes,
+		p.ImageUrl,
 	}
 	if !reflect.DeepEqual(gotProps, wantProps) {
 		t.Fatalf("UnpackProperties() mismatch:\n got: %#v\nwant: %#v", gotProps, wantProps)

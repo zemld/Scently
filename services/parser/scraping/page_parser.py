@@ -40,6 +40,7 @@ class PageParser(ABC):
         middle_notes = self._parse_middle_notes(page)
         base_notes = self._parse_base_notes(page)
         volume = self._parse_volume(page)
+        image_url = self._parse_image_url(page)
         if (
             any(item == "" for item in (brand, name, perfume_type, sex))
             or any(item is None for item in (brand, name, perfume_type, sex))
@@ -61,6 +62,7 @@ class PageParser(ABC):
             middle_notes,
             base_notes,
             volume,
+            image_url=image_url,
         )
 
     def _canonize(
@@ -115,4 +117,8 @@ class PageParser(ABC):
 
     @abstractmethod
     def _parse_volume(self, page: BeautifulSoup) -> int:
+        pass
+
+    @abstractmethod
+    def _parse_image_url(self, page: BeautifulSoup) -> str:
         pass
