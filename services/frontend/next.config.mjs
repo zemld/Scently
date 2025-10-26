@@ -7,7 +7,6 @@ const nextConfig = {
     unoptimized: true,
   },
   output: 'standalone',
-  turbopack: false,
   async rewrites() {
     return [
       {

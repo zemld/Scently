@@ -7,12 +7,14 @@ import { Switch } from "@/components/ui/switch"
 import { usePerfumeAPI } from "@/hooks/use-perfume-api"
 import { Perfume } from "@/lib/api"
 import { PerfumeModal } from "@/components/perfume-modal"
+import { SexSelector } from "@/components/sex-selector"
 
 export default function ScentlyLanding() {
   const [showInputSection, setShowInputSection] = useState(false)
   const [showRecommendations, setShowRecommendations] = useState(false)
   const [brand, setBrand] = useState("")
   const [name, setName] = useState("")
+  const [sex, setSex] = useState<'male' | 'unisex' | 'female'>('unisex')
   const [aiMode, setAiMode] = useState(false)
   const [recommendations, setRecommendations] = useState<Perfume[]>([])
   const [selectedPerfume, setSelectedPerfume] = useState<Perfume | null>(null)
@@ -37,7 +39,8 @@ export default function ScentlyLanding() {
       const results = await getSuggestions({
         brand,
         name,
-        use_ai: aiMode
+        use_ai: aiMode,
+        sex
       })
 
       setRecommendations(results)
@@ -125,6 +128,8 @@ export default function ScentlyLanding() {
                 </div>
               </div>
 
+              <SexSelector value={sex} onChange={setSex} />
+
               <div className="flex items-center justify-between bg-white/5 backdrop-blur-md border border-white/20 rounded-xl p-4">
                 <label className="text-sm font-medium text-[#F8F5F0]">Use AI mode</label>
                 <Switch checked={aiMode} onCheckedChange={setAiMode} className="data-[state=checked]:bg-[#C38E70]" />
@@ -178,6 +183,13 @@ export default function ScentlyLanding() {
                     <h3 className="text-xl font-bold text-[#F8F5F0] mb-1">{perfume.name}</h3>
                     <p className="text-sm text-[#C38E70] mb-2">{perfume.brand}</p>
                     <p className="text-sm text-[#F8F5F0]/70">{perfume.description || "Premium fragrance"}</p>
+                    {perfume.sex && (
+                      <div className="mt-2">
+                        <span className="text-xs bg-white/10 backdrop-blur-md border border-white/20 text-[#E3B23C] px-2 py-1 rounded-full">
+                          {perfume.sex}
+                        </span>
+                      </div>
+                    )}
                     {perfume.family && (
                       <div className="mt-2 flex flex-wrap gap-1">
                         {perfume.family.slice(0, 3).map((family, familyIndex) => (

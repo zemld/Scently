@@ -28,6 +28,7 @@ export interface SuggestionRequest {
     brand: string
     name: string
     use_ai?: boolean
+    sex?: 'male' | 'unisex' | 'female'
 }
 
 export interface SuggestionResponse {
@@ -36,14 +37,15 @@ export interface SuggestionResponse {
         name: string
         ok: boolean
         advise_type: string
+        sex: string
     }
     suggested: Array<{
         perfume: {
             brand: string
             name: string
+            sex: string
             properties: {
                 type: string
-                sex: string
                 family: string[]
                 upper_notes: string[]
                 middle_notes: string[]
@@ -88,6 +90,10 @@ class APIClient {
 
         if (request.use_ai !== undefined) {
             params.append('use_ai', request.use_ai.toString())
+        }
+
+        if (request.sex !== undefined) {
+            params.append('sex', request.sex)
         }
 
         const url = `${API_BASE_URL}/v1/suggest/perfume?${params.toString()}`
