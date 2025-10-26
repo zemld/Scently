@@ -23,7 +23,7 @@ func TestNewGluedPerfume_AndEqual(t *testing.T) {
 	if g.Brand != p.Brand || g.Name != p.Name {
 		t.Fatalf("brand/name not copied")
 	}
-	if g.Properties.Sex != p.Sex || g.Properties.Type != p.Type {
+	if g.Properties.Type != p.Type {
 		t.Fatalf("properties not copied correctly: %+v", g.Properties)
 	}
 	if len(g.Links) != 1 || g.Links[50] != "link" {
@@ -34,12 +34,25 @@ func TestNewGluedPerfume_AndEqual(t *testing.T) {
 	}
 
 	if !g.Equal(NewGluedPerfume(p)) {
-		t.Fatalf("Equal should be true for same brand+name")
+		t.Fatalf("Equal should be true for same brand+name+sex")
 	}
 
-	other := GluedPerfume{Brand: "A", Name: "Y"}
+	// Test different name
+	other := GluedPerfume{Brand: "A", Name: "Y", Sex: "male"}
 	if g.Equal(other) {
 		t.Fatalf("Equal should be false for different name")
+	}
+
+	// Test different sex
+	otherSex := GluedPerfume{Brand: "A", Name: "X", Sex: "female"}
+	if g.Equal(otherSex) {
+		t.Fatalf("Equal should be false for different sex")
+	}
+
+	// Test different brand
+	otherBrand := GluedPerfume{Brand: "B", Name: "X", Sex: "male"}
+	if g.Equal(otherBrand) {
+		t.Fatalf("Equal should be false for different brand")
 	}
 }
 
@@ -59,7 +72,7 @@ func TestGetProperties(t *testing.T) {
 		Volume:      50,
 	}
 	props := p.getProperties()
-	if props.Type != p.Type || props.Sex != p.Sex || len(props.Family) != 1 {
+	if props.Type != p.Type || len(props.Family) != 1 {
 		t.Fatalf("properties mapping incorrect: %+v", props)
 	}
 }

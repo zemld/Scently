@@ -7,13 +7,16 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
 )
 
-func TestGetPerfumeSimilarityScore_SexMismatch(t *testing.T) {
+func TestGetPerfumeSimilarityScore_EmptyProperties(t *testing.T) {
 	t.Parallel()
 
-	a := models.PerfumeProperties{Sex: "male"}
-	b := models.PerfumeProperties{Sex: "female"}
-	if got := GetPerfumeSimilarityScore(a, b); got != 0 {
-		t.Fatalf("sex mismatch expected 0, got %v", got)
+	a := models.PerfumeProperties{}
+	b := models.PerfumeProperties{}
+	// Empty properties: families=0, notes=0, type=1 (empty strings are equal)
+	// Score = 0*0.4 + 0*0.55 + 1*0.05 = 0.05
+	got := GetPerfumeSimilarityScore(a, b)
+	if diff := math.Abs(got - 0.05); diff > 1e-9 {
+		t.Fatalf("empty properties expected 0.05, got %v", got)
 	}
 }
 
@@ -22,7 +25,6 @@ func TestGetPerfumeSimilarityScore_FullMatch(t *testing.T) {
 
 	a := models.PerfumeProperties{
 		Type:        "edt",
-		Sex:         "male",
 		Family:      []string{"woody", "spicy"},
 		UpperNotes:  []string{"bergamot"},
 		MiddleNotes: []string{"lavender"},
@@ -38,8 +40,8 @@ func TestGetPerfumeSimilarityScore_FullMatch(t *testing.T) {
 func TestGetPerfumeSimilarityScore_EmptyLists(t *testing.T) {
 	t.Parallel()
 
-	a := models.PerfumeProperties{Type: "edt", Sex: "male"}
-	b := models.PerfumeProperties{Type: "edt", Sex: "male"}
+	a := models.PerfumeProperties{Type: "edt"}
+	b := models.PerfumeProperties{Type: "edt"}
 	// No notes/families -> list similarities 0; type equal -> 1
 	// Score = 0*0.4 + 0*0.55 + 1*0.05 = 0.05
 	got := GetPerfumeSimilarityScore(a, b)
@@ -53,7 +55,6 @@ func TestGetPerfumeSimilarityScore_PartialNotes(t *testing.T) {
 
 	a := models.PerfumeProperties{
 		Type:        "edt",
-		Sex:         "male",
 		Family:      []string{"woody", "spicy"},
 		UpperNotes:  []string{"bergamot", "lemon"},
 		MiddleNotes: []string{"lavender"},
@@ -61,7 +62,6 @@ func TestGetPerfumeSimilarityScore_PartialNotes(t *testing.T) {
 	}
 	b := models.PerfumeProperties{
 		Type:        "edp",
-		Sex:         "male",
 		Family:      []string{"woody", "amber"},
 		UpperNotes:  []string{"bergamot"},
 		MiddleNotes: []string{"lavender", "rose"},

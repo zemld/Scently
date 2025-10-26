@@ -47,5 +47,5 @@ func Cache(ctx context.Context, requestedPerfume rdb.PerfumeCacheKey, toCache []
 }
 
 func getCacheKey(perfume rdb.PerfumeCacheKey) string {
-	return fmt.Sprintf("%s:%s:%s", perfume.Brand, perfume.Name, perfume.AdviseType)
+	return fmt.Sprintf("%s:%s:%s:%s", perfume.Brand, perfume.Name, perfume.AdviseType, perfume.Sex)
 }

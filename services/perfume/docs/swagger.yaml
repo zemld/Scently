@@ -89,6 +89,10 @@ paths:
         in: query
         name: name
         type: string
+      - description: For him or for her
+        in: query
+        name: sex
+        type: string
       produces:
       - application/json
       responses:

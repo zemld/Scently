@@ -10,9 +10,9 @@ func TestGlue_MergesLinksByBrandName(t *testing.T) {
 	t.Parallel()
 
 	perfumes := []models.Perfume{
-		{Brand: "A", Name: "X", Link: "l1", Volume: 50},
-		{Brand: "A", Name: "X", Link: "l2", Volume: 100},
-		{Brand: "B", Name: "Y", Link: "l3", Volume: 30},
+		{Brand: "A", Name: "X", Sex: "male", Link: "l1", Volume: 50},
+		{Brand: "A", Name: "X", Sex: "male", Link: "l2", Volume: 100},
+		{Brand: "B", Name: "Y", Sex: "female", Link: "l3", Volume: 30},
 	}
 
 	glued := Glue(perfumes)
@@ -49,9 +49,9 @@ func TestGlue_MergesLinksByBrandName(t *testing.T) {
 func TestGetKey(t *testing.T) {
 	t.Parallel()
 
-	p := models.Perfume{Brand: "A", Name: "X"}
-	if got := getKey(p); got != "AX" {
-		t.Fatalf("getKey expected AX, got %q", got)
+	p := models.Perfume{Brand: "A", Name: "X", Sex: "male"}
+	if got := getKey(p); got != "AXmale" {
+		t.Fatalf("getKey expected AXmale, got %q", got)
 	}
 }
 

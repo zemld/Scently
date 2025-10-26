@@ -12,6 +12,7 @@ type inputPerfume struct {
 	Name       string `json:"name"`
 	Ok         bool   `json:"ok"`
 	AdviseType string `json:"advise_type"`
+	Sex        string `json:"sex"`
 }
 
 type SuggestResponse struct {

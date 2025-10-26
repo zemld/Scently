@@ -27,10 +27,8 @@ func NewUpdateStatus(success bool) *UpdateStatus {
 	return &status
 }
 
-func Update(params *UpdateParameters, perfumes []models.Perfume) UpdateStatus {
+func Update(ctx context.Context, params *UpdateParameters, perfumes []models.Perfume) UpdateStatus {
 	config := config.NewConfig()
-	ctx, cancel := CreateContext(config)
-	defer cancel()
 
 	conn, err := pgx.Connect(ctx, config.GetConnectionString())
 	if err != nil {

@@ -9,8 +9,8 @@ func TestPerfumeUnpackPropertiesAndLinkedFields(t *testing.T) {
 	p := Perfume{
 		Brand:       "BrandA",
 		Name:        "NameX",
-		Type:        "EDP",
 		Sex:         "unisex",
+		Type:        "EDP",
 		Family:      []string{"citrus", "woody"},
 		UpperNotes:  []string{"bergamot"},
 		MiddleNotes: []string{"rose"},
@@ -25,8 +25,8 @@ func TestPerfumeUnpackPropertiesAndLinkedFields(t *testing.T) {
 	wantProps := []any{
 		p.Brand,
 		p.Name,
-		p.Type,
 		p.Sex,
+		p.Type,
 		p.Family,
 		p.UpperNotes,
 		p.MiddleNotes,
@@ -40,6 +40,7 @@ func TestPerfumeUnpackPropertiesAndLinkedFields(t *testing.T) {
 	wantLinked := []any{
 		p.Brand,
 		p.Name,
+		p.Sex,
 		p.Link,
 		p.Volume,
 	}

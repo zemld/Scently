@@ -37,6 +37,12 @@ const docTemplate = `{
                         "description": "Name of the perfume",
                         "name": "name",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "For him or for her",
+                        "name": "sex",
+                        "in": "query"
                     }
                 ],
                 "responses": {

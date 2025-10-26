@@ -24,7 +24,7 @@ func glue(perfumes []models.Perfume) map[string]models.GluedPerfume {
 }
 
 func getKey(perfume models.Perfume) string {
-	return fmt.Sprintf("%s%s", perfume.Brand, perfume.Name)
+	return fmt.Sprintf("%s%s%s", perfume.Brand, perfume.Name, perfume.Sex)
 }
 
 func fetchGluedPerfumesFromMap(gluedMap map[string]models.GluedPerfume) []models.GluedPerfume {

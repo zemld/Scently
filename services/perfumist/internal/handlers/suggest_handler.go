@@ -27,6 +27,7 @@ const (
 // @produce json
 // @param brand query string true "Brand of the perfume which you like"
 // @param name query string true "Name of the perfume which you like"
+// @param sex query string false "For her or for him"
 // @param use_ai query boolean false "Use AI to suggest perfumes"
 // @success 200 {object} SuggestResponse "Suggested perfumes"
 // @success 204 {object} SuggestResponse "No perfumes found for suggestion"
@@ -35,6 +36,7 @@ const (
 // @router /perfume [get]
 func Suggest(w http.ResponseWriter, r *http.Request) {
 	params := parseQuery(r)
+	log.Printf("params: %+v", params)
 	var suggestResponse SuggestResponse
 	setInputToResponse(&suggestResponse, params)
 	if !isValidQuery(params) {
@@ -53,6 +55,7 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 		Brand:      params.Brand,
 		Name:       params.Name,
 		AdviseType: suggestResponse.Input.AdviseType,
+		Sex:        params.Sex,
 	})
 	if err == nil && suggests != nil {
 		suggestResponse.Suggested = suggests
@@ -71,7 +74,7 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 	if mostSimilar == nil {
 		favouritePerfumes, allPerfumes, status := app.FetchPerfumes(
 			ctx,
-			[]parameters.RequestPerfume{params, *parameters.NewGet()},
+			[]parameters.RequestPerfume{params, *parameters.NewGet().WithSex(params.Sex)},
 		)
 		if status != http.StatusOK {
 			suggestResponse.Success = false
@@ -106,12 +109,13 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 func parseQuery(r *http.Request) parameters.RequestPerfume {
 	brand := r.URL.Query().Get("brand")
 	name := r.URL.Query().Get("name")
+	sex := r.URL.Query().Get("sex")
 	useAI := r.URL.Query().Get("use_ai")
 	useAIBool, err := strconv.ParseBool(useAI)
 	if err != nil {
 		useAIBool = false
 	}
-	return *parameters.NewGet().WithBrand(brand).WithName(name).WithUseAI(useAIBool)
+	return *parameters.NewGet().WithBrand(brand).WithName(name).WithSex(sex).WithUseAI(useAIBool)
 }
 
 func isValidQuery(params parameters.RequestPerfume) bool {
@@ -119,7 +123,7 @@ func isValidQuery(params parameters.RequestPerfume) bool {
 }
 
 func setInputToResponse(response *SuggestResponse, params parameters.RequestPerfume) {
-	response.Input = inputPerfume{Brand: params.Brand, Name: params.Name, Ok: true}
+	response.Input = inputPerfume{Brand: params.Brand, Name: params.Name, Ok: true, Sex: params.Sex}
 	if params.UseAI {
 		response.Input.AdviseType = "AI"
 	} else {

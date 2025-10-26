@@ -31,7 +31,7 @@ export const usePerfumeAPI = () => {
                 id: item.rank,
                 brand: item.perfume.brand,
                 name: item.perfume.name,
-                description: `${item.perfume.properties.type} • ${item.perfume.properties.sex}`,
+                description: item.perfume.properties.type,
                 notes: {
                     upper: item.perfume.properties.upper_notes,
                     middle: item.perfume.properties.middle_notes,
@@ -39,7 +39,7 @@ export const usePerfumeAPI = () => {
                 },
                 type: item.perfume.properties.type,
                 family: item.perfume.properties.family,
-                sex: item.perfume.properties.sex,
+                sex: item.perfume.sex,
                 links: item.perfume.links,
                 image: item.perfume.image_url
             }))

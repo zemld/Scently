@@ -99,6 +99,9 @@ func getPerfumes(ctx context.Context, p parameters.RequestPerfume) ([]models.Per
 func updateQuery(r *http.Request, p parameters.RequestPerfume) {
 	addQueryParameter(r, "brand", p.Brand)
 	addQueryParameter(r, "name", p.Name)
+	if p.Sex == "male" || p.Sex == "female" {
+		addQueryParameter(r, "sex", p.Sex)
+	}
 }
 
 func addQueryParameter(r *http.Request, key string, value string) {
