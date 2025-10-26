@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ${{ inputs.service }}
+        working-directory: services/${{ inputs.service }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -19,7 +19,7 @@ jobs:
         with:
           go-version: 1.25
           cache: true
-          cache-dependency-path: ${{ inputs.service }}/go.sum
+          cache-dependency-path: services/${{ inputs.service }}/go.sum
 
       - name: Install dependencies
         run: go mod tidy

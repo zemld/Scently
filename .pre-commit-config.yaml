@@ -5,7 +5,7 @@ repos:
       - id: ruff
         name: ruff (formatter + linter)
         args: [--fix, --exit-non-zero-on-fix]
-        files: ^(parser/|services/ai_advisor/).*\.py$
+        files: ^(services/parser/|services/ai_advisor/).*\.py$
         types: [python]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
@@ -13,7 +13,7 @@ repos:
     hooks:
       - id: mypy
         name: mypy
-        files: ^(parser/|services/ai_advisor/).*\.py$
+        files: ^(services/parser/|services/ai_advisor/).*\.py$
         types: [python]
         additional_dependencies:
           - types-requests
