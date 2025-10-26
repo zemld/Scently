@@ -45,9 +45,11 @@ func (p *SelectParameters) getQuery() string {
 		conditions = append(conditions, fmt.Sprintf("perfumes.name = $%d", parametersCount))
 		parametersCount++
 	}
-	if p.Sex != "" && p.Sex != "unisex" {
+	if p.Sex == "male" || p.Sex == "female" {
 		conditions = append(conditions, fmt.Sprintf("(sexes.sex = $%d OR sexes.sex = 'unisex')", parametersCount))
 		parametersCount++
+	} else {
+		conditions = append(conditions, "sexes.sex = 'unisex'")
 	}
 
 	if len(conditions) > 0 {
@@ -65,7 +67,7 @@ func (p *SelectParameters) unpack() []any {
 	if p.Name != "" {
 		args = append(args, p.Name)
 	}
-	if p.Sex != "" && p.Sex != "unisex" {
+	if p.Sex == "male" || p.Sex == "female" {
 		args = append(args, p.Sex)
 	}
 	return args
