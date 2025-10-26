@@ -12,7 +12,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-RUN corepack enable pnpm && pnpm run build
+RUN corepack enable pnpm && NEXT_TURBOPACK=0 pnpm run build
 
 FROM base AS runner
 WORKDIR /app

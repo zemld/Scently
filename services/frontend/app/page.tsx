@@ -152,9 +152,9 @@ export default function ScentlyLanding() {
       {showRecommendations && (
         <section
           id="recommendations-section"
-          className="min-h-screen flex items-center justify-center px-4 py-20 animate-expandDown"
+          className="w-full px-4 py-20 pb-32 animate-expandDown"
         >
-          <div className="w-full max-w-6xl">
+          <div className="w-full max-w-6xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 bg-gradient-to-r from-[#C38E70] to-[#E3B23C] bg-clip-text text-transparent">
               Your Perfect Matches
             </h2>
@@ -204,6 +204,9 @@ export default function ScentlyLanding() {
 
       {/* Perfume Modal */}
       <PerfumeModal perfume={selectedPerfume} isOpen={isModalOpen} onClose={handleCloseModal} />
+
+      {/* Extra space for smooth animations */}
+      <div className="h-32"></div>
     </div>
   )
 }
