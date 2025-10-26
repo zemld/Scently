@@ -1,6 +1,5 @@
 "use client"
 
-import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Perfume } from "@/lib/api"
 
@@ -35,13 +34,6 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                 className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white/20 backdrop-blur-xl border border-white/30 rounded-3xl shadow-[0_8px_32px_rgba(227,178,60,0.3)] animate-scaleIn"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Close Button */}
-                <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 z-10 p-2 bg-white/20 backdrop-blur-md border border-white/30 rounded-full hover:bg-white/30 hover:shadow-[0_0_20px_rgba(227,178,60,0.5)] transition-all duration-300"
-                >
-                    <X className="w-5 h-5 text-[#F8F5F0]" />
-                </button>
 
                 <div className="p-6 md:p-8">
                     {/* Header Area */}
