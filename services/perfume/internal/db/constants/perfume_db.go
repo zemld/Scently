@@ -68,7 +68,7 @@ const (
 		"perfumes.upper_notes, perfumes.middle_notes, perfumes.base_notes, perfumes.image_url, " +
 		"sexes.sex, perfume_links.volume, perfume_links.link " +
 		"FROM perfumes " +
-		"LEFT JOIN sexes ON perfumes.sex_id = sexes.id " +
+		"INNER JOIN sexes ON perfumes.sex_id = sexes.id " +
 		"LEFT JOIN perfume_links ON " +
 		"perfumes.brand = perfume_links.brand AND " +
 		"perfumes.name = perfume_links.name AND " +
