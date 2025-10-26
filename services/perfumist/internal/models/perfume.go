@@ -19,6 +19,7 @@ type Perfume struct {
 type GluedPerfume struct {
 	Brand      string            `json:"brand"`
 	Name       string            `json:"name"`
+	Sex        string            `json:"sex"`
 	Properties PerfumeProperties `json:"properties"`
 	Links      map[int]string    `json:"links"`
 	ImageUrl   string            `json:"image_url"`
@@ -28,6 +29,7 @@ func NewGluedPerfume(p Perfume) GluedPerfume {
 	return GluedPerfume{
 		Brand:      p.Brand,
 		Name:       p.Name,
+		Sex:        p.Sex,
 		Properties: p.getProperties(),
 		Links:      map[int]string{p.Volume: p.Link},
 		ImageUrl:   p.ImageUrl,
@@ -40,7 +42,6 @@ func (g GluedPerfume) Equal(other GluedPerfume) bool {
 
 type PerfumeProperties struct {
 	Type        string   `json:"type"`
-	Sex         string   `json:"sex"`
 	Family      []string `json:"family"`
 	UpperNotes  []string `json:"upper_notes"`
 	MiddleNotes []string `json:"middle_notes"`

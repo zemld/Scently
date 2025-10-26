@@ -23,6 +23,7 @@ type PerfumeCacheKey struct {
 	Brand      string
 	Name       string
 	AdviseType string
+	Sex        string
 }
 
 func GetRedisClient() *redis.Client {

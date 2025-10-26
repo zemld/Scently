@@ -6,11 +6,6 @@ import (
 )
 
 const (
-	male   = "male"
-	female = "female"
-)
-
-const (
 	familyWeight = 0.4
 	notesWeight  = 0.55
 	typeWeight   = 0.05
@@ -55,9 +50,6 @@ func updateMostSimilarIfNeeded(mostSimilar []models.GluedPerfumeWithScore, perfu
 }
 
 func GetPerfumeSimilarityScore(first models.PerfumeProperties, second models.PerfumeProperties) float64 {
-	if first.Sex == male && second.Sex == female || first.Sex == female && second.Sex == male {
-		return 0
-	}
 	familiesSimilarityScore := getListSimilarityScore(first.Family, second.Family)
 	notesSimilarityScore := getNotesSimilarityScore(first, second)
 	typeSimilarity := getTypeSimilarityScore(first.Type, second.Type)

@@ -23,7 +23,7 @@ func TestNewGluedPerfume_AndEqual(t *testing.T) {
 	if g.Brand != p.Brand || g.Name != p.Name {
 		t.Fatalf("brand/name not copied")
 	}
-	if g.Properties.Sex != p.Sex || g.Properties.Type != p.Type {
+	if g.Properties.Type != p.Type {
 		t.Fatalf("properties not copied correctly: %+v", g.Properties)
 	}
 	if len(g.Links) != 1 || g.Links[50] != "link" {
@@ -59,7 +59,7 @@ func TestGetProperties(t *testing.T) {
 		Volume:      50,
 	}
 	props := p.getProperties()
-	if props.Type != p.Type || props.Sex != p.Sex || len(props.Family) != 1 {
+	if props.Type != p.Type || len(props.Family) != 1 {
 		t.Fatalf("properties mapping incorrect: %+v", props)
 	}
 }
