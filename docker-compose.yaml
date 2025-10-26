@@ -65,6 +65,14 @@ services:
     ports:
       - "8087:8000"
 
+  frontend:
+    build:
+      context: services/frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8088
+
 volumes:
   perfume_volume:
   redis_data:
