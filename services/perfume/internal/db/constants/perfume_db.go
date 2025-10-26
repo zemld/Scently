@@ -20,6 +20,7 @@ const (
 		"upper_notes public.nonempty_text_field[], " +
 		"middle_notes public.nonempty_text_field[], " +
 		"base_notes public.nonempty_text_field[], " +
+		"image_url TEXT, " +
 		"PRIMARY KEY (brand, name)" +
 		");"
 	CreateLinksTable = "CREATE TABLE IF NOT EXISTS perfume_links " +
@@ -32,9 +33,9 @@ const (
 		");"
 
 	UpdatePerfumes = "INSERT INTO perfumes (" +
-		"brand, name, perfume_type, sex, family, upper_notes, middle_notes, base_notes" +
+		"brand, name, perfume_type, sex, family, upper_notes, middle_notes, base_notes, image_url" +
 		") VALUES (" +
-		"$1, $2, $3, $4, $5, $6, $7, $8" +
+		"$1, $2, $3, $4, $5, $6, $7, $8, $9" +
 		") " +
 		"ON CONFLICT (brand, name) DO UPDATE SET " +
 		"perfume_type = EXCLUDED.perfume_type, " +
@@ -42,7 +43,8 @@ const (
 		"family = EXCLUDED.family, " +
 		"upper_notes = EXCLUDED.upper_notes, " +
 		"middle_notes = EXCLUDED.middle_notes, " +
-		"base_notes = EXCLUDED.base_notes"
+		"base_notes = EXCLUDED.base_notes, " +
+		"image_url = EXCLUDED.image_url"
 	UpdatePerfumeLinks = "INSERT INTO perfume_links " +
 		"(" +
 		"brand, name, link, volume" +

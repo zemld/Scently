@@ -50,6 +50,8 @@ definitions:
         items:
           type: string
         type: array
+      image_url:
+        type: string
       link:
         type: string
       middle_notes:

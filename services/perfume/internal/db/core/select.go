@@ -40,6 +40,7 @@ func Select(params *SelectParameters) ([]models.Perfume, ProcessedState) {
 			&perfume.UpperNotes,
 			&perfume.MiddleNotes,
 			&perfume.BaseNotes,
+			&perfume.ImageUrl,
 			&perfume.Volume,
 			&perfume.Link)
 		if err != nil {

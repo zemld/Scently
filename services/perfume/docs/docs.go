@@ -195,6 +195,9 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "image_url": {
+                    "type": "string"
+                },
                 "link": {
                     "type": "string"
                 },

@@ -13,6 +13,7 @@ type Perfume struct {
 	BaseNotes   []string `json:"base_notes"`
 	Link        string   `json:"link"`
 	Volume      int      `json:"volume"`
+	ImageUrl    string   `json:"image_url"`
 }
 
 func (p *Perfume) UnpackProperties() []any {
