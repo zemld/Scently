@@ -9,6 +9,7 @@ class Perfume:
     base_notes: list[str]
     volume: int
     link: str
+    image_url: str
 
     def __init__(
         self,
@@ -22,6 +23,7 @@ class Perfume:
         base_notes: list[str] | None = None,
         volume: int = 0,
         link: str = "",
+        image_url: str = "",
     ):
         self.brand = brand
         self.name = name
@@ -33,6 +35,7 @@ class Perfume:
         self.base_notes = base_notes or []
         self.volume = volume
         self.link = link
+        self.image_url = image_url
 
     def _repr_property(self, name: str, value: str | list[str] | int) -> str:
         if isinstance(value, list):
@@ -52,7 +55,8 @@ class Perfume:
             f"\t{self._repr_property('middle_notes', self.middle_notes)},\n"
             f"\t{self._repr_property('base_notes', self.base_notes)},\n"
             f"\t{self._repr_property('volume', self.volume)},\n"
-            f"\t{self._repr_property('link', self.link)}\n)\n"
+            f"\t{self._repr_property('link', self.link)},\n"
+            f"\t{self._repr_property('image_url', self.image_url)}\n)\n"
         )
 
     def to_dict(self) -> dict[str, str | list[str] | int]:
@@ -67,4 +71,5 @@ class Perfume:
             "base_notes": self.base_notes,
             "volume": self.volume,
             "link": self.link,
+            "image_url": self.image_url,
         }
