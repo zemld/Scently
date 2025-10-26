@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/core"
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
@@ -28,7 +30,11 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to get perfumes", http.StatusBadRequest)
 		return
 	}
-	updateStatus := core.Update(p, perfumes)
+
+	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
+	defer cancel()
+
+	updateStatus := core.Update(ctx, p, perfumes)
 	if !updateStatus.State.Success {
 		WriteResponse(w, http.StatusInternalServerError, updateStatus)
 		return
