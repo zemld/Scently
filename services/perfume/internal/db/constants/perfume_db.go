@@ -14,32 +14,33 @@ const (
 		"(" +
 		"brand public.nonempty_text_field, " +
 		"name public.nonempty_text_field, " +
-		"perfume_type public.nonempty_text_field, " +
 		"sex public.nonempty_text_field, " +
+		"perfume_type public.nonempty_text_field, " +
 		"family public.nonempty_text_field[], " +
 		"upper_notes public.nonempty_text_field[], " +
 		"middle_notes public.nonempty_text_field[], " +
 		"base_notes public.nonempty_text_field[], " +
 		"image_url TEXT, " +
-		"PRIMARY KEY (brand, name)" +
+		"PRIMARY KEY (brand, name, sex)" +
 		");"
 	CreateLinksTable = "CREATE TABLE IF NOT EXISTS perfume_links " +
 		"(" +
 		"brand public.nonempty_text_field, " +
 		"name public.nonempty_text_field, " +
+		"sex public.nonempty_text_field, " +
 		"link public.nonempty_text_field, " +
 		"volume INTEGER NOT NULL, " +
-		"PRIMARY KEY (brand, name, volume)" +
+		"PRIMARY KEY (brand, name, sex, volume), " +
+		"FOREIGN KEY (brand, name, sex) REFERENCES perfumes(brand, name, sex)" +
 		");"
 
 	UpdatePerfumes = "INSERT INTO perfumes (" +
-		"brand, name, perfume_type, sex, family, upper_notes, middle_notes, base_notes, image_url" +
+		"brand, name, sex, perfume_type, family, upper_notes, middle_notes, base_notes, image_url" +
 		") VALUES (" +
 		"$1, $2, $3, $4, $5, $6, $7, $8, $9" +
 		") " +
-		"ON CONFLICT (brand, name) DO UPDATE SET " +
+		"ON CONFLICT (brand, name, sex) DO UPDATE SET " +
 		"perfume_type = EXCLUDED.perfume_type, " +
-		"sex = EXCLUDED.sex, " +
 		"family = EXCLUDED.family, " +
 		"upper_notes = EXCLUDED.upper_notes, " +
 		"middle_notes = EXCLUDED.middle_notes, " +
@@ -47,17 +48,19 @@ const (
 		"image_url = EXCLUDED.image_url"
 	UpdatePerfumeLinks = "INSERT INTO perfume_links " +
 		"(" +
-		"brand, name, link, volume" +
+		"brand, name, sex, link, volume" +
 		") VALUES (" +
-		"$1, $2, $3, $4" +
+		"$1, $2, $3, $4, $5" +
 		") " +
-		"ON CONFLICT (brand, name, volume) DO UPDATE SET " +
+		"ON CONFLICT (brand, name, sex, volume) DO UPDATE SET " +
 		"link = EXCLUDED.link"
 
 	Select = "SELECT perfumes.*, volume, link " +
 		"FROM perfumes " +
 		"LEFT JOIN perfume_links ON " +
-		"perfumes.brand = perfume_links.brand AND perfumes.name = perfume_links.name"
+		"perfumes.brand = perfume_links.brand AND " +
+		"perfumes.name = perfume_links.name AND " +
+		"perfumes.sex = perfume_links.sex"
 
 	Truncate = "TRUNCATE perfumes, perfume_links;"
 

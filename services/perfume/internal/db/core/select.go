@@ -34,8 +34,8 @@ func Select(params *SelectParameters) ([]models.Perfume, ProcessedState) {
 		err := rows.Scan(
 			&perfume.Brand,
 			&perfume.Name,
-			&perfume.Type,
 			&perfume.Sex,
+			&perfume.Type,
 			&perfume.Family,
 			&perfume.UpperNotes,
 			&perfume.MiddleNotes,

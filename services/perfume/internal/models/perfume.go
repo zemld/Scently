@@ -5,8 +5,8 @@ import "reflect"
 type Perfume struct {
 	Brand       string   `json:"brand"`
 	Name        string   `json:"name"`
-	Type        string   `json:"type"`
 	Sex         string   `json:"sex"`
+	Type        string   `json:"type"`
 	Family      []string `json:"family"`
 	UpperNotes  []string `json:"upper_notes"`
 	MiddleNotes []string `json:"middle_notes"`
@@ -39,7 +39,7 @@ func (p *Perfume) UnpackLinkedFields() []any {
 }
 
 func isPropertyOrKey(field reflect.StructField) bool {
-	return isProperty(field) || field.Name == "Brand" || field.Name == "Name"
+	return isProperty(field) || field.Name == "Sex" || field.Name == "Brand" || field.Name == "Name"
 }
 
 func isProperty(field reflect.StructField) bool {
@@ -47,5 +47,5 @@ func isProperty(field reflect.StructField) bool {
 }
 
 func isNotProperty(field reflect.StructField) bool {
-	return field.Name == "Link" || field.Name == "Volume" || field.Name == "Brand" || field.Name == "Name"
+	return field.Name == "Link" || field.Name == "Volume" || field.Name == "Sex" || field.Name == "Brand" || field.Name == "Name"
 }
