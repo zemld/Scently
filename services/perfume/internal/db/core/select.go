@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"log"
 
 	"github.com/jackc/pgx/v5"
@@ -8,10 +9,8 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
 )
 
-func Select(params *SelectParameters) ([]models.Perfume, ProcessedState) {
+func Select(ctx context.Context, params *SelectParameters) ([]models.Perfume, ProcessedState) {
 	config := config.NewConfig()
-	ctx, cancel := CreateContext(config)
-	defer cancel()
 
 	conn, err := pgx.Connect(ctx, config.GetConnectionString())
 	if err != nil {
@@ -27,6 +26,7 @@ func Select(params *SelectParameters) ([]models.Perfume, ProcessedState) {
 		return nil, ProcessedState{Success: false}
 	}
 	defer rows.Close()
+
 	processedState := NewProcessedState()
 	var perfumes []models.Perfume
 	for rows.Next() {
@@ -34,15 +34,16 @@ func Select(params *SelectParameters) ([]models.Perfume, ProcessedState) {
 		err := rows.Scan(
 			&perfume.Brand,
 			&perfume.Name,
-			&perfume.Sex,
 			&perfume.Type,
 			&perfume.Family,
 			&perfume.UpperNotes,
 			&perfume.MiddleNotes,
 			&perfume.BaseNotes,
 			&perfume.ImageUrl,
+			&perfume.Sex,
 			&perfume.Volume,
-			&perfume.Link)
+			&perfume.Link,
+		)
 		if err != nil {
 			log.Printf("Error scanning row: %v\n", err)
 			processedState.FailedCount++
