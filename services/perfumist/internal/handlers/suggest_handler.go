@@ -68,7 +68,6 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 			mostSimilar = aiSuggests
 		}
 	}
-
 	if mostSimilar == nil {
 		favouritePerfumes, allPerfumes, status := app.FetchPerfumes(
 			ctx,
@@ -83,6 +82,7 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 		favouritePerfume := favouritePerfumes[0]
 		mostSimilar = app.FoundSimilarities(favouritePerfume, allPerfumes, suggestsCount)
 	}
+
 	fillResponseWithSuggestions(&suggestResponse, mostSimilar)
 	if suggestResponse.Success {
 		WriteResponse(w, suggestResponse, http.StatusOK)

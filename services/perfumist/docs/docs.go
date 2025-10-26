@@ -117,6 +117,9 @@ const docTemplate = `{
                 "brand": {
                     "type": "string"
                 },
+                "image_url": {
+                    "type": "string"
+                },
                 "links": {
                     "type": "object",
                     "additionalProperties": {
