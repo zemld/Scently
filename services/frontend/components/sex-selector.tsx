@@ -9,14 +9,14 @@ interface SexSelectorProps {
 
 export function SexSelector({ value, onChange }: SexSelectorProps) {
     const options = [
-        { key: 'male' as const, label: 'Male' },
-        { key: 'unisex' as const, label: 'Unisex' },
-        { key: 'female' as const, label: 'Female' },
+        { key: 'male' as const, label: 'Мужской' },
+        { key: 'unisex' as const, label: 'Унисекс' },
+        { key: 'female' as const, label: 'Женский' },
     ]
 
     return (
         <div className="space-y-2">
-            <label className="text-sm font-medium text-[#F8F5F0]/80">Gender</label>
+            <label className="text-sm font-medium text-[#F8F5F0]/80">Пол</label>
             <div className="flex gap-2">
                 {options.map((option) => (
                     <Button
