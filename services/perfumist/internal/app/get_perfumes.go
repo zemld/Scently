@@ -20,33 +20,26 @@ const (
 	badServerStatus = 500
 )
 
-func FetchPerfumes(ctx context.Context, params []parameters.RequestPerfume) ([]models.GluedPerfume, []models.GluedPerfume, int) {
-	favouritePerfumesChan := make(chan perfumesFetchAndGlueResult)
-	allPerfumesChan := make(chan perfumesFetchAndGlueResult, len(params)-1)
+func FetchPerfumes(ctx context.Context, params []parameters.RequestPerfume) ([]models.GluedPerfume, bool) {
+	perfumesChan := make(chan perfumesFetchAndGlueResult, len(params))
 
 	wg := sync.WaitGroup{}
 	wg.Add(len(params))
 
-	go getAndGluePerfumesAsync(ctx, params[0], favouritePerfumesChan, &wg)
-	for i := 1; i < len(params); i++ {
-		go getAndGluePerfumesAsync(ctx, params[i], allPerfumesChan, &wg)
+	for _, param := range params {
+		go getAndGluePerfumesAsync(ctx, param, perfumesChan, &wg)
 	}
 
 	go func() {
 		wg.Wait()
-		close(favouritePerfumesChan)
-		close(allPerfumesChan)
+		close(perfumesChan)
 	}()
 
-	fav, favStatus := fetchPerfumeResults(ctx, favouritePerfumesChan)
-	all, AllStatus := fetchPerfumeResults(ctx, allPerfumesChan)
-	if favStatus >= badServerStatus || AllStatus >= badServerStatus || len(all) == 0 {
-		return nil, nil, http.StatusInternalServerError
+	all, AllStatus := fetchPerfumeResults(ctx, perfumesChan)
+	if AllStatus >= badServerStatus || len(all) == 0 {
+		return nil, false
 	}
-	if len(fav) == 0 {
-		return nil, nil, http.StatusNoContent
-	}
-	return fav, all, http.StatusOK
+	return all, true
 }
 
 type perfumesFetchAndGlueResult struct {

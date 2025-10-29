@@ -70,20 +70,34 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 		if err == nil && aiSuggests != nil {
 			mostSimilar = aiSuggests
 		}
+		if mostSimilar != nil {
+			enrichmentParams := make([]parameters.RequestPerfume, len(mostSimilar))
+			for i, suggestion := range mostSimilar {
+				enrichmentParams[i] = *parameters.NewGet().WithBrand(suggestion.GluedPerfume.Brand).WithName(suggestion.GluedPerfume.Name).WithSex(params.Sex)
+			}
+			enrichedSuggests, ok := app.FetchPerfumes(ctx, enrichmentParams)
+			if ok && enrichedSuggests != nil {
+				for i, suggestion := range enrichedSuggests {
+					mostSimilar[i].GluedPerfume = suggestion
+				}
+			}
+		}
 	}
 	if mostSimilar == nil {
-		favouritePerfumes, allPerfumes, status := app.FetchPerfumes(
-			ctx,
-			[]parameters.RequestPerfume{params, *parameters.NewGet().WithSex(params.Sex)},
-		)
-		if status != http.StatusOK {
+		favouritePerfumes, ok := app.FetchPerfumes(ctx, []parameters.RequestPerfume{params})
+		if !ok || favouritePerfumes == nil || len(favouritePerfumes) == 0 {
 			suggestResponse.Success = false
-			WriteResponse(w, suggestResponse, status)
+			WriteResponse(w, suggestResponse, http.StatusNoContent)
+			return
+		}
+		allPerfumes, ok := app.FetchPerfumes(ctx, []parameters.RequestPerfume{*parameters.NewGet().WithSex(params.Sex)})
+		if !ok {
+			suggestResponse.Success = false
+			WriteResponse(w, suggestResponse, http.StatusNoContent)
 			return
 		}
 
-		favouritePerfume := favouritePerfumes[0]
-		mostSimilar = app.FoundSimilarities(favouritePerfume, allPerfumes, suggestsCount)
+		mostSimilar = app.FoundSimilarities(favouritePerfumes[0], allPerfumes, suggestsCount)
 	}
 
 	fillResponseWithSuggestions(&suggestResponse, mostSimilar)
