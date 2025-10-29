@@ -19,6 +19,7 @@ export default function ScentlyLanding() {
   const [recommendations, setRecommendations] = useState<Perfume[]>([])
   const [selectedPerfume, setSelectedPerfume] = useState<Perfume | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [formMessage, setFormMessage] = useState<string | null>(null)
 
   const { loading, error, getSuggestions } = usePerfumeAPI()
 
@@ -31,11 +32,12 @@ export default function ScentlyLanding() {
 
   const handleFindMatches = async () => {
     if (!brand.trim() || !name.trim()) {
-      alert("Please enter both brand and name")
+      setFormMessage("Пожалуйста, укажите бренд и название")
       return
     }
 
     try {
+      setFormMessage(null)
       const results = await getSuggestions({
         brand,
         name,
@@ -50,7 +52,7 @@ export default function ScentlyLanding() {
       }, 100)
     } catch (error) {
       console.error("Failed to get recommendations:", error)
-      alert("Не удалось получить рекомендации. Попробуйте ещё раз.")
+      setFormMessage("Не удалось получить рекомендации. Попробуйте ещё раз.")
     }
   }
 
@@ -143,9 +145,9 @@ export default function ScentlyLanding() {
                 {loading ? "Поиск совпадений..." : "Найти похожие"}
               </Button>
 
-              {error && (
-                <div className="text-red-400 text-sm text-center mt-2">
-                  {error}
+              {formMessage && (
+                <div className="text-[#F8F5F0]/80 text-sm text-center mt-2">
+                  {formMessage}
                 </div>
               )}
             </div>
@@ -182,7 +184,7 @@ export default function ScentlyLanding() {
                     </div>
                     <h3 className="text-xl font-bold text-[#F8F5F0] mb-1">{perfume.name}</h3>
                     <p className="text-sm text-[#C38E70] mb-2">{perfume.brand}</p>
-                    <p className="text-sm text-[#F8F5F0]/70">{perfume.description || "Премиальный аромат"}</p>
+                    <p className="text-sm text-[#F8F5F0]/70">{perfume.description}</p>
                     {perfume.sex && (
                       <div className="mt-2">
                         <span className="text-xs bg-white/10 backdrop-blur-md border border-white/20 text-[#E3B23C] px-2 py-1 rounded-full">
