@@ -51,7 +51,7 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                         <div className="flex flex-col justify-center space-y-4">
                             <p className="text-sm text-[#C38E70] uppercase tracking-wider">{perfume.brand}</p>
                             <h2 className="text-4xl md:text-5xl font-bold text-[#F8F5F0]">{perfume.name}</h2>
-                            <p className="text-lg text-[#F8F5F0]/80">{perfume.description || "Premium fragrance"}</p>
+                            <p className="text-lg text-[#F8F5F0]/80">{perfume.description}</p>
                             {perfume.sex && (
                                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/15 backdrop-blur-md border border-white/30 rounded-full w-fit">
                                     <span className="text-sm text-[#E3B23C]">{perfume.sex}</span>
@@ -72,12 +72,12 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                     {/* Notes Section - show if we have any notes */}
                     {hasNotes && (
                         <div className="mb-8">
-                            <h3 className="text-2xl font-bold text-[#F8F5F0] mb-6">Fragrance Notes</h3>
+                            <h3 className="text-2xl font-bold text-[#F8F5F0] mb-6">Ноты аромата</h3>
                             <div className="grid md:grid-cols-3 gap-6">
                                 {/* Top Notes */}
                                 {upperNotes.length > 0 && (
                                     <div className="space-y-3">
-                                        <h4 className="text-sm font-semibold text-[#C38E70] uppercase tracking-wider">Top Notes</h4>
+                                        <h4 className="text-sm font-semibold text-[#C38E70] uppercase tracking-wider">Верхние ноты</h4>
                                         <div className="flex flex-wrap gap-2">
                                             {upperNotes.map((note, index) => (
                                                 <span
@@ -94,7 +94,7 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                                 {/* Heart Notes */}
                                 {middleNotes.length > 0 && (
                                     <div className="space-y-3">
-                                        <h4 className="text-sm font-semibold text-[#C38E70] uppercase tracking-wider">Heart Notes</h4>
+                                        <h4 className="text-sm font-semibold text-[#C38E70] uppercase tracking-wider">Ноты сердца</h4>
                                         <div className="flex flex-wrap gap-2">
                                             {middleNotes.map((note, index) => (
                                                 <span
@@ -111,7 +111,7 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                                 {/* Base Notes */}
                                 {baseNotes.length > 0 && (
                                     <div className="space-y-3">
-                                        <h4 className="text-sm font-semibold text-[#C38E70] uppercase tracking-wider">Base Notes</h4>
+                                        <h4 className="text-sm font-semibold text-[#C38E70] uppercase tracking-wider">Базовые ноты</h4>
                                         <div className="flex flex-wrap gap-2">
                                             {baseNotes.map((note, index) => (
                                                 <span
@@ -131,7 +131,7 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                     {/* Available Volumes - show if we have links data */}
                     {perfume.links && Object.keys(perfume.links).length > 0 && (
                         <div className="mb-6">
-                            <h3 className="text-2xl font-bold text-[#F8F5F0] mb-6">Available Sizes</h3>
+                            <h3 className="text-2xl font-bold text-[#F8F5F0] mb-6">Доступные объёмы</h3>
                             <div className="flex flex-wrap gap-4">
                                 {Object.entries(perfume.links).map(([size, url], index) => (
                                     <a
@@ -154,7 +154,7 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                             onClick={onClose}
                             className="px-8 py-3 bg-gradient-to-r from-[#C38E70] to-[#E3B23C] hover:from-[#C38E70]/90 hover:to-[#E3B23C]/90 hover:shadow-[0_0_30px_rgba(227,178,60,0.6)] transition-all duration-300 rounded-xl text-white font-semibold"
                         >
-                            Close
+                            Закрыть
                         </Button>
                     </div>
                 </div>

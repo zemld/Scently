@@ -19,6 +19,7 @@ export default function ScentlyLanding() {
   const [recommendations, setRecommendations] = useState<Perfume[]>([])
   const [selectedPerfume, setSelectedPerfume] = useState<Perfume | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [formMessage, setFormMessage] = useState<string | null>(null)
 
   const { loading, error, getSuggestions } = usePerfumeAPI()
 
@@ -31,11 +32,12 @@ export default function ScentlyLanding() {
 
   const handleFindMatches = async () => {
     if (!brand.trim() || !name.trim()) {
-      alert("Please enter both brand and name")
+      setFormMessage("Пожалуйста, укажите бренд и название")
       return
     }
 
     try {
+      setFormMessage(null)
       const results = await getSuggestions({
         brand,
         name,
@@ -50,7 +52,7 @@ export default function ScentlyLanding() {
       }, 100)
     } catch (error) {
       console.error("Failed to get recommendations:", error)
-      alert("Failed to get recommendations. Please try again.")
+      setFormMessage("Не удалось получить рекомендации. Попробуйте ещё раз.")
     }
   }
 
@@ -84,13 +86,13 @@ export default function ScentlyLanding() {
             Scently
           </h1>
           <p className="text-2xl md:text-3xl text-[#F8F5F0]/80 animate-fadeIn delay-200">
-            Find the scent made just for you.
+            Найдите аромат, созданный именно для вас.
           </p>
           <Button
             onClick={handleTryNow}
             className="mt-8 px-12 py-6 text-lg font-semibold bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 hover:border-[#E3B23C]/50 hover:shadow-[0_0_30px_rgba(227,178,60,0.5)] transition-all duration-300 rounded-2xl text-[#F8F5F0] animate-fadeIn delay-400"
           >
-            Try Now
+            Попробовать
           </Button>
         </div>
       </section>
@@ -103,24 +105,24 @@ export default function ScentlyLanding() {
         >
           <div className="w-full max-w-2xl bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 md:p-12 shadow-[0_8px_32px_rgba(227,178,60,0.2)]">
             <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 bg-gradient-to-r from-[#C38E70] to-[#E3B23C] bg-clip-text text-transparent">
-              Tell us your preferences
+              Расскажите о ваших предпочтениях
             </h2>
 
             <div className="space-y-6">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#F8F5F0]/80">Brand</label>
+                  <label className="text-sm font-medium text-[#F8F5F0]/80">Бренд</label>
                   <Input
-                    placeholder="e.g. Dior"
+                    placeholder="например, Dior"
                     value={brand}
                     onChange={(e) => setBrand(e.target.value)}
                     className="bg-white/5 backdrop-blur-md border-white/20 focus:border-[#C38E70] focus:ring-[#C38E70]/50 rounded-xl text-[#F8F5F0] placeholder:text-[#F8F5F0]/40"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#F8F5F0]/80">Name</label>
+                  <label className="text-sm font-medium text-[#F8F5F0]/80">Название</label>
                   <Input
-                    placeholder="e.g. Sauvage"
+                    placeholder="например, Sauvage"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="bg-white/5 backdrop-blur-md border-white/20 focus:border-[#C38E70] focus:ring-[#C38E70]/50 rounded-xl text-[#F8F5F0] placeholder:text-[#F8F5F0]/40"
@@ -131,7 +133,7 @@ export default function ScentlyLanding() {
               <SexSelector value={sex} onChange={setSex} />
 
               <div className="flex items-center justify-between bg-white/5 backdrop-blur-md border border-white/20 rounded-xl p-4">
-                <label className="text-sm font-medium text-[#F8F5F0]">Use AI mode</label>
+                <label className="text-sm font-medium text-[#F8F5F0]">Использовать ИИ</label>
                 <Switch checked={aiMode} onCheckedChange={setAiMode} className="data-[state=checked]:bg-[#C38E70]" />
               </div>
 
@@ -140,12 +142,12 @@ export default function ScentlyLanding() {
                 disabled={loading}
                 className="w-full py-6 text-lg font-semibold bg-gradient-to-r from-[#C38E70] to-[#E3B23C] hover:from-[#C38E70]/90 hover:to-[#E3B23C]/90 hover:shadow-[0_0_30px_rgba(227,178,60,0.6)] transition-all duration-300 rounded-xl text-white disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? "Finding matches..." : "Find Matches"}
+                {loading ? "Поиск совпадений..." : "Найти похожие"}
               </Button>
 
-              {error && (
-                <div className="text-red-400 text-sm text-center mt-2">
-                  {error}
+              {formMessage && (
+                <div className="text-[#F8F5F0]/80 text-sm text-center mt-2">
+                  {formMessage}
                 </div>
               )}
             </div>
@@ -161,7 +163,7 @@ export default function ScentlyLanding() {
         >
           <div className="w-full max-w-6xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 bg-gradient-to-r from-[#C38E70] to-[#E3B23C] bg-clip-text text-transparent">
-              Your Perfect Matches
+              Ваши идеальные совпадения
             </h2>
 
             {recommendations.length > 0 ? (
@@ -182,7 +184,7 @@ export default function ScentlyLanding() {
                     </div>
                     <h3 className="text-xl font-bold text-[#F8F5F0] mb-1">{perfume.name}</h3>
                     <p className="text-sm text-[#C38E70] mb-2">{perfume.brand}</p>
-                    <p className="text-sm text-[#F8F5F0]/70">{perfume.description || "Premium fragrance"}</p>
+                    <p className="text-sm text-[#F8F5F0]/70">{perfume.description}</p>
                     {perfume.sex && (
                       <div className="mt-2">
                         <span className="text-xs bg-white/10 backdrop-blur-md border border-white/20 text-[#E3B23C] px-2 py-1 rounded-full">
@@ -207,7 +209,7 @@ export default function ScentlyLanding() {
               </div>
             ) : (
               <div className="text-center py-12">
-                <p className="text-[#F8F5F0]/60 text-lg">No recommendations found. Try different preferences.</p>
+                <p className="text-[#F8F5F0]/60 text-lg">Рекомендации не найдены. Попробуйте изменить предпочтения.</p>
               </div>
             )}
           </div>
