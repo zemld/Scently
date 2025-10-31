@@ -3,14 +3,14 @@ package app
 import (
 	"testing"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/rdb"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 )
 
 func TestGetCacheKey(t *testing.T) {
 	t.Parallel()
 
-	key := getCacheKey(rdb.PerfumeCacheKey{Brand: "A", Name: "X", AdviseType: "Comparision", Sex: "male"})
-	if key != "A:X:Comparision:male" {
+	key := getCacheKey(parameters.RequestPerfume{Brand: "A", Name: "X", UseAI: false, Sex: "male"})
+	if key != "A:X:false:male" {
 		t.Fatalf("unexpected key: %q", key)
 	}
 }

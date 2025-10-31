@@ -19,6 +19,28 @@ type aISuggestion struct {
 	Perfumes []models.GluedPerfume `json:"perfumes"`
 }
 
+func GetAIEnrichedSuggestions(ctx context.Context, params parameters.RequestPerfume) []models.GluedPerfumeWithScore {
+	var mostSimilar []models.GluedPerfumeWithScore
+	aiSuggests, err := AISuggest(ctx, params)
+	if err == nil && aiSuggests != nil {
+		mostSimilar = aiSuggests
+	}
+
+	if mostSimilar != nil {
+		enrichmentParams := make([]parameters.RequestPerfume, len(mostSimilar))
+		for i, suggestion := range mostSimilar {
+			enrichmentParams[i] = *parameters.NewGet().WithBrand(suggestion.GluedPerfume.Brand).WithName(suggestion.GluedPerfume.Name).WithSex(params.Sex)
+		}
+		enrichedSuggests, ok := FetchPerfumes(ctx, enrichmentParams)
+		if ok && enrichedSuggests != nil {
+			for i, suggestion := range enrichedSuggests {
+				mostSimilar[i].GluedPerfume = suggestion
+			}
+		}
+	}
+	return mostSimilar
+}
+
 func AISuggest(ctx context.Context, params parameters.RequestPerfume) ([]models.GluedPerfumeWithScore, error) {
 	r, _ := http.NewRequestWithContext(ctx, "GET", aiSuggestUrl, nil)
 	updateQuery(r, params)

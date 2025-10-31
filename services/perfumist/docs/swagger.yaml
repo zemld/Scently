@@ -2,27 +2,10 @@ basePath: /v1/suggest
 definitions:
   handlers.SuggestResponse:
     properties:
-      input:
-        $ref: '#/definitions/handlers.inputPerfume'
-      success:
-        type: boolean
       suggested:
         items:
           $ref: '#/definitions/models.RankedPerfumeWithProps'
         type: array
-    type: object
-  handlers.inputPerfume:
-    properties:
-      advise_type:
-        type: string
-      brand:
-        type: string
-      name:
-        type: string
-      ok:
-        type: boolean
-      sex:
-        type: string
     type: object
   models.GluedPerfume:
     properties:
@@ -108,17 +91,13 @@ paths:
           schema:
             $ref: '#/definitions/handlers.SuggestResponse'
         "204":
-          description: No perfumes found for suggestion
-          schema:
-            $ref: '#/definitions/handlers.SuggestResponse'
+          description: No content
         "400":
           description: Incorrect parameters
-          schema:
-            $ref: '#/definitions/handlers.SuggestResponse'
+        "403":
+          description: Forbidden
         "500":
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.SuggestResponse'
       summary: Suggests some perfumes
       tags:
       - Perfumes
