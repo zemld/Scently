@@ -8,12 +8,13 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/rdb"
 )
 
 const cacheTTL = 3600 * time.Second
 
-func LookupCache(ctx context.Context, requestedPerfume rdb.PerfumeCacheKey) ([]models.RankedPerfumeWithProps, error) {
+func LookupCache(ctx context.Context, requestedPerfume parameters.RequestPerfume) ([]models.RankedPerfumeWithProps, error) {
 	key := getCacheKey(requestedPerfume)
 	client := rdb.GetRedisClient()
 
@@ -31,7 +32,7 @@ func LookupCache(ctx context.Context, requestedPerfume rdb.PerfumeCacheKey) ([]m
 	return result, nil
 }
 
-func Cache(ctx context.Context, requestedPerfume rdb.PerfumeCacheKey, toCache []models.RankedPerfumeWithProps) error {
+func Cache(ctx context.Context, requestedPerfume parameters.RequestPerfume, toCache []models.RankedPerfumeWithProps) error {
 	encoded, err := json.Marshal(toCache)
 	if err != nil {
 		return err
@@ -46,6 +47,6 @@ func Cache(ctx context.Context, requestedPerfume rdb.PerfumeCacheKey, toCache []
 	return nil
 }
 
-func getCacheKey(perfume rdb.PerfumeCacheKey) string {
-	return fmt.Sprintf("%s:%s:%s:%s", perfume.Brand, perfume.Name, perfume.AdviseType, perfume.Sex)
+func getCacheKey(perfume parameters.RequestPerfume) string {
+	return fmt.Sprintf("%s:%s:%t:%s", perfume.Brand, perfume.Name, perfume.UseAI, perfume.Sex)
 }
