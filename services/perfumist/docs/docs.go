@@ -61,28 +61,16 @@ const docTemplate = `{
                         }
                     },
                     "204": {
-                        "description": "No perfumes found for suggestion",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.SuggestResponse"
-                        }
+                        "description": "No content"
                     },
                     "400": {
-                        "description": "Incorrect parameters",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.SuggestResponse"
-                        }
+                        "description": "Incorrect parameters"
                     },
                     "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.SuggestResponse"
-                        }
+                        "description": "Forbidden"
                     },
                     "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.SuggestResponse"
-                        }
+                        "description": "Internal Server Error"
                     }
                 }
             }
@@ -92,37 +80,11 @@ const docTemplate = `{
         "handlers.SuggestResponse": {
             "type": "object",
             "properties": {
-                "input": {
-                    "$ref": "#/definitions/handlers.inputPerfume"
-                },
-                "success": {
-                    "type": "boolean"
-                },
                 "suggested": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.RankedPerfumeWithProps"
                     }
-                }
-            }
-        },
-        "handlers.inputPerfume": {
-            "type": "object",
-            "properties": {
-                "advise_type": {
-                    "type": "string"
-                },
-                "brand": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "ok": {
-                    "type": "boolean"
-                },
-                "sex": {
-                    "type": "string"
                 }
             }
         },
