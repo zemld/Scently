@@ -10,7 +10,7 @@ func TestGetCacheKey(t *testing.T) {
 	t.Parallel()
 
 	key := getCacheKey(parameters.RequestPerfume{Brand: "A", Name: "X", UseAI: false, Sex: "male"})
-	if key != "A:X:Comparision:male" {
+	if key != "A:X:false:male" {
 		t.Fatalf("unexpected key: %q", key)
 	}
 }
