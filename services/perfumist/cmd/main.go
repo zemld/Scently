@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	httpSwagger "github.com/swaggo/http-swagger"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/handlers"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/middleware"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/api/handlers"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/api/middleware"
 )
 
 // @title Perfume Suggestion Service

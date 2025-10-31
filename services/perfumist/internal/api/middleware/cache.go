@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/api/handlers"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/app"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/handlers"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 )
