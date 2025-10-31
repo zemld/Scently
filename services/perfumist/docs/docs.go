@@ -72,6 +72,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/handlers.SuggestResponse"
                         }
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SuggestResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {

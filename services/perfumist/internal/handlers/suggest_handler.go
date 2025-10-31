@@ -32,6 +32,7 @@ const (
 // @success 200 {object} SuggestResponse "Suggested perfumes"
 // @success 204 {object} SuggestResponse "No perfumes found for suggestion"
 // @failure 400 {object} SuggestResponse "Incorrect parameters"
+// @failure 403 {object} SuggestResponse "Forbidden"
 // @failure 500 {object} SuggestResponse
 // @router /perfume [get]
 func Suggest(w http.ResponseWriter, r *http.Request) {
