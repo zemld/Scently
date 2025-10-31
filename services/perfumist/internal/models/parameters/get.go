@@ -1,5 +1,22 @@
 package parameters
 
+type contextKey string
+
+const ParamsKey contextKey = "params"
+
+const (
+	BrandParamKey = "brand"
+	NameParamKey  = "name"
+	SexParamKey   = "sex"
+	UseAIParamKey = "use_ai"
+)
+
+const (
+	SexMale   = "male"
+	SexFemale = "female"
+	SexUnisex = "unisex"
+)
+
 type RequestPerfume struct {
 	Brand string
 	Name  string
