@@ -46,9 +46,6 @@ func getPerfumesToUpdate(r http.Request, up *core.UpdateParameters) error {
 		return err
 	}
 
-	if err = json.Unmarshal(content, up); err != nil {
-		log.Printf("Error unmarshalling request body: %v\n", err)
-		return err
-	}
+	json.Unmarshal(content, up)
 	return nil
 }
