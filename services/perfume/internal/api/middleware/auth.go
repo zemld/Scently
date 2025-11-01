@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -12,7 +13,13 @@ const prefix = "Bearer "
 
 func Auth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		token := strings.TrimPrefix(r.Header.Get("Authorization"), prefix)
+		rawToken := r.Header.Get("Authorization")
+		log.Printf("rawToken: %s, wanted: %s", rawToken, perfumeToken)
+		if !strings.HasPrefix(rawToken, prefix) {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		token := strings.TrimPrefix(rawToken, prefix)
 		if token != perfumeToken {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
