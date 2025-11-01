@@ -97,7 +97,18 @@ class APIClient {
         }
 
         const url = `${API_BASE_URL}/v1/suggest/perfume?${params.toString()}`
-        return this.request<SuggestionResponse>(url)
+        const origin =
+            typeof window !== "undefined" && window.location && window.location.origin
+                ? window.location.origin
+                : (typeof location !== "undefined" ? location.origin : "");
+
+        const optionsWithOrigin: RequestInit = {
+            headers: {
+                Origin: origin,
+            }
+        };
+
+        return this.request<SuggestionResponse>(url, optionsWithOrigin);
     }
 }
 
