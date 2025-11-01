@@ -66,13 +66,40 @@ class APIClient {
         url: string,
         options: RequestInit = {}
     ): Promise<T> {
-        const response = await fetch(url, {
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers,
-            },
+        const headers = typeof Headers !== 'undefined'
+            ? new Headers(options.headers as HeadersInit | undefined)
+            : undefined
+
+        if (headers) {
+            if (!headers.has('Content-Type')) {
+                headers.set('Content-Type', 'application/json')
+            }
+        }
+
+        const requestOptions: RequestInit = {
             ...options,
-        })
+            headers: headers ?? {
+                'Content-Type': 'application/json',
+                ...(options.headers as Record<string, string> | undefined),
+            },
+        }
+
+        if (process.env.NODE_ENV !== 'production') {
+            const context = typeof window === 'undefined' ? 'server' : 'client'
+            const logHeaders = headers
+                ? Object.fromEntries(headers.entries())
+                : (requestOptions.headers as Record<string, string> | undefined)
+
+            console.log(`[API debug][${context}] Sending request`, {
+                url,
+                options: {
+                    ...requestOptions,
+                    headers: logHeaders,
+                },
+            })
+        }
+
+        const response = await fetch(url, requestOptions)
 
         if (!response.ok) {
             throw new Error(`API request failed: ${response.status} ${response.statusText}`)
@@ -97,7 +124,20 @@ class APIClient {
         }
 
         const url = `${API_BASE_URL}/v1/suggest/perfume?${params.toString()}`
-        return this.request<SuggestionResponse>(url)
+
+        const origin = typeof window !== 'undefined' && window.location
+            ? window.location.origin
+            : undefined
+
+        const options: RequestInit = origin
+            ? {
+                headers: {
+                    Origin: origin,
+                },
+            }
+            : {}
+
+        return this.request<SuggestionResponse>(url, options)
     }
 }
 
