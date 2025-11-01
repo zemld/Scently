@@ -27,7 +27,7 @@ func NewUpdateStatus(success bool) *UpdateStatus {
 	return &status
 }
 
-func Update(ctx context.Context, params *UpdateParameters, perfumes []models.Perfume) UpdateStatus {
+func Update(ctx context.Context, params *UpdateParameters) UpdateStatus {
 	config := config.NewConfig()
 
 	conn, err := pgx.Connect(ctx, config.GetConnectionString())
@@ -46,7 +46,7 @@ func Update(ctx context.Context, params *UpdateParameters, perfumes []models.Per
 		}
 	}
 
-	updateStatus := upsert(ctx, tx, perfumes)
+	updateStatus := upsert(ctx, tx, params.Perfumes)
 
 	tx.Commit(ctx)
 	return *updateStatus

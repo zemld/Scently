@@ -2,10 +2,8 @@ services:
   perfume-updater:
     build:
       context: services/parser
-    environment:
-      HARD_UPDATE_PASSWORD_FILE: /run/secrets/hard_update_password
-    secrets:
-      - hard_update_password
+    env_file:
+      - ./secrets/perfume.env
     ports:
       - "8090:8090"
 
@@ -14,14 +12,9 @@ services:
       context: services/perfume
     env_file:
       - ./secrets/db.env
-    environment:
-      POSTGRES_PASSWORD_FILE: /run/secrets/perfume_db_password
-      HARD_UPDATE_PASSWORD_FILE: /run/secrets/hard_update_password
-    secrets:
-      - perfume_db_password
-      - hard_update_password
+      - ./secrets/perfume.env
     ports:
-      - "8089:8089"
+      - "8089:8000"
     depends_on:
       - perfume-db
 
@@ -29,10 +22,6 @@ services:
     image: postgres:latest
     env_file:
       - ./secrets/db.env
-    environment:
-      POSTGRES_PASSWORD_FILE: /run/secrets/perfume_db_password
-    secrets:
-      - perfume_db_password
     ports:
       - "5432:5432"
     volumes:
@@ -43,8 +32,9 @@ services:
       context: services/perfumist
     ports:
       - "8088:8000"
-    environment:
-      REDIS_PASSWORD: redis_password
+    env_file:
+      - ./secrets/perfume.env
+      - ./secrets/redis.env
     depends_on:
       - perfume
 
@@ -52,8 +42,8 @@ services:
     image: redis:latest
     ports:
       - "6379:6379"
-    environment:
-      REDIS_PASSWORD: redis_password
+    env_file:
+      - ./secrets/redis.env
     volumes:
       - redis_data:/data
 
@@ -76,11 +66,3 @@ services:
 volumes:
   perfume_volume:
   redis_data:
-
-secrets:
-  perfume_db_password:
-    file: ./secrets/perfume_db_password.txt
-  hard_update_password:
-    file: ./secrets/hard_update_password.txt
-  redis_password:
-    file: ./secrets/redis_password.txt

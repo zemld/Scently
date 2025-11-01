@@ -7,6 +7,10 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/constants"
 )
 
+type contextKey string
+
+const SelectParametersContextKey contextKey = "select_parameters"
+
 type SelectParameters struct {
 	Brand string
 	Name  string

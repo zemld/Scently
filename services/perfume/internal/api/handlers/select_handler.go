@@ -1,10 +1,8 @@
 package handlers
 
 import (
-	"context"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/core"
 )
@@ -21,12 +19,7 @@ import (
 // @failure 500 {object} PerfumeResponse "Something went wrong while processing request"
 // @router /get [get]
 func Select(w http.ResponseWriter, r *http.Request) {
-	p := getSelectionParameters(r)
-
-	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
-	defer cancel()
-
-	perfumes, status := core.Select(ctx, p)
+	perfumes, status := core.Select(r.Context(), r.Context().Value(core.SelectParametersContextKey).(*core.SelectParameters))
 	response := PerfumeResponse{Perfumes: perfumes, State: status}
 	if !status.Success {
 		WriteResponse(w, http.StatusInternalServerError, response)
@@ -38,12 +31,4 @@ func Select(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	WriteResponse(w, http.StatusOK, response)
-}
-
-func getSelectionParameters(r *http.Request) *core.SelectParameters {
-	brand := r.URL.Query().Get("brand")
-	name := r.URL.Query().Get("name")
-	sex := r.URL.Query().Get("sex")
-
-	return core.NewSelectParameters().WithBrand(brand).WithName(name).WithSex(sex)
 }

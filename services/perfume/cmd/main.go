@@ -3,10 +3,10 @@ package main
 import (
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
 	httpSwagger "github.com/swaggo/http-swagger"
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/api/handlers"
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/api/middleware"
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/core"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/handlers"
 )
 
 // @title Perfume DB API
@@ -15,17 +15,14 @@ import (
 // @BasePath /v1/perfumes
 func main() {
 	core.Initiate()
-	r := chi.NewRouter()
+	r := http.NewServeMux()
 
-	r.Route("/v1/perfumes", func(r chi.Router) {
-		r.Get("/get", handlers.Select)
-		// /v1/perfumes/update?hard:bool&password=string
-		r.Post("/update", handlers.Update)
-	})
+	r.Handle("/v1/perfumes/get", middleware.Auth(middleware.ParseQuery(http.HandlerFunc(handlers.Select))))
+	r.Handle("/v1/perfumes/update", middleware.Auth(middleware.ParseQuery(http.HandlerFunc(handlers.Update))))
 
 	fs := http.FileServer(http.Dir("./docs"))
-	r.Handle("/docs/*", http.StripPrefix("/docs/", fs))
-	r.Get("/swagger/*", httpSwagger.Handler(httpSwagger.URL("http://localhost:8089/docs/swagger.json")))
+	r.Handle("/docs/", http.StripPrefix("/docs/", fs))
+	r.Handle("/swagger/", httpSwagger.Handler(httpSwagger.URL("http://localhost:8000/docs/swagger.json")))
 
-	http.ListenAndServe(":8089", r)
+	http.ListenAndServe(":8000", r)
 }
