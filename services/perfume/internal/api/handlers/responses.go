@@ -12,9 +12,6 @@ type PerfumeResponse struct {
 	Perfumes []models.Perfume    `json:"perfumes"`
 	State    core.ProcessedState `json:"state"`
 }
-type PerfumeCollection struct {
-	Perfumes []models.Perfume `json:"perfumes"`
-}
 
 type UpdateResponse struct {
 	SuccessfulPerfumes []models.Perfume    `json:"successful_perfumes"`
