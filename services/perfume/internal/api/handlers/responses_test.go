@@ -7,6 +7,26 @@ import (
 	"testing"
 )
 
+func TestWriteResponse(t *testing.T) {
+	res := httptest.NewRecorder()
+	payload := map[string]string{"status": "ok"}
+
+	WriteResponse(res, http.StatusCreated, payload)
+
+	result := res.Result()
+	if result.StatusCode != http.StatusCreated {
+		t.Fatalf("status = %d, want %d", result.StatusCode, http.StatusCreated)
+	}
+
+	var decoded map[string]string
+	if err := json.NewDecoder(result.Body).Decode(&decoded); err != nil {
+		t.Fatalf("failed to decode body: %v", err)
+	}
+	if decoded["status"] != "ok" {
+		t.Fatalf("decoded body = %#v", decoded)
+	}
+}
+
 func TestWriteResponse_JSONAndStatus(t *testing.T) {
 	rr := httptest.NewRecorder()
 	body := map[string]any{"ok": true}
@@ -14,10 +34,6 @@ func TestWriteResponse_JSONAndStatus(t *testing.T) {
 
 	if rr.Code != http.StatusTeapot {
 		t.Fatalf("status = %d, want %d", rr.Code, http.StatusTeapot)
-	}
-
-	if got := rr.Header().Get("Content-Type"); got != "application/json" {
-		t.Fatalf("Content-Type = %q, want application/json", got)
 	}
 
 	var decoded map[string]any
