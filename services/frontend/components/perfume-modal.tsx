@@ -41,7 +41,7 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                         {/* Image */}
                         <div className="aspect-square rounded-2xl overflow-hidden bg-white/10">
                             <img
-                                src={perfume.image || "/placeholder.svg"}
+                                src={perfume.image || "/luxury-perfume-bottle-amber-gold.jpg"}
                                 alt={perfume.name}
                                 className="w-full h-full object-cover"
                             />

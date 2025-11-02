@@ -66,13 +66,8 @@ export default function ScentlyLanding() {
     setTimeout(() => setSelectedPerfume(null), 300)
   }
 
-  // Fallback images for recommendations
-  const fallbackImages = [
-    "/luxury-perfume-bottle-dark-wood.jpg",
-    "/luxury-perfume-bottle-silver-elegant.jpg",
-    "/luxury-perfume-bottle-amber-gold.jpg",
-    "/luxury-perfume-bottle-red-crystal.jpg"
-  ]
+  // Default image for perfumes
+  const defaultPerfumeImage = "/luxury-perfume-bottle-amber-gold.jpg"
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1C1B1A] via-[#2A1F1E] to-[#5E4B56] text-[#F8F5F0] overflow-x-hidden">
@@ -177,7 +172,7 @@ export default function ScentlyLanding() {
                   >
                     <div className="aspect-square mb-4 rounded-xl overflow-hidden bg-white/5">
                       <img
-                        src={perfume.image || fallbackImages[index % fallbackImages.length]}
+                        src={perfume.image || defaultPerfumeImage}
                         alt={perfume.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       />
