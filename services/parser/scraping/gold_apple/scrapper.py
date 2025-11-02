@@ -26,17 +26,17 @@ class GoldAppleScrapper(Scrapper):
                 loc_tag = sitemap.find("loc")
                 if loc_tag and loc_tag.string:
                     sitemaps.append(loc_tag.string)
-        self._sitemaps = [sitemap for sitemap in sitemaps if sitemap]
+        self._pages = [sitemap for sitemap in sitemaps if sitemap]
         self._page_parser = page_parser
 
     def _is_product_link(self, link: str) -> bool:
         return bool(self._product_url_re.match(link))
 
-    def scrap_sitemap(self, index: int) -> list[Perfume]:
-        print(f"Scraping sitemap {self._sitemaps[index]}.")
-        if index + 1 > len(self._sitemaps):
+    def scrap_page(self, index: int) -> list[Perfume]:
+        print(f"Scraping sitemap {self._pages[index]}.")
+        if index + 1 > len(self._pages):
             return []
-        links_page = get_page(self._sitemaps[index])
+        links_page = get_page(self._pages[index])
         if not links_page:
             print("Unable to scrap.")
             return []
