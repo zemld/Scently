@@ -3,9 +3,11 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"sync"
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
@@ -13,7 +15,8 @@ import (
 )
 
 const (
-	getPerfumesUrl = "http://perfume:8089/v1/perfumes/get"
+	getPerfumesUrl          = "http://perfume:8000/v1/perfumes/get"
+	perfumeInternalTokenEnv = "PERFUME_INTERNAL_TOKEN"
 )
 
 const (
@@ -95,6 +98,8 @@ func updateQuery(r *http.Request, p parameters.RequestPerfume) {
 	if p.Sex == "male" || p.Sex == "female" {
 		addQueryParameter(r, "sex", p.Sex)
 	}
+	log.Printf("Perfume internal token: %s", os.Getenv(perfumeInternalTokenEnv))
+	r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv(perfumeInternalTokenEnv)))
 }
 
 func addQueryParameter(r *http.Request, key string, value string) {
