@@ -16,6 +16,7 @@ repos:
         files: ^services/.*\.py$
         types: [python]
         additional_dependencies:
+          - playwright
           - types-requests
           - types-beautifulsoup4
           - types-tqdm
