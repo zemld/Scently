@@ -37,8 +37,9 @@ class PageParser(ABC):
         base_notes = self._parse_base_notes(props)
 
         shop_info = self._get_shop_info(page)
-        image_url = self._parse_image_url(page)
-        if any(not item for item in (brand, name, perfume_type, sex, image_url)):
+        if any(
+            not item for item in (brand, name, perfume_type, sex, shop_info.image_url)
+        ):
             return None
 
         perfume = Perfume(
@@ -50,7 +51,6 @@ class PageParser(ABC):
             upper_notes,
             middle_notes,
             base_notes,
-            image_url,
         )
         perfume.shop_info = shop_info
         return perfume

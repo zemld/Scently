@@ -265,6 +265,7 @@ class RandewooPageParser(PageParser):
         shop_info = Perfume.ShopInfo(
             shop_name="Randewoo",
             shop_link="https://randewoo.ru",
+            image_url=self._parse_image_url(page),
             volumes_with_prices=[],
         )
         volumes_with_prices_tags = page.find_all("div", class_="s-productType__main")

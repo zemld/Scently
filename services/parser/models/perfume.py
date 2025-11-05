@@ -20,22 +20,26 @@ class Perfume:
 
         shop_name: str
         shop_link: str
+        image_url: str
         volumes_with_prices: list[VolumeWithPrices]
 
         def __init__(
             self,
             shop_name: str,
             shop_link: str,
+            image_url: str,
             volumes_with_prices: list[VolumeWithPrices],
         ):
             self.shop_name = shop_name
             self.shop_link = shop_link
+            self.image_url = image_url
             self.volumes_with_prices = volumes_with_prices
 
         def to_dict(self) -> dict[str, str | list[dict[str, str | int]]]:
             return {
                 "shop_name": self.shop_name,
                 "shop_link": self.shop_link,
+                "image_url": self.image_url,
                 "volumes_with_costs": [v.to_dict() for v in self.volumes_with_prices],
             }
 
@@ -48,7 +52,6 @@ class Perfume:
     middle_notes: list[str]
     base_notes: list[str]
     shop_info: ShopInfo
-    image_url: str
 
     def __init__(
         self,
@@ -60,7 +63,6 @@ class Perfume:
         upper_notes: list[str] | None = None,
         middle_notes: list[str] | None = None,
         base_notes: list[str] | None = None,
-        image_url: str = "",
     ):
         self.brand = brand
         self.name = name
@@ -70,7 +72,6 @@ class Perfume:
         self.upper_notes = upper_notes or []
         self.middle_notes = middle_notes or []
         self.base_notes = base_notes or []
-        self.image_url = image_url
 
     def to_dict(
         self,
@@ -85,5 +86,4 @@ class Perfume:
             "middle_notes": self.middle_notes,
             "base_notes": self.base_notes,
             "shop_info": self.shop_info.to_dict(),
-            "image_url": self.image_url,
         }

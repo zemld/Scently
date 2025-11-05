@@ -158,6 +158,7 @@ class GoldApplePageParser(PageParser):
         shop_info = Perfume.ShopInfo(
             shop_name="Gold Apple",
             shop_link="https://goldapple.ru",
+            image_url=self._parse_image_url(page),
             volumes_with_prices=[],
         )
         volume = self._extract_volume(page)
