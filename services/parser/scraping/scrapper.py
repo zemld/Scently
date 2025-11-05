@@ -1,5 +1,4 @@
 import re
-import time
 from abc import ABC, abstractmethod
 
 from models.perfume import Perfume
@@ -7,7 +6,7 @@ from scraping.page_parser import PageParser
 
 
 class Scrapper(ABC):
-    _sitemaps: list[str]
+    _pages: list[str]
     _workers: int = 16
     _perfumes_re = [
         re.compile(r"\bпарфюмированная\s+вода\b", re.IGNORECASE),
@@ -25,17 +24,13 @@ class Scrapper(ABC):
     _page_parser: PageParser
 
     @abstractmethod
-    def scrap_sitemap(self, index: int) -> list[Perfume]:
+    def scrap_page(self, index: int) -> list[Perfume]:
         pass
 
     @abstractmethod
     def fetch_perfume(self, link: str) -> Perfume | None:
         pass
 
+    @abstractmethod
     def scrap_all_accuratly(self) -> list[Perfume]:
-        perfumes = []
-        for i in range(len(self._sitemaps)):
-            sitemap_perfumes = self.scrap_sitemap(i)
-            perfumes.extend(sitemap_perfumes)
-            time.sleep(3600)
-        return perfumes
+        pass

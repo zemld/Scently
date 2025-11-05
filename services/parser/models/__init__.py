@@ -1,1 +1,3 @@
-"""Models package for perfume data structures."""
+from .perfume import Perfume
+
+__all__ = ["Perfume"]

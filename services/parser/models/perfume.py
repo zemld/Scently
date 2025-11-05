@@ -1,4 +1,48 @@
 class Perfume:
+    class ShopInfo:
+
+        class VolumeWithPrices:
+            volume: int
+            cost: int
+            link: str
+
+            def __init__(self, volume: int, cost: int, link: str):
+                self.volume = volume
+                self.cost = cost
+                self.link = link
+
+            def to_dict(self) -> dict[str, int | str]:
+                return {
+                    "volume": self.volume,
+                    "cost": self.cost,
+                    "link": self.link,
+                }
+
+        shop_name: str
+        shop_link: str
+        image_url: str
+        volumes_with_prices: list[VolumeWithPrices]
+
+        def __init__(
+            self,
+            shop_name: str,
+            shop_link: str,
+            image_url: str,
+            volumes_with_prices: list[VolumeWithPrices],
+        ):
+            self.shop_name = shop_name
+            self.shop_link = shop_link
+            self.image_url = image_url
+            self.volumes_with_prices = volumes_with_prices
+
+        def to_dict(self) -> dict[str, str | list[dict[str, str | int]]]:
+            return {
+                "shop_name": self.shop_name,
+                "shop_link": self.shop_link,
+                "image_url": self.image_url,
+                "volumes_with_costs": [v.to_dict() for v in self.volumes_with_prices],
+            }
+
     brand: str
     name: str
     perfume_type: str
@@ -7,9 +51,7 @@ class Perfume:
     upper_notes: list[str]
     middle_notes: list[str]
     base_notes: list[str]
-    volume: int
-    link: str
-    image_url: str
+    shop_info: ShopInfo
 
     def __init__(
         self,
@@ -21,9 +63,6 @@ class Perfume:
         upper_notes: list[str] | None = None,
         middle_notes: list[str] | None = None,
         base_notes: list[str] | None = None,
-        volume: int = 0,
-        link: str = "",
-        image_url: str = "",
     ):
         self.brand = brand
         self.name = name
@@ -33,33 +72,10 @@ class Perfume:
         self.upper_notes = upper_notes or []
         self.middle_notes = middle_notes or []
         self.base_notes = base_notes or []
-        self.volume = volume
-        self.link = link
-        self.image_url = image_url
 
-    def _repr_property(self, name: str, value: str | list[str] | int) -> str:
-        if isinstance(value, list):
-            value_str = str(value) if value else "Unknown"
-        else:
-            value_str = str(value) if value else "Unknown"
-        return f"{name}={value_str}"
-
-    def __repr__(self) -> str:
-        return (
-            f"Perfume(\n\t{self._repr_property('brand', self.brand)},\n"
-            f"\t{self._repr_property('name', self.name)},\n"
-            f"\t{self._repr_property('perfume_type', self.perfume_type)},\n"
-            f"\t{self._repr_property('sex', self.sex)},\n"
-            f"\t{self._repr_property('family', self.family)},\n"
-            f"\t{self._repr_property('upper_notes', self.upper_notes)},\n"
-            f"\t{self._repr_property('middle_notes', self.middle_notes)},\n"
-            f"\t{self._repr_property('base_notes', self.base_notes)},\n"
-            f"\t{self._repr_property('volume', self.volume)},\n"
-            f"\t{self._repr_property('link', self.link)},\n"
-            f"\t{self._repr_property('image_url', self.image_url)}\n)\n"
-        )
-
-    def to_dict(self) -> dict[str, str | list[str] | int]:
+    def to_dict(
+        self,
+    ) -> dict[str, str | list[str] | dict[str, str | list[dict[str, str | int]]]]:
         return {
             "brand": self.brand,
             "name": self.name,
@@ -69,7 +85,5 @@ class Perfume:
             "upper_notes": self.upper_notes,
             "middle_notes": self.middle_notes,
             "base_notes": self.base_notes,
-            "volume": self.volume,
-            "link": self.link,
-            "image_url": self.image_url,
+            "shop_info": self.shop_info.to_dict(),
         }

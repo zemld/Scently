@@ -57,6 +57,13 @@ class NoteCanonizer(Canonizer):
         adjectives = [word for word in words if word.endswith(self._adjective_endings)]
         return without_adjectives, adjectives
 
+    def _canonize_words(self, words: list[str]) -> str | None:
+        for word in words:
+            canonized = super().canonize(word)
+            if canonized:
+                return canonized
+        return None
+
     def canonize_notes(self, notes: list[str]) -> list[str]:
         canonized = []
         for note in notes:
@@ -76,10 +83,10 @@ class NoteCanonizer(Canonizer):
             if word not in self._meaningless_words
         ]
         without_adjectives, adjectives = self._divide_with_adjectives(essential_words)
-        canonized = super().canonize(without_adjectives)
+        canonized = self._canonize_words(without_adjectives)
         if canonized:
             return canonized
-        canonized = super().canonize(adjectives)
+        canonized = self._canonize_words(adjectives)
         if canonized:
             return canonized
         return super()._canonize_with_levenshtein(note)

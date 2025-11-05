@@ -1,149 +1,225 @@
 import re
 
-from bs4 import BeautifulSoup, element
+from bs4 import BeautifulSoup, Tag
 
-from scraping.page_parser import PageParser
+from models import Perfume
+from scraping import PageParser
 
 
 class GoldApplePageParser(PageParser):
-    _split_notes_pattern = r",\s*|\s+и\s+|\s+-\s+|\s+–\s+"
+    _split_notes_pattern = r",\s*|\s+и\s+|\s+-\s+|\s+–\s+|\s+"
 
     def _parse_brand(self, page: BeautifulSoup) -> str:
-        brand_tags = page.find_all(self._is_brand_tag)
-        if not brand_tags:
-            return ""
+        brand_tag = page.find("a", {"data-transaction-name": "ga-pdp-title"})
+        if brand_tag:
+            brand = brand_tag.get_text(strip=True)
+            if brand:
+                return str(brand)
 
-        brand_info = [
-            tag.string.strip() for tag in brand_tags[0].find_all("div") if tag.string
-        ]
-        if not brand_info:
-            return ""
-        if self._brand_canonizer:
-            result = super()._canonize(brand_info[0], self._brand_canonizer)
-            if isinstance(result, str):
-                return result
-            return str(brand_info[0])
-        return str(brand_info[0])
+        h1_tag = page.find("h1")
+        if h1_tag:
+            brand_link = h1_tag.find("a", {"content": True})
+            if isinstance(brand_link, Tag):
+                content = brand_link.get("content")
+                if content and isinstance(content, str):
+                    return content
+            brand_link = h1_tag.find("a")
+            if isinstance(brand_link, Tag):
+                return str(brand_link.get_text(strip=True))
 
-    @staticmethod
-    def _is_brand_tag(tag: element.Tag) -> bool:
-        return tag.has_attr("text") and tag.get("text") == "Бренд"
+        meta_keywords = page.find("meta", {"name": "keywords"})
+        if isinstance(meta_keywords, Tag):
+            content = meta_keywords.get("content")
+            if content and isinstance(content, str):
+                keywords = content
+                words = keywords.split()
+                if len(words) >= 3:
+                    return words[2]
+
+        return ""
 
     def _parse_name(self, page: BeautifulSoup) -> str:
-        name_tag = page.find_all(self._is_name_tag)
-        if not name_tag or not name_tag[0].string:
-            return ""
-        if self._name_canonizer:
-            result = super()._canonize(name_tag[0].string.strip(), self._name_canonizer)
-            if isinstance(result, str):
-                return result
-            return str(name_tag[0].string.strip())
-        return str(name_tag[0].string.strip())
+        h1_tag = page.find("h1")
+        if h1_tag:
+            name_span = h1_tag.find("span")
+            if isinstance(name_span, Tag):
+                name = name_span.get_text(strip=True)
+                if name:
+                    return str(name)
+        return ""
 
-    @staticmethod
-    def _is_name_tag(tag: element.Tag) -> bool:
-        return (
-            tag.name == "span"
-            and tag.has_attr("itemprop")
-            and tag.get("itemprop") == "name"
-            and tag.has_attr("class")
-        )
+    def _parse_props(self, page: BeautifulSoup) -> dict[str, str]:
+        props: dict[str, str] = {}
 
-    def _parse_properties(self, page: BeautifulSoup) -> list[str]:
-        properties_title_rx = re.compile("Подробные характеристики", re.IGNORECASE)
-        properties_title = page.find_all(string=properties_title_rx)
-        if not properties_title:
-            return []
-        try:
-            if not properties_title or not properties_title[0].parent:
-                return []
-            section = properties_title[0].parent.parent
-            if section is None:
-                return []
-            raw_properties = section.find_all("span")
-            properties = []
-            for prop in raw_properties:
-                if prop.string is not None:
-                    properties.append(prop.string.strip().lower())
-            return properties
-        except Exception:
-            return []
+        dl_elements = page.find_all("dl")
+        for dl in dl_elements:
+            direct_divs = dl.find_all("div", recursive=False)
+            if direct_divs:
+                first_div = direct_divs[0]
+                prop_divs = first_div.find_all("div", recursive=False)
+            else:
+                prop_divs = dl.find_all("div", recursive=True)
+
+            for prop_div in prop_divs:
+                dt_elements = prop_div.find_all("dt", limit=2)
+                if len(dt_elements) < 2:
+                    continue
+                key_span = dt_elements[0].find("span")
+                value_span = dt_elements[1].find("span")
+                if not key_span or not value_span:
+                    continue
+                key = key_span.get_text(strip=True).lower()
+                value = value_span.get_text(strip=True)
+                if not key or not value:
+                    continue
+                props[key] = value
+
+        return props
 
     def _parse_type(self, page: BeautifulSoup) -> str:
-        props = self._parse_properties(page)
-        if not props or len(props) < 2:
-            return ""
-        if self._type_canonizer:
-            result = super()._canonize(props[1], self._type_canonizer)
-            return result if isinstance(result, str) else props[1]
-        return props[1]
+        props = self._parse_props(page)
+        type_from_props = props.get("тип продукта", "")
+        if type_from_props:
+            type_text = type_from_props.lower().strip()
+            if not self._type_canonizer:
+                return type_text
+            canonized_type = self._type_canonizer.canonize(type_text)
+            return canonized_type if canonized_type else type_text
 
-    def _parse_sex(self, page: BeautifulSoup) -> str:
-        props = self._parse_properties(page)
-        if not props or len(props) < 4:
-            return ""
-        if self._sex_canonizer:
-            result = super()._canonize(props[3].lower().split(), self._sex_canonizer)
-            return result if isinstance(result, str) else props[3]
-        return props[3]
+        meta_desc = page.find("meta", {"name": "description"})
+        if isinstance(meta_desc, Tag):
+            content = meta_desc.get("content")
+            if content and isinstance(content, str):
+                desc = content.lower()
+                if not self._type_canonizer:
+                    return desc
+                canonized_type = self._type_canonizer.canonize(desc)
+                if canonized_type:
+                    return canonized_type
 
-    def _parse_families(self, page: BeautifulSoup) -> list[str]:
-        props = self._parse_properties(page)
-        if not props or len(props) < 6:
+        title_tag = page.find("title")
+        if title_tag:
+            title = title_tag.get_text(strip=True).lower()
+            if not self._type_canonizer:
+                return title
+            canonized_type = self._type_canonizer.canonize(title)
+            if canonized_type:
+                return canonized_type
+        return ""
+
+    def _parse_sex(self, props: dict[str, str]) -> str:
+        raw_sex = props.get("для кого")
+        if not raw_sex:
+            return ""
+        if " " in raw_sex:
+            raw_sex = raw_sex.split()[-1]
+        if not self._sex_canonizer:
+            return raw_sex
+        canonized_sex = self._sex_canonizer.canonize(raw_sex)
+        if canonized_sex:
+            return canonized_sex
+        return raw_sex
+
+    def _parse_families(self, props: dict[str, str]) -> list[str]:
+        families = props.get("группа ароматов")
+        if not families:
             return []
-        families = []
-        for family in props[5].split(","):
-            if self._family_canonizer:
-                result = super()._canonize(
-                    family.strip().lower(), self._family_canonizer
-                )
-                families.append(
-                    result if isinstance(result, str) else family.strip().lower()
-                )
-            else:
-                families.append(family.strip().lower())
-        return [family for family in families if family]
-
-    def _parse_notes(self, notes: str) -> list[str]:
-        notes_list = [
-            note.strip(" .,").lower()
-            for note in re.split(self._split_notes_pattern, notes)
-            if note.strip()
+        if not self._family_canonizer:
+            return [family.strip() for family in families.split(",") if family.strip()]
+        canonized_families = [
+            self._family_canonizer.canonize(family.strip())
+            for family in families.split(",")
         ]
-        if self._notes_canonizer:
-            canonized = super()._canonize(notes_list, self._notes_canonizer)
-            return [note for note in canonized if note]
-        return [note for note in notes_list if note]
+        unique_families = list(set(canonized_families))
+        return [family for family in unique_families if family]
 
-    def _parse_upper_notes(self, page: BeautifulSoup) -> list[str]:
-        props = self._parse_properties(page)
-        if not props or len(props) < 8:
+    def _parse_notes(self, props: dict[str, str], key: str) -> list[str]:
+        notes = props.get(key)
+        if not notes:
             return []
-        return self._parse_notes(props[7])
+        notes_list = re.split(self._split_notes_pattern, notes)
+        if not self._notes_canonizer:
+            return [note.strip() for note in notes_list if note.strip()]
+        canonized_notes = [
+            self._notes_canonizer.canonize(note.strip()) for note in notes_list
+        ]
+        return [note for note in canonized_notes if note]
 
-    def _parse_middle_notes(self, page: BeautifulSoup) -> list[str]:
-        props = self._parse_properties(page)
-        if not props or len(props) < 10:
-            return []
-        return self._parse_notes(props[9])
+    def _parse_upper_notes(self, props: dict[str, str]) -> list[str]:
+        return self._parse_notes(props, "верхние ноты")
 
-    def _parse_base_notes(self, page: BeautifulSoup) -> list[str]:
-        props = self._parse_properties(page)
-        if not props or len(props) < 12:
-            return []
-        return self._parse_notes(props[11])
+    def _parse_middle_notes(self, props: dict[str, str]) -> list[str]:
+        return self._parse_notes(props, "средние ноты")
 
-    def _parse_volume(self, page: BeautifulSoup) -> int:
-        props = self._parse_properties(page)
-        if not props or len(props) < 14:
-            return 0
-        int_rx = re.compile(r"\d+")
-        match = re.search(int_rx, props[13])
-        return int(match.group(0)) if match else 0
+    def _parse_base_notes(self, props: dict[str, str]) -> list[str]:
+        return self._parse_notes(props, "базовые ноты")
+
+    def _get_shop_info(self, page: BeautifulSoup) -> Perfume.ShopInfo:
+        shop_info = Perfume.ShopInfo(
+            shop_name="Gold Apple",
+            shop_link="https://goldapple.ru",
+            image_url=self._parse_image_url(page),
+            volumes_with_prices=[],
+        )
+        volume = self._extract_volume(page)
+        if not volume:
+            return shop_info
+        price = self._extract_price(page)
+        if not price:
+            return shop_info
+        shop_info.volumes_with_prices.append(
+            Perfume.ShopInfo.VolumeWithPrices(volume, price, self._extract_link(page))
+        )
+        return shop_info
+
+    def _extract_volume(self, page: BeautifulSoup) -> int | None:
+        props = self._parse_props(page)
+        if not props:
+            return None
+        volume = props.get("объем") or props.get("объём")
+        if not volume:
+            return None
+
+        volume_text = volume.split()[0]
+        try:
+            volume_value = int(volume_text)
+        except ValueError:
+            return None
+        return int(volume_value)
+
+    def _extract_price(self, page: BeautifulSoup) -> int | None:
+        price_meta = page.find("meta", itemprop="price")
+        if isinstance(price_meta, Tag):
+            content = price_meta.get("content")
+            if content and isinstance(content, str):
+                try:
+                    return int(content)
+                except (ValueError, TypeError):
+                    pass
+
+        price_element = page.find(itemprop="price")
+        if price_element:
+            price_text = price_element.get_text(strip=True)
+            price_digits = "".join(c for c in price_text if c.isdigit())
+            if price_digits:
+                try:
+                    return int(price_digits)
+                except ValueError:
+                    pass
+        return None
+
+    def _extract_link(self, page: BeautifulSoup) -> str:
+        link_tag = page.find("link", itemprop="url")
+        if not isinstance(link_tag, Tag):
+            return ""
+        link_text = link_tag.get("href")
+        if not isinstance(link_text, str):
+            return ""
+        return link_text
 
     def _parse_image_url(self, page: BeautifulSoup) -> str:
         og_image = page.find("meta", property="og:image")
-        if og_image and hasattr(og_image, "get") and og_image.get("content"):
+        if isinstance(og_image, Tag):
             image_url = og_image.get("content")
             if isinstance(image_url, str) and self._is_valid_image_url(image_url):
                 return image_url
