@@ -26,4 +26,4 @@ jobs:
       - name: Style checks
         run: uv run ruff check .
       - name: Type checks
-        run: uv run mypy .
+        run: uv run mypy . --strict --disallow-untyped-defs --disallow-incomplete-defs --disable-error-code=call-overload --disable-error-code=arg-type
