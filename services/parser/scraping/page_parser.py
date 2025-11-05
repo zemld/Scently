@@ -7,8 +7,6 @@ from models.perfume import Perfume
 
 
 class PageParser(ABC):
-    _brand_canonizer: Canonizer | None
-    _name_canonizer: Canonizer | None
     _type_canonizer: Canonizer | None
     _sex_canonizer: Canonizer | None
     _family_canonizer: Canonizer | None
@@ -16,15 +14,11 @@ class PageParser(ABC):
 
     def __init__(
         self,
-        brand_canonizer: Canonizer | None = None,
-        name_canonizer: Canonizer | None = None,
         type_canonizer: Canonizer | None = None,
         sex_canonizer: Canonizer | None = None,
         family_canonizer: Canonizer | None = None,
         notes_canonizer: Canonizer | None = None,
     ):
-        self._brand_canonizer = brand_canonizer
-        self._name_canonizer = name_canonizer
         self._type_canonizer = type_canonizer
         self._sex_canonizer = sex_canonizer
         self._family_canonizer = family_canonizer
@@ -34,25 +28,20 @@ class PageParser(ABC):
         brand = self._parse_brand(page)
         name = self._parse_name(page)
         perfume_type = self._parse_type(page)
-        sex = self._parse_sex(page)
-        families = self._parse_families(page)
-        upper_notes = self._parse_upper_notes(page)
-        middle_notes = self._parse_middle_notes(page)
-        base_notes = self._parse_base_notes(page)
-        volume = self._parse_volume(page)
+
+        props = self._parse_props(page)
+        sex = self._parse_sex(props)
+        families = self._parse_families(props)
+        upper_notes = self._parse_upper_notes(props)
+        middle_notes = self._parse_middle_notes(props)
+        base_notes = self._parse_base_notes(props)
+
+        shop_info = self._get_shop_info(page)
         image_url = self._parse_image_url(page)
-        if (
-            any(item == "" for item in (brand, name, perfume_type, sex))
-            or any(item is None for item in (brand, name, perfume_type, sex))
-            or any(
-                item is None
-                for item in (families, upper_notes, middle_notes, base_notes)
-            )
-            or volume == 0
-        ):
+        if any(not item for item in (brand, name, perfume_type, sex, image_url)):
             return None
 
-        return Perfume(
+        perfume = Perfume(
             brand,
             name,
             perfume_type,
@@ -61,27 +50,10 @@ class PageParser(ABC):
             upper_notes,
             middle_notes,
             base_notes,
-            volume,
-            image_url=image_url,
+            image_url,
         )
-
-    def _canonize(
-        self, item: str | list[str], canonizer: Canonizer | None
-    ) -> str | list[str]:
-        if not canonizer:
-            return item
-
-        if isinstance(item, str):
-            return self._canonize_string(item, canonizer)
-        return self._canonize_list(item, canonizer)
-
-    def _canonize_list(self, items: list[str], canonizer: Canonizer) -> list[str]:
-        result = canonizer.canonize(items)
-        return list(result) if result is not None else []
-
-    def _canonize_string(self, item: str, canonizer: Canonizer) -> str:
-        result = canonizer.canonize([item])
-        return result if result is not None else item
+        perfume.shop_info = shop_info
+        return perfume
 
     @abstractmethod
     def _parse_brand(self, page: BeautifulSoup) -> str:
@@ -92,31 +64,39 @@ class PageParser(ABC):
         pass
 
     @abstractmethod
+    def _parse_props(self, page: BeautifulSoup) -> dict[str, str]:
+        pass
+
+    @abstractmethod
     def _parse_type(self, page: BeautifulSoup) -> str:
         pass
 
     @abstractmethod
-    def _parse_sex(self, page: BeautifulSoup) -> str:
+    def _parse_sex(self, props: dict[str, str]) -> str:
         pass
 
     @abstractmethod
-    def _parse_families(self, page: BeautifulSoup) -> list[str]:
+    def _parse_families(self, props: dict[str, str]) -> list[str]:
         pass
 
     @abstractmethod
-    def _parse_upper_notes(self, page: BeautifulSoup) -> list[str]:
+    def _parse_notes(self, props: dict[str, str], key: str) -> list[str]:
         pass
 
     @abstractmethod
-    def _parse_middle_notes(self, page: BeautifulSoup) -> list[str]:
+    def _parse_upper_notes(self, props: dict[str, str]) -> list[str]:
         pass
 
     @abstractmethod
-    def _parse_base_notes(self, page: BeautifulSoup) -> list[str]:
+    def _parse_middle_notes(self, props: dict[str, str]) -> list[str]:
         pass
 
     @abstractmethod
-    def _parse_volume(self, page: BeautifulSoup) -> int:
+    def _parse_base_notes(self, props: dict[str, str]) -> list[str]:
+        pass
+
+    @abstractmethod
+    def _get_shop_info(self, page: BeautifulSoup) -> Perfume.ShopInfo:
         pass
 
     @abstractmethod
