@@ -5,9 +5,7 @@ from bs4 import BeautifulSoup
 from playwright.sync_api import (  # type: ignore[import-not-found]
     TimeoutError as PlaywrightTimeoutError,
 )
-from playwright.sync_api import (
-    sync_playwright,
-)
+from playwright.sync_api import sync_playwright
 
 
 def get_page(
