@@ -1,5 +1,4 @@
 import re
-import time
 from abc import ABC, abstractmethod
 
 from models.perfume import Perfume
@@ -32,10 +31,6 @@ class Scrapper(ABC):
     def fetch_perfume(self, link: str) -> Perfume | None:
         pass
 
+    @abstractmethod
     def scrap_all_accuratly(self) -> list[Perfume]:
-        perfumes = []
-        for i in range(len(self._pages)):
-            page_perfumes = self.scrap_page(i)
-            perfumes.extend(page_perfumes)
-            time.sleep(3600)
-        return perfumes
+        pass

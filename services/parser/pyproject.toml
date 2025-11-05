@@ -10,8 +10,11 @@ dependencies = [
     "beautifulsoup4>=4.13.4",
     "httpx>=0.28.1",
     "lxml>=6.0.0",
+    "playwright>=1.55.0",
     "requests>=2.31",
     "tqdm>=4.67.1",
+    "types-requests>=2.32.4.20250913",
+    "types-tqdm>=4.67.0.20250809",
     "webdriver-manager>=4.0.2",
 ]
 
