@@ -2,8 +2,8 @@ import re
 
 from bs4 import BeautifulSoup, Tag
 
-from models import Perfume
-from util import get_page
+from src.models import Perfume
+from src.util import get_page
 
 from ..page_parser import PageParser
 

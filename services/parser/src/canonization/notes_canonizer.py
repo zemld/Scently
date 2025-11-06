@@ -1,4 +1,4 @@
-from canonization.canonizer import Canonizer
+from .canonizer import Canonizer
 
 
 class NoteCanonizer(Canonizer):

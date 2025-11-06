@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 
 from bs4 import BeautifulSoup
 
-from canonization.canonizer import Canonizer
-from models.perfume import Perfume
+from src.canonization.canonizer import Canonizer
+from src.models.perfume import Perfume
 
 
 class PageParser(ABC):

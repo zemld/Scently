@@ -2,8 +2,9 @@ import re
 
 from bs4 import BeautifulSoup, Tag
 
-from models import Perfume
-from scraping import PageParser
+from src.models import Perfume
+
+from ..page_parser import PageParser
 
 
 class GoldApplePageParser(PageParser):

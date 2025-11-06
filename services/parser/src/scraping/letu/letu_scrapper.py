@@ -1,5 +1,5 @@
-from models import Perfume
-from util import get_page
+from src.models import Perfume
+from src.util import get_page
 
 from ..page_parser import PageParser
 from ..scrapper import Scrapper

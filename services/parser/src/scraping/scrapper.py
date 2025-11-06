@@ -5,8 +5,8 @@ from threading import Lock
 
 from tqdm import tqdm
 
-from models.perfume import Perfume
-from scraping.page_parser import PageParser
+from src.models.perfume import Perfume
+from src.scraping.page_parser import PageParser
 
 
 class Scrapper(ABC):
