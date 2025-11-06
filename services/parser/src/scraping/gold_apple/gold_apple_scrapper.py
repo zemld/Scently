@@ -6,8 +6,8 @@ from urllib.parse import parse_qs, urlencode, urljoin, urlparse
 
 from bs4 import BeautifulSoup
 
-from models import Perfume
-from util import get_page
+from src.models import PerfumeFromConcreteShop, PerfumeKey
+from src.util import get_page
 
 from ..page_parser import PageParser
 from ..scrapper import Scrapper
@@ -220,7 +220,7 @@ class GoldAppleScrapper(Scrapper):
     def _is_product_link(self, link: str) -> bool:
         return _is_catalog_product_link(link)
 
-    def scrap_page(self, index: int) -> list[Perfume]:
+    def scrap_page(self, index: int) -> list[PerfumeFromConcreteShop]:
         if index + 1 > len(self._product_batches):
             return []
 
@@ -240,7 +240,7 @@ class GoldAppleScrapper(Scrapper):
 
         return self.process_page_links(batch_links, index)
 
-    def fetch_perfume(self, link: str) -> Perfume | None:
+    def fetch_perfume(self, link: str) -> PerfumeFromConcreteShop | None:
         perfume_page = get_page(link, use_playwright=True)
         if not perfume_page:
             print(f"Failed to load perfume page {link}")
@@ -253,37 +253,15 @@ class GoldAppleScrapper(Scrapper):
 
         return perfume
 
-    class PerfumeKey:
-        brand: str
-        name: str
-        sex: str
-
-        def __init__(self, perfume: Perfume):
-            self.brand = perfume.brand
-            self.name = perfume.name
-            self.sex = perfume.sex
-
-        def __hash__(self) -> int:
-            return hash((self.brand, self.name, self.sex))
-
-        def __eq__(self, other: object) -> bool:
-            if not isinstance(other, self.__class__):
-                return False
-            return (
-                self.brand == other.brand
-                and self.name == other.name
-                and self.sex == other.sex
-            )
-
-    def scrap_all_accuratly(self) -> list[Perfume]:
+    def scrap_all_accuratly(self) -> list[PerfumeFromConcreteShop]:
         perfumes = []
         for i in range(len(self._product_batches)):
             page_perfumes = self.scrap_page(i)
             perfumes.extend(page_perfumes)
 
-        perfumes_with_glued_links: dict[GoldAppleScrapper.PerfumeKey, Perfume] = {}
+        perfumes_with_glued_links: dict[PerfumeKey, PerfumeFromConcreteShop] = {}
         for perfume in perfumes:
-            key = self.PerfumeKey(perfume)
+            key = PerfumeKey(perfume)
             if key in perfumes_with_glued_links:
                 perfumes_with_glued_links[key].shop_info.volumes_with_prices.extend(
                     perfume.shop_info.volumes_with_prices

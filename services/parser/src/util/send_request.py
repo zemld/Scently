@@ -86,7 +86,37 @@ def _get_page_with_playwright(link: str) -> BeautifulSoup | None:
 
             _wait_for_page_content(page, link)
 
-            html_content = page.content()
+            try:
+                page.wait_for_load_state("networkidle", timeout=10000)
+            except (PlaywrightTimeoutError, PlaywrightError):
+                try:
+                    page.wait_for_load_state("load", timeout=5000)
+                except (PlaywrightTimeoutError, PlaywrightError):
+                    pass
+
+            time.sleep(0.5)
+
+            html_content = None
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    html_content = page.content()
+                    break
+                except (PlaywrightError, Exception):
+                    if attempt < max_retries - 1:
+                        time.sleep(1)
+                        continue
+                    try:
+                        page.wait_for_load_state("load", timeout=3000)
+                        time.sleep(1)
+                        html_content = page.content()
+                    except Exception:
+                        browser.close()
+                        return None
+
+            if html_content is None:
+                browser.close()
+                return None
 
             browser.close()
 

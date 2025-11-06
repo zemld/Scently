@@ -2,8 +2,8 @@ import re
 
 from bs4 import BeautifulSoup, Tag
 
-from models import Perfume
-from util import get_page
+from src.models import PerfumeFromConcreteShop
+from src.util import get_page
 
 from ..page_parser import PageParser
 
@@ -101,8 +101,8 @@ class LetuPageParser(PageParser):
     def _parse_base_notes(self, props: dict[str, str]) -> list[str]:
         return self._parse_notes(props, "базовые ноты")
 
-    def _get_shop_info(self, page: BeautifulSoup) -> Perfume.ShopInfo:
-        shop_info = Perfume.ShopInfo(
+    def _get_shop_info(self, page: BeautifulSoup) -> PerfumeFromConcreteShop.ShopInfo:
+        shop_info = PerfumeFromConcreteShop.ShopInfo(
             shop_name="Letu",
             shop_link="https://www.letu.ru",
             image_url=self._parse_image_url(page),
@@ -149,7 +149,7 @@ class LetuPageParser(PageParser):
 
     def _parse_current_item_variant(
         self, page: BeautifulSoup
-    ) -> Perfume.ShopInfo.VolumeWithPrices | None:
+    ) -> PerfumeFromConcreteShop.ShopInfo.VolumeWithPrices | None:
         volume = self._parse_current_item_volume(page)
         if not volume:
             return None
@@ -159,7 +159,7 @@ class LetuPageParser(PageParser):
         link = self._parse_current_item_link(page)
         if not link:
             return None
-        return Perfume.ShopInfo.VolumeWithPrices(volume, price, link)
+        return PerfumeFromConcreteShop.ShopInfo.VolumeWithPrices(volume, price, link)
 
     def _parse_current_item_volume(self, page: BeautifulSoup) -> int | None:
         header = self._parse_header(page).strip().split(",")

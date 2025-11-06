@@ -2,8 +2,9 @@ import re
 
 from bs4 import BeautifulSoup, Tag
 
-from models import Perfume
-from scraping import PageParser
+from src.models import PerfumeFromConcreteShop
+
+from ..page_parser import PageParser
 
 
 class GoldApplePageParser(PageParser):
@@ -154,8 +155,8 @@ class GoldApplePageParser(PageParser):
     def _parse_base_notes(self, props: dict[str, str]) -> list[str]:
         return self._parse_notes(props, "базовые ноты")
 
-    def _get_shop_info(self, page: BeautifulSoup) -> Perfume.ShopInfo:
-        shop_info = Perfume.ShopInfo(
+    def _get_shop_info(self, page: BeautifulSoup) -> PerfumeFromConcreteShop.ShopInfo:
+        shop_info = PerfumeFromConcreteShop.ShopInfo(
             shop_name="Gold Apple",
             shop_link="https://goldapple.ru",
             image_url=self._parse_image_url(page),
@@ -218,7 +219,7 @@ class GoldApplePageParser(PageParser):
 
     def _parse_current_item_variant(
         self, page: BeautifulSoup
-    ) -> Perfume.ShopInfo.VolumeWithPrices | None:
+    ) -> PerfumeFromConcreteShop.ShopInfo.VolumeWithPrices | None:
         volume = self._extract_volume(page)
         if not volume:
             return None
@@ -228,7 +229,7 @@ class GoldApplePageParser(PageParser):
         link = self._extract_link(page)
         if not link:
             return None
-        return Perfume.ShopInfo.VolumeWithPrices(volume, price, link)
+        return PerfumeFromConcreteShop.ShopInfo.VolumeWithPrices(volume, price, link)
 
     def _parse_image_url(self, page: BeautifulSoup) -> str:
         og_image = page.find("meta", property="og:image")

@@ -1,6 +1,8 @@
-from models import Perfume
-from scraping import PageParser, Scrapper
-from util import get_page
+from src.models import PerfumeFromConcreteShop
+from src.util import get_page
+
+from ..page_parser import PageParser
+from ..scrapper import Scrapper
 
 
 class RandewooScrapper(Scrapper):
@@ -11,7 +13,7 @@ class RandewooScrapper(Scrapper):
             "https://randewoo.ru/category/parfyumeriya?paging=200"
         )
 
-    def scrap_page(self, index: int) -> list[Perfume]:
+    def scrap_page(self, index: int) -> list[PerfumeFromConcreteShop]:
         page_url = f"{self._perfume_catalog_link}&page={index + 1}"
         page = get_page(page_url)
         if not page:
@@ -27,7 +29,7 @@ class RandewooScrapper(Scrapper):
 
         return self.process_page_links(perfume_links, index)
 
-    def fetch_perfume(self, link: str) -> Perfume | None:
+    def fetch_perfume(self, link: str) -> PerfumeFromConcreteShop | None:
         perfume_page = get_page(link)
         if not perfume_page:
             return None

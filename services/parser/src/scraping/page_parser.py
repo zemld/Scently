@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 
 from bs4 import BeautifulSoup
 
-from canonization.canonizer import Canonizer
-from models.perfume import Perfume
+from src.canonization.canonizer import Canonizer
+from src.models.perfume import PerfumeFromConcreteShop
 
 
 class PageParser(ABC):
@@ -24,7 +24,9 @@ class PageParser(ABC):
         self._family_canonizer = family_canonizer
         self._notes_canonizer = notes_canonizer
 
-    def parse_perfume_from_page(self, page: BeautifulSoup) -> Perfume | None:
+    def parse_perfume_from_page(
+        self, page: BeautifulSoup
+    ) -> PerfumeFromConcreteShop | None:
         brand = self._parse_brand(page)
         name = self._parse_name(page)
         perfume_type = self._parse_type(page)
@@ -42,17 +44,21 @@ class PageParser(ABC):
         ):
             return None
 
-        perfume = Perfume(
-            brand,
-            name,
-            perfume_type,
-            sex,
-            families,
-            upper_notes,
-            middle_notes,
-            base_notes,
+        perfume_properties = PerfumeFromConcreteShop.PerfumeProperties(
+            perfume_type=perfume_type,
+            family=families,
+            upper_notes=upper_notes,
+            middle_notes=middle_notes,
+            base_notes=base_notes,
         )
-        perfume.shop_info = shop_info
+
+        perfume = PerfumeFromConcreteShop(
+            brand=brand,
+            name=name,
+            sex=sex,
+            properties=perfume_properties,
+            shop_info=shop_info,
+        )
         return perfume
 
     @abstractmethod
@@ -96,7 +102,7 @@ class PageParser(ABC):
         pass
 
     @abstractmethod
-    def _get_shop_info(self, page: BeautifulSoup) -> Perfume.ShopInfo:
+    def _get_shop_info(self, page: BeautifulSoup) -> PerfumeFromConcreteShop.ShopInfo:
         pass
 
     @abstractmethod

@@ -1,5 +1,5 @@
-from models import Perfume
-from util import get_page
+from src.models import PerfumeFromConcreteShop
+from src.util import get_page
 
 from ..page_parser import PageParser
 from ..scrapper import Scrapper
@@ -12,7 +12,7 @@ class LetuScrapper(Scrapper):
         self._perfume_catalog_link = "https://www.letu.ru/browse/parfyumeriya/filters/product-class=duhi-or-parfyumernaya-voda-or-tualetnaya-voda"
         self._workers = 8
 
-    def scrap_page(self, index: int) -> list[Perfume]:
+    def scrap_page(self, index: int) -> list[PerfumeFromConcreteShop]:
         page_url = self._perfume_catalog_link
         if index != 0:
             page_url = f"{self._perfume_catalog_link}/page={index + 1}"
@@ -32,7 +32,7 @@ class LetuScrapper(Scrapper):
         print(f"Found {len(perfume_links)} links on catalog page {page_url}")
         return self.process_page_links(perfume_links, index)
 
-    def fetch_perfume(self, link: str) -> Perfume | None:
+    def fetch_perfume(self, link: str) -> PerfumeFromConcreteShop | None:
         perfume_page = get_page(link, use_playwright=True)
         if not perfume_page:
             print(f"Failed to load perfume page {link}")
