@@ -243,10 +243,12 @@ class GoldAppleScrapper(Scrapper):
     def fetch_perfume(self, link: str) -> Perfume | None:
         perfume_page = get_page(link, use_playwright=True)
         if not perfume_page:
+            print(f"Failed to load perfume page {link}")
             return None
 
         perfume = self._page_parser.parse_perfume_from_page(perfume_page)
         if not perfume:
+            print(f"Failed to parse perfume page {link}")
             return None
 
         return perfume
