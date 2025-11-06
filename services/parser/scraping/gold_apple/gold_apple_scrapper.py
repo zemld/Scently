@@ -16,7 +16,7 @@ from ..page_parser import PageParser
 from ..scrapper import Scrapper
 
 _CATALOG_BASE_URL = "https://goldapple.ru/parfjumerija"
-_DEFAULT_PRODUCT_TYPE_IDS = [36, 245, 639, 640, 989, 1108]
+_DEFAULT_PRODUCT_TYPE_IDS = [245, 639, 640, 989, 1108]
 _PRODUCT_URL_RE = re.compile(
     r"^https://goldapple\.ru/(?:.*?\D)?\d{5,}(?:\D.*)?$",
     re.IGNORECASE,
