@@ -2,7 +2,7 @@ import re
 
 from bs4 import BeautifulSoup, Tag
 
-from src.models import Perfume
+from src.models import PerfumeFromConcreteShop
 
 from ..page_parser import PageParser
 
@@ -261,8 +261,8 @@ class RandewooPageParser(PageParser):
 
         return props
 
-    def _get_shop_info(self, page: BeautifulSoup) -> Perfume.ShopInfo:
-        shop_info = Perfume.ShopInfo(
+    def _get_shop_info(self, page: BeautifulSoup) -> PerfumeFromConcreteShop.ShopInfo:
+        shop_info = PerfumeFromConcreteShop.ShopInfo(
             shop_name="Randewoo",
             shop_link="https://randewoo.ru",
             image_url=self._parse_image_url(page),
@@ -275,7 +275,7 @@ class RandewooPageParser(PageParser):
                 return shop_info
             volume_value = self._extract_volume(page)
             shop_info.volumes_with_prices.append(
-                Perfume.ShopInfo.VolumeWithPrices(
+                PerfumeFromConcreteShop.ShopInfo.VolumeWithPrices(
                     volume_value,
                     price_value,
                     "",
@@ -308,7 +308,7 @@ class RandewooPageParser(PageParser):
             if not price_digits:
                 continue
             shop_info.volumes_with_prices.append(
-                Perfume.ShopInfo.VolumeWithPrices(
+                PerfumeFromConcreteShop.ShopInfo.VolumeWithPrices(
                     int(volume_text), int(price_digits), ""
                 )
             )

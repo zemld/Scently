@@ -5,7 +5,7 @@ from threading import Lock
 
 from tqdm import tqdm
 
-from src.models.perfume import Perfume
+from src.models.perfume import PerfumeFromConcreteShop
 from src.scraping.page_parser import PageParser
 
 
@@ -29,12 +29,12 @@ class Scrapper(ABC):
     _domain: str
 
     @abstractmethod
-    def scrap_page(self, index: int) -> list[Perfume]:
+    def scrap_page(self, index: int) -> list[PerfumeFromConcreteShop]:
         pass
 
     def process_page_links(
         self, page_links: list[str], page_index: int
-    ) -> list[Perfume]:
+    ) -> list[PerfumeFromConcreteShop]:
         perfumes = []
         locker = Lock()
         with tqdm(
@@ -55,10 +55,10 @@ class Scrapper(ABC):
         return perfumes
 
     @abstractmethod
-    def fetch_perfume(self, link: str) -> Perfume | None:
+    def fetch_perfume(self, link: str) -> PerfumeFromConcreteShop | None:
         pass
 
-    def scrap_all_accuratly(self) -> list[Perfume]:
+    def scrap_all_accuratly(self) -> list[PerfumeFromConcreteShop]:
         perfumes = []
         i = 0
         while True:

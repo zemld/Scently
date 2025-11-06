@@ -1,6 +1,35 @@
-class Perfume:
-    class ShopInfo:
+class PerfumeFromConcreteShop:
+    class PerfumeProperties:
+        perfume_type: str
+        family: list[str]
+        upper_notes: list[str]
+        middle_notes: list[str]
+        base_notes: list[str]
 
+        def __init__(
+            self,
+            perfume_type: str,
+            family: list[str],
+            upper_notes: list[str],
+            middle_notes: list[str],
+            base_notes: list[str],
+        ):
+            self.perfume_type = perfume_type
+            self.family = family
+            self.upper_notes = upper_notes
+            self.middle_notes = middle_notes
+            self.base_notes = base_notes
+
+        def to_dict(self) -> dict[str, str | list[str]]:
+            return {
+                "perfume_type": self.perfume_type,
+                "family": self.family,
+                "upper_notes": self.upper_notes,
+                "middle_notes": self.middle_notes,
+                "base_notes": self.base_notes,
+            }
+
+    class ShopInfo:
         class VolumeWithPrices:
             volume: int
             cost: int
@@ -45,45 +74,45 @@ class Perfume:
 
     brand: str
     name: str
-    perfume_type: str
     sex: str
-    family: list[str]
-    upper_notes: list[str]
-    middle_notes: list[str]
-    base_notes: list[str]
+    properties: PerfumeProperties
     shop_info: ShopInfo
 
     def __init__(
         self,
         brand: str = "",
         name: str = "",
-        perfume_type: str = "",
         sex: str = "unisex",
-        family: list[str] | None = None,
-        upper_notes: list[str] | None = None,
-        middle_notes: list[str] | None = None,
-        base_notes: list[str] | None = None,
+        properties: PerfumeProperties | None = None,
+        shop_info: ShopInfo | None = None,
     ):
         self.brand = brand
         self.name = name
-        self.perfume_type = perfume_type
         self.sex = sex
-        self.family = family or []
-        self.upper_notes = upper_notes or []
-        self.middle_notes = middle_notes or []
-        self.base_notes = base_notes or []
+        self.properties = properties or self.PerfumeProperties(
+            perfume_type="",
+            family=[],
+            upper_notes=[],
+            middle_notes=[],
+            base_notes=[],
+        )
+        self.shop_info = shop_info or self.ShopInfo(
+            shop_name="",
+            shop_link="",
+            image_url="",
+            volumes_with_prices=[],
+        )
 
     def to_dict(
         self,
-    ) -> dict[str, str | list[str] | dict[str, str | list[dict[str, str | int]]]]:
+    ) -> dict[
+        str,
+        str | dict[str, str | list[str]] | dict[str, str | list[dict[str, str | int]]],
+    ]:
         return {
             "brand": self.brand,
             "name": self.name,
-            "type": self.perfume_type,
             "sex": self.sex,
-            "family": self.family,
-            "upper_notes": self.upper_notes,
-            "middle_notes": self.middle_notes,
-            "base_notes": self.base_notes,
+            "properties": self.properties.to_dict(),
             "shop_info": self.shop_info.to_dict(),
         }

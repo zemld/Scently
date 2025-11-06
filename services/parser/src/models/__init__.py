@@ -1,3 +1,3 @@
-from .perfume import Perfume
+from .perfume import PerfumeFromConcreteShop
 
-__all__ = ["Perfume"]
+__all__ = ["PerfumeFromConcreteShop"]
