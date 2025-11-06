@@ -2,12 +2,9 @@ import logging
 import re
 import time
 from collections.abc import Iterable, Sequence
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from threading import Lock
 from urllib.parse import parse_qs, urlencode, urljoin, urlparse
 
 from bs4 import BeautifulSoup
-from tqdm import tqdm
 
 from models import Perfume
 from util import get_page
@@ -241,23 +238,7 @@ class GoldAppleScrapper(Scrapper):
             f"{len(self._product_batches)} with {len(batch_links)} products."
         )
 
-        perfumes = []
-        locker = Lock()
-        with tqdm(total=len(batch_links), desc="Scraping products") as pbar:
-            with ThreadPoolExecutor(self._workers) as ex:
-                futures = {
-                    ex.submit(self.fetch_perfume, link): link for link in batch_links
-                }
-                for fut in as_completed(futures):
-                    perfume = fut.result()
-                    pbar.update(1)
-                    if not perfume:
-                        continue
-                    with locker:
-                        perfumes.append(perfume)
-
-        print(f"Collected {len(perfumes)}.")
-        return perfumes
+        return self.process_page_links(batch_links, index)
 
     def fetch_perfume(self, link: str) -> Perfume | None:
         perfume_page = get_page(link, use_playwright=True)
@@ -268,8 +249,6 @@ class GoldAppleScrapper(Scrapper):
         if not perfume:
             return None
 
-        for volume_with_cost in perfume.shop_info.volumes_with_prices:
-            volume_with_cost.link = link
         return perfume
 
     class PerfumeKey:
