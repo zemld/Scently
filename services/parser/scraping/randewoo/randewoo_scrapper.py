@@ -1,5 +1,3 @@
-
-
 from models import Perfume
 from scraping import PageParser, Scrapper
 from util import get_page
