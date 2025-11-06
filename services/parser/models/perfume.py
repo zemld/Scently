@@ -14,7 +14,7 @@ class Perfume:
             def to_dict(self) -> dict[str, int | str]:
                 return {
                     "volume": self.volume,
-                    "cost": self.cost,
+                    "price": self.cost,
                     "link": self.link,
                 }
 
@@ -40,7 +40,7 @@ class Perfume:
                 "shop_name": self.shop_name,
                 "shop_link": self.shop_link,
                 "image_url": self.image_url,
-                "volumes_with_costs": [v.to_dict() for v in self.volumes_with_prices],
+                "volumes_with_prices": [v.to_dict() for v in self.volumes_with_prices],
             }
 
     brand: str

@@ -161,15 +161,9 @@ class GoldApplePageParser(PageParser):
             image_url=self._parse_image_url(page),
             volumes_with_prices=[],
         )
-        volume = self._extract_volume(page)
-        if not volume:
-            return shop_info
-        price = self._extract_price(page)
-        if not price:
-            return shop_info
-        shop_info.volumes_with_prices.append(
-            Perfume.ShopInfo.VolumeWithPrices(volume, price, self._extract_link(page))
-        )
+        current_item_variant = self._parse_current_item_variant(page)
+        if current_item_variant:
+            shop_info.volumes_with_prices.append(current_item_variant)
         return shop_info
 
     def _extract_volume(self, page: BeautifulSoup) -> int | None:
@@ -216,6 +210,25 @@ class GoldApplePageParser(PageParser):
         if not isinstance(link_text, str):
             return ""
         return link_text
+
+    def _normalize_link(self, domain: str, link: str) -> str:
+        if link.startswith("/"):
+            return domain + link
+        return link
+
+    def _parse_current_item_variant(
+        self, page: BeautifulSoup
+    ) -> Perfume.ShopInfo.VolumeWithPrices | None:
+        volume = self._extract_volume(page)
+        if not volume:
+            return None
+        price = self._extract_price(page)
+        if not price:
+            return None
+        link = self._extract_link(page)
+        if not link:
+            return None
+        return Perfume.ShopInfo.VolumeWithPrices(volume, price, link)
 
     def _parse_image_url(self, page: BeautifulSoup) -> str:
         og_image = page.find("meta", property="og:image")

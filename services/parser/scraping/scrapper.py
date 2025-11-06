@@ -1,5 +1,9 @@
 import re
 from abc import ABC, abstractmethod
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from threading import Lock
+
+from tqdm import tqdm
 
 from models.perfume import Perfume
 from scraping.page_parser import PageParser
@@ -22,15 +26,50 @@ class Scrapper(ABC):
         re.compile(r"\bEDC\b", re.IGNORECASE),
     ]
     _page_parser: PageParser
+    _domain: str
 
     @abstractmethod
     def scrap_page(self, index: int) -> list[Perfume]:
         pass
 
+    def process_page_links(
+        self, page_links: list[str], page_index: int
+    ) -> list[Perfume]:
+        perfumes = []
+        locker = Lock()
+        with tqdm(
+            total=len(page_links), desc=f"Scraping page {page_index + 1}", leave=False
+        ) as pbar:
+            with ThreadPoolExecutor(self._workers) as ex:
+                futures = {
+                    ex.submit(self.fetch_perfume, link): link for link in page_links
+                }
+                for fut in as_completed(futures):
+                    perfume = fut.result()
+                    pbar.update(1)
+                    if not perfume:
+                        continue
+                    with locker:
+                        perfumes.append(perfume)
+        print(f"Collected {len(perfumes)} perfumes from page {page_index + 1}.")
+        return perfumes
+
     @abstractmethod
     def fetch_perfume(self, link: str) -> Perfume | None:
         pass
 
-    @abstractmethod
     def scrap_all_accuratly(self) -> list[Perfume]:
-        pass
+        perfumes = []
+        i = 0
+        while True:
+            page_perfumes = self.scrap_page(i)
+            if not page_perfumes:
+                break
+            perfumes.extend(page_perfumes)
+            i += 1
+        return perfumes
+
+    def _normalize_link(self, link: str) -> str:
+        if link.startswith("/"):
+            return self._domain + link
+        return link
