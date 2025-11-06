@@ -123,7 +123,7 @@ class LetuPageParser(PageParser):
             other_links.append(self._normalize_link("https://www.letu.ru", link))
 
         for link in other_links:
-            other_page = get_page(link)
+            other_page = get_page(link, use_playwright=True)
             if not other_page:
                 continue
             other_variant = self._parse_current_item_variant(other_page)
