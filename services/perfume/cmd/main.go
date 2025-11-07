@@ -3,8 +3,8 @@ package main
 import (
 	"net/http"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/api/handlers"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/api/middleware"
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/api/handlers"
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/api/middleware"
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/core"
 )
 
