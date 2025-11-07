@@ -9,25 +9,25 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
 )
 
-func Select(ctx context.Context, params *SelectParameters) ([]models.Perfume, ProcessedState) {
+func Select(ctx context.Context, params *models.SelectParameters) ([]models.Perfume, models.ProcessedState) {
 	config := config.NewConfig()
 
 	conn, err := pgx.Connect(ctx, config.GetConnectionString())
 	if err != nil {
 		log.Printf("Unable to connect to database: %v\n", err)
-		return nil, ProcessedState{Success: false}
+		return nil, models.ProcessedState{Success: false}
 	}
 	defer conn.Close(ctx)
 
-	log.Printf("Executing query: %s\n", params.getQuery())
-	rows, err := conn.Query(ctx, params.getQuery(), params.unpack()...)
+	log.Printf("Executing query: %s\n", params.GetQuery())
+	rows, err := conn.Query(ctx, params.GetQuery(), params.Unpack()...)
 	if err != nil {
 		log.Printf("Error executing query: %v\n", err)
-		return nil, ProcessedState{Success: false}
+		return nil, models.ProcessedState{Success: false}
 	}
 	defer rows.Close()
 
-	processedState := NewProcessedState()
+	processedState := models.NewProcessedState()
 	var perfumes []models.Perfume
 	for rows.Next() {
 		var perfume models.Perfume

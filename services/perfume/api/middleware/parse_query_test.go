@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/core"
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
 )
 
@@ -20,7 +19,7 @@ func TestParseQuerySuccess(t *testing.T) {
 	nextCalled := false
 	handler := ParseQuery(func(w http.ResponseWriter, r *http.Request) {
 		nextCalled = true
-		sp, ok := r.Context().Value(core.SelectParametersContextKey).(*core.SelectParameters)
+		sp, ok := r.Context().Value(models.SelectParametersContextKey).(*models.SelectParameters)
 		if !ok {
 			t.Fatalf("select parameters missing in context")
 		}

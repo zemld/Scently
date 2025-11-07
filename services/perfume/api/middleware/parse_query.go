@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/core"
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
 )
 
@@ -16,7 +15,7 @@ func ParseQuery(next http.HandlerFunc) http.HandlerFunc {
 		brand := r.URL.Query().Get("brand")
 		name := r.URL.Query().Get("name")
 		sex := r.URL.Query().Get("sex")
-		sp := core.NewSelectParameters().WithBrand(brand).WithName(name).WithSex(sex)
+		sp := models.NewSelectParameters().WithBrand(brand).WithName(name).WithSex(sex)
 
 		up := models.NewUpdateParameters()
 		if err := getPerfumesToUpdate(*r, up); err != nil {
@@ -24,7 +23,7 @@ func ParseQuery(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		r = r.WithContext(context.WithValue(r.Context(), core.SelectParametersContextKey, sp))
+		r = r.WithContext(context.WithValue(r.Context(), models.SelectParametersContextKey, sp))
 		r = r.WithContext(context.WithValue(r.Context(), models.UpdateParametersContextKey, up))
 		next(w, r)
 	}

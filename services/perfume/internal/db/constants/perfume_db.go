@@ -11,37 +11,6 @@ const (
 		"END IF; " +
 		"END $$;"
 
-	UpdatePerfumes = "INSERT INTO perfumes (" +
-		"brand, name, sex_id, perfume_type, family, upper_notes, middle_notes, base_notes, image_url" +
-		") VALUES (" +
-		"$1, $2, (SELECT id FROM sexes WHERE sex = $3 LIMIT 1), $4, $5, $6, $7, $8, $9" +
-		") " +
-		"ON CONFLICT (brand, name, sex_id) DO UPDATE SET " +
-		"perfume_type = EXCLUDED.perfume_type, " +
-		"family = EXCLUDED.family, " +
-		"upper_notes = EXCLUDED.upper_notes, " +
-		"middle_notes = EXCLUDED.middle_notes, " +
-		"base_notes = EXCLUDED.base_notes, " +
-		"image_url = EXCLUDED.image_url"
-	UpdatePerfumeLinks = "INSERT INTO perfume_links " +
-		"(" +
-		"brand, name, sex_id, link, volume" +
-		") VALUES (" +
-		"$1, $2, (SELECT id FROM sexes WHERE sex = $3 LIMIT 1), $4, $5" +
-		") " +
-		"ON CONFLICT (brand, name, sex_id, volume) DO UPDATE SET " +
-		"link = EXCLUDED.link"
-
-	Select = "SELECT perfumes.brand, perfumes.name, perfumes.perfume_type, perfumes.family, " +
-		"perfumes.upper_notes, perfumes.middle_notes, perfumes.base_notes, perfumes.image_url, " +
-		"sexes.sex, perfume_links.volume, perfume_links.link " +
-		"FROM perfumes " +
-		"INNER JOIN sexes ON perfumes.sex_id = sexes.id " +
-		"LEFT JOIN perfume_links ON " +
-		"perfumes.brand = perfume_links.brand AND " +
-		"perfumes.name = perfume_links.name AND " +
-		"perfumes.sex_id = perfume_links.sex_id"
-
 	CreateSexesTable = "CREATE TABLE IF NOT EXISTS sexes " +
 		"(" +
 		"sex public.nonempty_text_field UNIQUE, " +
@@ -200,7 +169,7 @@ const (
 		DROP TABLE IF EXISTS old_perfumes_temp;
 	`
 
-	SelectUpgradedPerfume = `
+	Select = `
 		shops_with_variants AS (
 			SELECT 
 				v.brand,

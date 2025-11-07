@@ -5,10 +5,11 @@ import (
 	"net/http"
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/core"
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
 )
 
 func Select(w http.ResponseWriter, r *http.Request) {
-	perfumes, status := core.Select(r.Context(), r.Context().Value(core.SelectParametersContextKey).(*core.SelectParameters))
+	perfumes, status := core.Select(r.Context(), r.Context().Value(models.SelectParametersContextKey).(*models.SelectParameters))
 	response := PerfumeResponse{Perfumes: perfumes, State: status}
 	if !status.Success {
 		WriteResponse(w, http.StatusInternalServerError, response)
