@@ -9,7 +9,7 @@ type Perfume struct {
 }
 
 type PerfumeProperties struct {
-	Type       string   `json:"type"`
+	Type       string   `json:"perfume_type"`
 	Family     []string `json:"family"`
 	UpperNotes []string `json:"upper_notes"`
 	CoreNotes  []string `json:"core_notes"`
