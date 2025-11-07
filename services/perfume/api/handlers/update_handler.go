@@ -10,7 +10,7 @@ import (
 func Update(w http.ResponseWriter, r *http.Request) {
 	params := r.Context().Value(models.UpdateParametersContextKey).(*models.UpdateParameters)
 	if len(params.Perfumes) == 0 {
-		WriteResponse(w, http.StatusBadRequest, UpdateResponse{State: models.NewProcessedState()})
+		WriteResponse(w, http.StatusBadRequest, models.NewProcessedState())
 		return
 	}
 	updateStatus := core.Update(r.Context(), params)

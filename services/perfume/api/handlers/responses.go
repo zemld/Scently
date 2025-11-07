@@ -12,12 +12,6 @@ type PerfumeResponse struct {
 	State    models.ProcessedState `json:"state"`
 }
 
-type UpdateResponse struct {
-	SuccessfulPerfumes []models.Perfume      `json:"successful_perfumes"`
-	FailedPerfumes     []models.Perfume      `json:"failed_perfumes"`
-	State              models.ProcessedState `json:"state"`
-}
-
 func WriteResponse(w http.ResponseWriter, code int, body any) {
 	w.WriteHeader(code)
 	writeResponseBody(w, body)
