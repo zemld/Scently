@@ -29,7 +29,7 @@ func Initiate() {
 		constants.CreateUpperNotesTable,
 		constants.CreateCoreNotesTable,
 		constants.CreateBaseNotesTable,
-		constants.CreatePerfumeTypesTable,
+		constants.CreatePerfumeBaseInfoTable,
 	)
 	log.Println("Perfume table created successfully")
 }

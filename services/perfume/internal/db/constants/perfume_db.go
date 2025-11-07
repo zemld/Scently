@@ -42,8 +42,6 @@ const (
 		"perfumes.name = perfume_links.name AND " +
 		"perfumes.sex_id = perfume_links.sex_id"
 
-	Truncate = "TRUNCATE perfumes, perfume_links;"
-
 	CreateSexesTable = "CREATE TABLE IF NOT EXISTS sexes " +
 		"(" +
 		"sex public.nonempty_text_field UNIQUE, " +
@@ -114,12 +112,13 @@ const (
 		"FOREIGN KEY (sex_id) REFERENCES sexes(id)" +
 		");"
 
-	CreatePerfumeTypesTable = "CREATE TABLE IF NOT EXISTS perfume_types " +
+	CreatePerfumeBaseInfoTable = "CREATE TABLE IF NOT EXISTS perfume_base_info " +
 		"(" +
 		"brand public.nonempty_text_field, " +
 		"name public.nonempty_text_field, " +
 		"sex_id INTEGER, " +
 		"type TEXT, " +
+		"image_url TEXT, " +
 		"updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
 		"PRIMARY KEY (brand, name, sex_id), " +
 		"FOREIGN KEY (sex_id) REFERENCES sexes(id)" +
@@ -139,7 +138,7 @@ const (
 		"LIMIT 1;"
 
 	InsertVariant = "INSERT INTO variants (brand, name, sex_id, shop_id, volume, price, link) " +
-		"VALUES ($1, $2, (SELECT id FROM sexes WHERE sex = $3 LIMIT 1), $4, $5, $6, $7) " +
+		"VALUES ($1, $2, (SELECT id FROM sexes WHERE sex = $3 LIMIT 1), (SELECT id FROM shops WHERE name = $4 LIMIT 1), $5, $6, $7) " +
 		"ON CONFLICT (brand, name, sex_id, shop_id, volume) DO UPDATE SET " +
 		"price = EXCLUDED.price, " +
 		"link = EXCLUDED.link;"
@@ -160,10 +159,11 @@ const (
 		"VALUES ($1, $2, (SELECT id FROM sexes WHERE sex = $3 LIMIT 1), $4) " +
 		"ON CONFLICT (brand, name, sex_id, note) DO NOTHING;"
 
-	InsertPerfumeTypes = "INSERT INTO perfume_types (brand, name, sex_id, type, updated_at) " +
-		"VALUES ($1, $2, (SELECT id FROM sexes WHERE sex = $3 LIMIT 1), $4, CURRENT_TIMESTAMP) " +
+	InsertPerfumeBaseInfo = "INSERT INTO perfume_base_info (brand, name, sex_id, type, image_url, updated_at) " +
+		"VALUES ($1, $2, (SELECT id FROM sexes WHERE sex = $3 LIMIT 1), $4, $5, CURRENT_TIMESTAMP) " +
 		"ON CONFLICT (brand, name, sex_id) DO UPDATE SET " +
 		"type = EXCLUDED.type, " +
+		"image_url = EXCLUDED.image_url, " +
 		"updated_at = CURRENT_TIMESTAMP;"
 
 	DeleteOldPerfumes = `
@@ -176,7 +176,7 @@ const (
 		
 		INSERT INTO old_perfumes_temp (brand, name, sex_id)
 		SELECT brand, name, sex_id 
-		FROM perfume_types 
+		FROM perfume_base_info 
 		WHERE updated_at < NOW() - INTERVAL '1 week';
 		
 		DELETE FROM variants 
@@ -194,17 +194,13 @@ const (
 		DELETE FROM base_notes 
 		WHERE (brand, name, sex_id) IN (SELECT brand, name, sex_id FROM old_perfumes_temp);
 		
-		DELETE FROM perfume_types 
+		DELETE FROM perfume_base_info 
 		WHERE (brand, name, sex_id) IN (SELECT brand, name, sex_id FROM old_perfumes_temp);
 		
 		DROP TABLE IF EXISTS old_perfumes_temp;
 	`
 
 	SelectUpgradedPerfume = `
-		WITH perfume_base AS (
-			SELECT DISTINCT brand, name, sex_id, type
-			FROM perfume_types
-		),
 		shops_with_variants AS (
 			SELECT 
 				v.brand,
@@ -260,20 +256,20 @@ const (
 					json_build_object(
 						'shop_name', swv.shop_name,
 						'domain', swv.domain,
-						'image_url', NULL,
+						'image_url', pb.image_url,
 						'variants', swv.variants
 					)
 				) FILTER (WHERE swv.shop_id IS NOT NULL),
 				'[]'::json
 			) as shops
-		FROM perfume_base pb
+		FROM perfume_base_info pb
 		INNER JOIN sexes s ON pb.sex_id = s.id
 		LEFT JOIN shops_with_variants swv ON pb.brand = swv.brand AND pb.name = swv.name AND pb.sex_id = swv.sex_id
 		LEFT JOIN aggregated_families af ON pb.brand = af.brand AND pb.name = af.name AND pb.sex_id = af.sex_id
 		LEFT JOIN aggregated_upper_notes aun ON pb.brand = aun.brand AND pb.name = aun.name AND pb.sex_id = aun.sex_id
 		LEFT JOIN aggregated_core_notes acn ON pb.brand = acn.brand AND pb.name = acn.name AND pb.sex_id = acn.sex_id
 		LEFT JOIN aggregated_base_notes abn ON pb.brand = abn.brand AND pb.name = abn.name AND pb.sex_id = abn.sex_id
-		GROUP BY pb.brand, pb.name, s.sex, pb.type, af.families, aun.upper_notes, acn.core_notes, abn.base_notes
+		GROUP BY pb.brand, pb.name, s.sex, pb.type, pb.image_url, af.families, aun.upper_notes, acn.core_notes, abn.base_notes
 	`
 
 	Savepoint         = "SAVEPOINT perfume_update_"
