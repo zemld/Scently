@@ -11,76 +11,144 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
 )
 
-type UpdateStatus struct {
-	SuccessfulPerfumes []models.Perfume `json:"successful_perfumes"`
-	FailedPerfumes     []models.Perfume `json:"failed_perfumes"`
-	State              ProcessedState   `json:"state"`
-}
-
-func NewUpdateStatus(success bool) *UpdateStatus {
-	status := UpdateStatus{
-		SuccessfulPerfumes: []models.Perfume{},
-		FailedPerfumes:     []models.Perfume{},
-		State:              NewProcessedState(),
+var (
+	shopPriority = map[string]int{
+		"Gold Apple": 1,
+		"Randewoo":   2,
+		"Letu":       3,
 	}
-	status.State.Success = success
-	return &status
-}
+)
 
-func Update(ctx context.Context, params *UpdateParameters) UpdateStatus {
+func Update(ctx context.Context, params *UpdateParameters) models.ProcessedState {
 	config := config.NewConfig()
 
 	conn, err := pgx.Connect(ctx, config.GetConnectionString())
 	if err != nil {
 		log.Printf("Unable to connect to database: %v\n", err)
-		return *NewUpdateStatus(false)
+		return models.ProcessedState{Success: false}
 	}
 	defer conn.Close(ctx)
 
 	tx, _ := conn.Begin(ctx)
 	defer tx.Rollback(ctx)
 
-	if params.IsTruncate {
-		if !truncate(ctx, tx) {
-			return *NewUpdateStatus(false)
-		}
+	if !deleteOldPerfumes(ctx, tx) {
+		log.Printf("Warning: Failed to delete old perfumes, continuing with update\n")
 	}
 
-	updateStatus := upsert(ctx, tx, params.Perfumes)
+	updateStatus := upsert(ctx, tx, params.UpgradedPerfumes)
 
 	tx.Commit(ctx)
-	return *updateStatus
+	return updateStatus
 }
 
-func truncate(ctx context.Context, tx pgx.Tx) bool {
-	_, err := tx.Exec(ctx, constants.Truncate)
+func deleteOldPerfumes(ctx context.Context, tx pgx.Tx) bool {
+	_, err := tx.Exec(ctx, constants.DeleteOldPerfumes)
 	if err != nil {
-		log.Printf("Error truncating tables: %v\n", err)
+		log.Printf("Error deleting old perfumes: %v\n", err)
 		return false
 	}
-	log.Println("Perfume tables truncated successfully")
+	log.Println("Old perfumes (older than 1 week) deleted successfully")
 	return true
 }
 
-func upsert(ctx context.Context, tx pgx.Tx, perfumes []models.Perfume) *UpdateStatus {
-	updateStatus := NewUpdateStatus(true)
+func upsert(ctx context.Context, tx pgx.Tx, perfumes []models.UpgradedPerfume) models.ProcessedState {
+	updateState := models.NewProcessedState()
 	for i, perfume := range perfumes {
 		updateSavepointStatus(ctx, tx, constants.Savepoint, i)
-		_, err := tx.Exec(ctx, constants.UpdatePerfumes, perfume.UnpackProperties()...)
-		_, linkErr := tx.Exec(ctx, constants.UpdatePerfumeLinks, perfume.UnpackLinkedFields()...)
-		if err != nil || linkErr != nil {
-			log.Printf("Error updating perfume %s %s: %v\n, %v\n", perfume.Brand, perfume.Name, err, linkErr)
+		if err := runUpdateQueries(ctx, tx, perfume); err != nil {
+			log.Printf("Error updating perfume %s %s: %v\n", perfume.Brand, perfume.Name, err)
 			updateSavepointStatus(ctx, tx, constants.RollbackSavepoint, i)
-			updateStatus.FailedPerfumes = append(updateStatus.FailedPerfumes, perfume)
-			updateStatus.State.FailedCount++
+			updateState.FailedCount++
 			continue
 		}
 		updateSavepointStatus(ctx, tx, constants.ReleaseSavepoint, i)
-		updateStatus.SuccessfulPerfumes = append(updateStatus.SuccessfulPerfumes, perfume)
-		updateStatus.State.SuccessfulCount++
+		updateState.SuccessfulCount++
 	}
 
-	return updateStatus
+	return updateState
+}
+
+func runUpdateQueries(ctx context.Context, tx pgx.Tx, perfume models.UpgradedPerfume) error {
+	if err := updateShopInfo(ctx, tx, perfume); err != nil {
+		return err
+	}
+	if err := updateFamilies(ctx, tx, perfume); err != nil {
+		return err
+	}
+	if err := updateNotes(ctx, tx, constants.InsertUpperNote, perfume, perfume.Properties.UpperNotes); err != nil {
+		return err
+	}
+	if err := updateNotes(ctx, tx, constants.InsertCoreNote, perfume, perfume.Properties.CoreNotes); err != nil {
+		return err
+	}
+	if err := updateNotes(ctx, tx, constants.InsertBaseNote, perfume, perfume.Properties.BaseNotes); err != nil {
+		return err
+	}
+	if err := updatePerfumeType(ctx, tx, perfume); err != nil {
+		return err
+	}
+	return nil
+}
+
+func updateShopInfo(ctx context.Context, tx pgx.Tx, perfume models.UpgradedPerfume) error {
+	for _, shop := range perfume.Shops {
+		if _, err := tx.Exec(ctx, constants.GetOrInsertShop, shop.ShopName, shop.Domain); err != nil {
+			return err
+		}
+		for _, variant := range shop.Variants {
+			if _, err := tx.Exec(ctx, constants.InsertVariant,
+				perfume.Brand,
+				perfume.Name,
+				perfume.Sex,
+				shop.ShopName,
+				variant.Volume,
+				variant.Price,
+				variant.Link,
+			); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func updateFamilies(ctx context.Context, tx pgx.Tx, perfume models.UpgradedPerfume) error {
+	for _, family := range perfume.Properties.Family {
+		if _, err := tx.Exec(ctx, constants.InsertFamily, perfume.Brand, perfume.Name, perfume.Sex, family); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func updateNotes(ctx context.Context, tx pgx.Tx, query string, perfume models.UpgradedPerfume, notes []string) error {
+	for _, note := range notes {
+		if _, err := tx.Exec(ctx, query, perfume.Brand, perfume.Name, perfume.Sex, note); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func updatePerfumeType(ctx context.Context, tx pgx.Tx, perfume models.UpgradedPerfume) error {
+	imageUrl := getPreferredImageUrl(perfume)
+	if _, err := tx.Exec(ctx, constants.InsertPerfumeBaseInfo, perfume.Brand, perfume.Name, perfume.Sex, perfume.Properties.Type, imageUrl); err != nil {
+		return err
+	}
+	return nil
+}
+
+func getPreferredImageUrl(perfume models.UpgradedPerfume) string {
+	priority := 100
+	imageUrl := ""
+	for _, shop := range perfume.Shops {
+		if priority > shopPriority[shop.ShopName] {
+			priority = shopPriority[shop.ShopName]
+			imageUrl = shop.ImageUrl
+		}
+	}
+	return imageUrl
 }
 
 func updateSavepointStatus(ctx context.Context, tx pgx.Tx, cmd string, i int) {

@@ -5,8 +5,10 @@ import "github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
 const UpdateParametersContextKey contextKey = "update_parameters"
 
 type UpdateParameters struct {
-	IsTruncate bool
-	Perfumes   []models.Perfume `json:"perfumes"`
+	// TODO: Remove IsTruncate
+	IsTruncate       bool
+	Perfumes         []models.Perfume         `json:"perfumes"`
+	UpgradedPerfumes []models.UpgradedPerfume `json:"upgraded_perfumes"`
 }
 
 func NewUpdateParameters() *UpdateParameters {
