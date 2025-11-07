@@ -52,7 +52,7 @@ func deleteOldPerfumes(ctx context.Context, tx pgx.Tx) bool {
 	return true
 }
 
-func upsert(ctx context.Context, tx pgx.Tx, perfumes []models.UpgradedPerfume) models.ProcessedState {
+func upsert(ctx context.Context, tx pgx.Tx, perfumes []models.Perfume) models.ProcessedState {
 	updateState := models.NewProcessedState()
 	for i, perfume := range perfumes {
 		updateSavepointStatus(ctx, tx, constants.Savepoint, i)
@@ -69,7 +69,7 @@ func upsert(ctx context.Context, tx pgx.Tx, perfumes []models.UpgradedPerfume) m
 	return updateState
 }
 
-func runUpdateQueries(ctx context.Context, tx pgx.Tx, perfume models.UpgradedPerfume) error {
+func runUpdateQueries(ctx context.Context, tx pgx.Tx, perfume models.Perfume) error {
 	if err := updateShopInfo(ctx, tx, perfume); err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func runUpdateQueries(ctx context.Context, tx pgx.Tx, perfume models.UpgradedPer
 	return nil
 }
 
-func updateShopInfo(ctx context.Context, tx pgx.Tx, perfume models.UpgradedPerfume) error {
+func updateShopInfo(ctx context.Context, tx pgx.Tx, perfume models.Perfume) error {
 	for _, shop := range perfume.Shops {
 		if _, err := tx.Exec(ctx, constants.GetOrInsertShop, shop.ShopName, shop.Domain); err != nil {
 			return err
@@ -113,7 +113,7 @@ func updateShopInfo(ctx context.Context, tx pgx.Tx, perfume models.UpgradedPerfu
 	return nil
 }
 
-func updateFamilies(ctx context.Context, tx pgx.Tx, perfume models.UpgradedPerfume) error {
+func updateFamilies(ctx context.Context, tx pgx.Tx, perfume models.Perfume) error {
 	for _, family := range perfume.Properties.Family {
 		if _, err := tx.Exec(ctx, constants.InsertFamily, perfume.Brand, perfume.Name, perfume.Sex, family); err != nil {
 			return err
@@ -122,7 +122,7 @@ func updateFamilies(ctx context.Context, tx pgx.Tx, perfume models.UpgradedPerfu
 	return nil
 }
 
-func updateNotes(ctx context.Context, tx pgx.Tx, query string, perfume models.UpgradedPerfume, notes []string) error {
+func updateNotes(ctx context.Context, tx pgx.Tx, query string, perfume models.Perfume, notes []string) error {
 	for _, note := range notes {
 		if _, err := tx.Exec(ctx, query, perfume.Brand, perfume.Name, perfume.Sex, note); err != nil {
 			return err
@@ -131,7 +131,7 @@ func updateNotes(ctx context.Context, tx pgx.Tx, query string, perfume models.Up
 	return nil
 }
 
-func updatePerfumeType(ctx context.Context, tx pgx.Tx, perfume models.UpgradedPerfume) error {
+func updatePerfumeType(ctx context.Context, tx pgx.Tx, perfume models.Perfume) error {
 	imageUrl := getPreferredImageUrl(perfume)
 	if _, err := tx.Exec(ctx, constants.InsertPerfumeBaseInfo, perfume.Brand, perfume.Name, perfume.Sex, perfume.Properties.Type, imageUrl); err != nil {
 		return err
@@ -139,7 +139,7 @@ func updatePerfumeType(ctx context.Context, tx pgx.Tx, perfume models.UpgradedPe
 	return nil
 }
 
-func getPreferredImageUrl(perfume models.UpgradedPerfume) string {
+func getPreferredImageUrl(perfume models.Perfume) string {
 	priority := 100
 	imageUrl := ""
 	for _, shop := range perfume.Shops {

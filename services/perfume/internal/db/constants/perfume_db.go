@@ -169,7 +169,7 @@ const (
 		DROP TABLE IF EXISTS old_perfumes_temp;
 	`
 
-	Select = `
+	Select = `WITH
 		shops_with_variants AS (
 			SELECT 
 				v.brand,

@@ -117,7 +117,7 @@ func TestNewUpdateStatus(t *testing.T) {
 }
 
 func TestUpsertSuccess(t *testing.T) {
-	perfume := models.UpgradedPerfume{
+	perfume := models.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
@@ -143,7 +143,7 @@ func TestUpsertSuccess(t *testing.T) {
 	tx := newMockTx()
 	ctx := context.Background()
 
-	status := upsert(ctx, tx, []models.UpgradedPerfume{perfume})
+	status := upsert(ctx, tx, []models.Perfume{perfume})
 
 	if !status.Success {
 		t.Fatalf("upsert status success = %v, want %v", status.Success, true)
@@ -180,7 +180,7 @@ func TestUpsertSuccess(t *testing.T) {
 }
 
 func TestUpsertFailureRollsBack(t *testing.T) {
-	perfume := models.UpgradedPerfume{
+	perfume := models.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
@@ -207,7 +207,7 @@ func TestUpsertFailureRollsBack(t *testing.T) {
 	tx.setExecError(constants.GetOrInsertShop, errors.New("database error"))
 	ctx := context.Background()
 
-	status := upsert(ctx, tx, []models.UpgradedPerfume{perfume})
+	status := upsert(ctx, tx, []models.Perfume{perfume})
 
 	if status.SuccessfulCount != 0 {
 		t.Fatalf("upsert successful count = %d, want %d", status.SuccessfulCount, 0)
@@ -235,7 +235,7 @@ func TestUpsertFailureRollsBack(t *testing.T) {
 }
 
 func TestUpsertMultiplePerfumes(t *testing.T) {
-	perfumes := []models.UpgradedPerfume{
+	perfumes := []models.Perfume{
 		{
 			Brand: "Brand1",
 			Name:  "Name1",
@@ -318,7 +318,7 @@ func TestUpsertMultiplePerfumes(t *testing.T) {
 }
 
 func TestUpsertPartialFailure(t *testing.T) {
-	perfumes := []models.UpgradedPerfume{
+	perfumes := []models.Perfume{
 		{
 			Brand: "Brand1",
 			Name:  "Name1",
@@ -414,7 +414,7 @@ func TestDeleteOldPerfumesError(t *testing.T) {
 }
 
 func TestRunUpdateQueries(t *testing.T) {
-	perfume := models.UpgradedPerfume{
+	perfume := models.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
@@ -475,7 +475,7 @@ func TestRunUpdateQueries(t *testing.T) {
 }
 
 func TestRunUpdateQueriesError(t *testing.T) {
-	perfume := models.UpgradedPerfume{
+	perfume := models.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
@@ -528,7 +528,7 @@ func TestRunUpdateQueriesError(t *testing.T) {
 }
 
 func TestUpdateShopInfo(t *testing.T) {
-	perfume := models.UpgradedPerfume{
+	perfume := models.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
@@ -594,7 +594,7 @@ func TestUpdateShopInfo(t *testing.T) {
 }
 
 func TestUpdateShopInfoError(t *testing.T) {
-	perfume := models.UpgradedPerfume{
+	perfume := models.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
@@ -634,7 +634,7 @@ func TestUpdateShopInfoError(t *testing.T) {
 }
 
 func TestUpdateFamilies(t *testing.T) {
-	perfume := models.UpgradedPerfume{
+	perfume := models.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
@@ -668,7 +668,7 @@ func TestUpdateFamilies(t *testing.T) {
 }
 
 func TestUpdateFamiliesError(t *testing.T) {
-	perfume := models.UpgradedPerfume{
+	perfume := models.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
@@ -689,7 +689,7 @@ func TestUpdateFamiliesError(t *testing.T) {
 }
 
 func TestUpdateNotes(t *testing.T) {
-	perfume := models.UpgradedPerfume{
+	perfume := models.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
@@ -740,7 +740,7 @@ func TestUpdateNotes(t *testing.T) {
 }
 
 func TestUpdateNotesError(t *testing.T) {
-	perfume := models.UpgradedPerfume{
+	perfume := models.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
@@ -761,7 +761,7 @@ func TestUpdateNotesError(t *testing.T) {
 }
 
 func TestUpdatePerfumeType(t *testing.T) {
-	perfume := models.UpgradedPerfume{
+	perfume := models.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
@@ -803,7 +803,7 @@ func TestUpdatePerfumeType(t *testing.T) {
 }
 
 func TestUpdatePerfumeTypeError(t *testing.T) {
-	perfume := models.UpgradedPerfume{
+	perfume := models.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
@@ -834,12 +834,12 @@ func TestUpdatePerfumeTypeError(t *testing.T) {
 func TestGetPreferredImageUrl(t *testing.T) {
 	tests := []struct {
 		name     string
-		perfume  models.UpgradedPerfume
+		perfume  models.Perfume
 		expected string
 	}{
 		{
 			"Gold Apple priority",
-			models.UpgradedPerfume{
+			models.Perfume{
 				Shops: []models.ShopInfo{
 					{ShopName: "Randewoo", ImageUrl: "http://randewoo.com/image"},
 					{ShopName: "Gold Apple", ImageUrl: "http://goldapple.com/image"},
@@ -850,7 +850,7 @@ func TestGetPreferredImageUrl(t *testing.T) {
 		},
 		{
 			"Randewoo when Gold Apple missing",
-			models.UpgradedPerfume{
+			models.Perfume{
 				Shops: []models.ShopInfo{
 					{ShopName: "Letu", ImageUrl: "http://letu.com/image"},
 					{ShopName: "Randewoo", ImageUrl: "http://randewoo.com/image"},
@@ -860,7 +860,7 @@ func TestGetPreferredImageUrl(t *testing.T) {
 		},
 		{
 			"Letu when others missing",
-			models.UpgradedPerfume{
+			models.Perfume{
 				Shops: []models.ShopInfo{
 					{ShopName: "Letu", ImageUrl: "http://letu.com/image"},
 				},
@@ -869,14 +869,14 @@ func TestGetPreferredImageUrl(t *testing.T) {
 		},
 		{
 			"empty when no shops",
-			models.UpgradedPerfume{
+			models.Perfume{
 				Shops: []models.ShopInfo{},
 			},
 			"",
 		},
 		{
 			"unknown shop returns its image",
-			models.UpgradedPerfume{
+			models.Perfume{
 				Shops: []models.ShopInfo{
 					{ShopName: "Unknown Shop", ImageUrl: "http://unknown.com/image"},
 				},

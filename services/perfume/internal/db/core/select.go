@@ -34,15 +34,9 @@ func Select(ctx context.Context, params *models.SelectParameters) ([]models.Perf
 		err := rows.Scan(
 			&perfume.Brand,
 			&perfume.Name,
-			&perfume.Type,
-			&perfume.Family,
-			&perfume.UpperNotes,
-			&perfume.MiddleNotes,
-			&perfume.BaseNotes,
-			&perfume.ImageUrl,
 			&perfume.Sex,
-			&perfume.Volume,
-			&perfume.Link,
+			&perfume.Properties,
+			&perfume.Shops,
 		)
 		if err != nil {
 			log.Printf("Error scanning row: %v\n", err)
