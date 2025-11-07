@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/core"
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
 )
 
 func TestParseQuerySuccess(t *testing.T) {
@@ -27,12 +28,9 @@ func TestParseQuerySuccess(t *testing.T) {
 			t.Fatalf("unexpected select parameters: %#v", sp)
 		}
 
-		up, ok := r.Context().Value(core.UpdateParametersContextKey).(*core.UpdateParameters)
+		up, ok := r.Context().Value(models.UpdateParametersContextKey).(*models.UpdateParameters)
 		if !ok {
 			t.Fatalf("update parameters missing in context")
-		}
-		if !up.IsTruncate {
-			t.Fatalf("expected truncate to be enabled")
 		}
 		if len(up.Perfumes) != 1 {
 			t.Fatalf("expected 1 perfume, got %d", len(up.Perfumes))
@@ -50,11 +48,11 @@ func TestParseQueryInvalidBody(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/update", strings.NewReader("not-json"))
 	res := httptest.NewRecorder()
 
-	var capturedUpdateParams *core.UpdateParameters
+	var capturedUpdateParams *models.UpdateParameters
 	nextCalled := false
 	ParseQuery(func(_ http.ResponseWriter, r *http.Request) {
 		nextCalled = true
-		capturedUpdateParams = r.Context().Value(core.UpdateParametersContextKey).(*core.UpdateParameters)
+		capturedUpdateParams = r.Context().Value(models.UpdateParametersContextKey).(*models.UpdateParameters)
 	})(res, req)
 
 	if !nextCalled {
@@ -68,23 +66,6 @@ func TestParseQueryInvalidBody(t *testing.T) {
 	}
 }
 
-func TestParseQueryInvalidHardFlag(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/?hard=notabool", strings.NewReader(`{"perfumes":[]}`))
-	res := httptest.NewRecorder()
-
-	handler := ParseQuery(func(w http.ResponseWriter, r *http.Request) {
-		up, ok := r.Context().Value(core.UpdateParametersContextKey).(*core.UpdateParameters)
-		if !ok {
-			t.Fatalf("update parameters missing in context")
-		}
-		if up.IsTruncate {
-			t.Fatalf("expected truncate flag to be false")
-		}
-	})
-
-	handler(res, req)
-}
-
 func TestGetPerfumesToUpdateInvalidJSON(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/update", strings.NewReader("not-json"))
 	content, err := io.ReadAll(req.Body)
@@ -95,7 +76,7 @@ func TestGetPerfumesToUpdateInvalidJSON(t *testing.T) {
 		t.Fatalf("unexpected content: %q", content)
 	}
 	req.Body = io.NopCloser(bytes.NewReader(content))
-	up := core.NewUpdateParameters()
+	up := models.NewUpdateParameters()
 	if err := getPerfumesToUpdate(*req, up); err != nil {
 		t.Fatalf("unexpected error when parsing invalid JSON body: %v", err)
 	}

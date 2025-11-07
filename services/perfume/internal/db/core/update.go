@@ -19,7 +19,7 @@ var (
 	}
 )
 
-func Update(ctx context.Context, params *UpdateParameters) models.ProcessedState {
+func Update(ctx context.Context, params *models.UpdateParameters) models.ProcessedState {
 	config := config.NewConfig()
 
 	conn, err := pgx.Connect(ctx, config.GetConnectionString())
@@ -36,7 +36,7 @@ func Update(ctx context.Context, params *UpdateParameters) models.ProcessedState
 		log.Printf("Warning: Failed to delete old perfumes, continuing with update\n")
 	}
 
-	updateStatus := upsert(ctx, tx, params.UpgradedPerfumes)
+	updateStatus := upsert(ctx, tx, params.Perfumes)
 
 	tx.Commit(ctx)
 	return updateStatus

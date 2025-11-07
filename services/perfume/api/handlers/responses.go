@@ -4,19 +4,18 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/core"
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
 )
 
 type PerfumeResponse struct {
-	Perfumes []models.Perfume    `json:"perfumes"`
-	State    core.ProcessedState `json:"state"`
+	Perfumes []models.Perfume      `json:"perfumes"`
+	State    models.ProcessedState `json:"state"`
 }
 
 type UpdateResponse struct {
-	SuccessfulPerfumes []models.Perfume    `json:"successful_perfumes"`
-	FailedPerfumes     []models.Perfume    `json:"failed_perfumes"`
-	State              core.ProcessedState `json:"state"`
+	SuccessfulPerfumes []models.Perfume      `json:"successful_perfumes"`
+	FailedPerfumes     []models.Perfume      `json:"failed_perfumes"`
+	State              models.ProcessedState `json:"state"`
 }
 
 func WriteResponse(w http.ResponseWriter, code int, body any) {

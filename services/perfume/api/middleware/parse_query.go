@@ -6,9 +6,9 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/core"
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
 )
 
 func ParseQuery(next http.HandlerFunc) http.HandlerFunc {
@@ -18,27 +18,19 @@ func ParseQuery(next http.HandlerFunc) http.HandlerFunc {
 		sex := r.URL.Query().Get("sex")
 		sp := core.NewSelectParameters().WithBrand(brand).WithName(name).WithSex(sex)
 
-		up := core.NewUpdateParameters()
+		up := models.NewUpdateParameters()
 		if err := getPerfumesToUpdate(*r, up); err != nil {
 			http.Error(w, "Failed to get perfumes", http.StatusBadRequest)
 			return
 		}
 
-		hardBool, err := strconv.ParseBool(r.URL.Query().Get("hard"))
-		if err != nil {
-			hardBool = false
-		}
-		if hardBool {
-			up.WithTruncate()
-		}
-
 		r = r.WithContext(context.WithValue(r.Context(), core.SelectParametersContextKey, sp))
-		r = r.WithContext(context.WithValue(r.Context(), core.UpdateParametersContextKey, up))
+		r = r.WithContext(context.WithValue(r.Context(), models.UpdateParametersContextKey, up))
 		next(w, r)
 	}
 }
 
-func getPerfumesToUpdate(r http.Request, up *core.UpdateParameters) error {
+func getPerfumesToUpdate(r http.Request, up *models.UpdateParameters) error {
 	content, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
