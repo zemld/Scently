@@ -12,7 +12,8 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
 COPY . .
 
-RUN uv sync
-RUN uv add -r requirements.txt
+RUN uv sync --no-dev
 
-CMD ["uv", "run", "python", "-m", "main"]
+RUN uv run --no-default-groups playwright install --with-deps chromium
+
+CMD ["uv", "run", "--no-default-groups", "python", "-m", "src.main"]

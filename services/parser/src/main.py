@@ -1,4 +1,5 @@
 import json
+import os
 import time
 from pathlib import Path
 
@@ -13,7 +14,7 @@ from src.scraping.letu import LetuPageParser, LetuScrapper
 from src.scraping.randewoo import RandewooPageParser, RandewooScrapper
 from src.scraping.scrapper import Scrapper
 
-UPLOAD_PERFUME_INFO = "http://perfume:8089/v1/perfumes/update"
+UPLOAD_PERFUME_INFO = "http://perfume:8000/v1/perfumes/update"
 
 TYPE_CANONIZER = Canonizer(Path.cwd() / "data/types")
 SEX_CANONIZER = Canonizer(Path.cwd() / "data/sex")
@@ -74,7 +75,14 @@ def try_to_upload_perfumes_to_database(
     with httpx.Client() as client:
         body = {"perfumes": [perfume.to_dict() for perfume in perfumes]}
         try:
-            response = client.post(UPLOAD_PERFUME_INFO, json=body, timeout=30)
+            response = client.post(
+                UPLOAD_PERFUME_INFO,
+                json=body,
+                timeout=30,
+                headers={
+                    "Authorization": f"Bearer {os.getenv('PERFUME_INTERNAL_TOKEN')}"
+                },
+            )
             response.raise_for_status()
             return True
         except (httpx.HTTPStatusError, httpx.RequestError) as e:
