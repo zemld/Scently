@@ -12,17 +12,15 @@ interface PerfumeModalProps {
 export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
     if (!isOpen || !perfume) return null
 
-    // Extract notes from the API response structure
-    const notes = perfume.notes
-    const upperNotes = notes?.upper || []
-    const middleNotes = notes?.middle || []
-    const baseNotes = notes?.base || []
+    const upperNotes = perfume.properties?.upper_notes || []
+    const coreNotes = perfume.properties?.core_notes || []
+    const baseNotes = perfume.properties?.base_notes || []
 
-    // Check if we have any notes at all
-    const hasNotes = upperNotes.length > 0 || middleNotes.length > 0 || baseNotes.length > 0
+    const hasNotes = upperNotes.length > 0 || coreNotes.length > 0 || baseNotes.length > 0
 
     // Get unique families (remove duplicates)
-    const uniqueFamilies = perfume.family ? [...new Set(perfume.family)] : []
+    const uniqueFamilies = perfume.properties?.family || []
+    const uniqueFamiliesList = uniqueFamilies.length > 0 ? [...new Set(uniqueFamilies)] : []
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fadeIn" onClick={onClose}>
@@ -39,11 +37,11 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                     {/* Header Area */}
                     <div className="grid md:grid-cols-2 gap-8 mb-8">
                         {/* Image */}
-                        <div className="aspect-square rounded-2xl overflow-hidden bg-white/10">
+                        <div className="aspect-square rounded-2xl overflow-hidden bg-white flex items-center justify-center p-4">
                             <img
-                                src={perfume.image || "/luxury-perfume-bottle-amber-gold.jpg"}
+                                src={perfume.image_url || "/luxury-perfume-bottle-amber-gold.jpg"}
                                 alt={perfume.name}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-contain"
                             />
                         </div>
 
@@ -51,15 +49,14 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                         <div className="flex flex-col justify-center space-y-4">
                             <p className="text-sm text-[#C38E70] uppercase tracking-wider">{perfume.brand}</p>
                             <h2 className="text-4xl md:text-5xl font-bold text-[#F8F5F0]">{perfume.name}</h2>
-                            <p className="text-lg text-[#F8F5F0]/80">{perfume.description}</p>
                             {perfume.sex && (
                                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/15 backdrop-blur-md border border-white/30 rounded-full w-fit">
                                     <span className="text-sm text-[#E3B23C]">{perfume.sex}</span>
                                 </div>
                             )}
-                            {uniqueFamilies.length > 0 && (
+                            {uniqueFamiliesList.length > 0 && (
                                 <div className="flex flex-wrap gap-2">
-                                    {uniqueFamilies.map((family, index) => (
+                                    {uniqueFamiliesList.map((family, index) => (
                                         <div key={index} className="inline-flex items-center gap-2 px-4 py-2 bg-white/15 backdrop-blur-md border border-white/30 rounded-full">
                                             <span className="text-sm text-[#E3B23C]">{family}</span>
                                         </div>
@@ -91,12 +88,12 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                                     </div>
                                 )}
 
-                                {/* Heart Notes */}
-                                {middleNotes.length > 0 && (
+                                {/* Core Notes */}
+                                {coreNotes.length > 0 && (
                                     <div className="space-y-3">
                                         <h4 className="text-sm font-semibold text-[#C38E70] uppercase tracking-wider">Ноты сердца</h4>
                                         <div className="flex flex-wrap gap-2">
-                                            {middleNotes.map((note, index) => (
+                                            {coreNotes.map((note, index) => (
                                                 <span
                                                     key={index}
                                                     className="px-3 py-1.5 text-sm bg-white/15 backdrop-blur-md border border-white/30 rounded-full text-[#F8F5F0] hover:bg-white/20 hover:border-[#E3B23C]/50 transition-all duration-300"
@@ -128,21 +125,47 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                         </div>
                     )}
 
-                    {/* Available Volumes - show if we have links data */}
-                    {perfume.links && Object.keys(perfume.links).length > 0 && (
+                    {/* Available Shops and Variants - show if we have shops data */}
+                    {perfume.shops && perfume.shops.length > 0 && (
                         <div className="mb-6">
-                            <h3 className="text-2xl font-bold text-[#F8F5F0] mb-6">Доступные объёмы</h3>
-                            <div className="flex flex-wrap gap-4">
-                                {Object.entries(perfume.links).map(([size, url], index) => (
-                                    <a
-                                        key={index}
-                                        href={url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="px-6 py-3 bg-white/15 backdrop-blur-md border border-white/30 rounded-xl text-[#F8F5F0] font-semibold hover:bg-white/20 hover:border-[#E3B23C]/50 hover:shadow-[0_0_20px_rgba(227,178,60,0.5)] hover:scale-105 transition-all duration-300"
-                                    >
-                                        {size}
-                                    </a>
+                            <h3 className="text-2xl font-bold text-[#F8F5F0] mb-6">Где купить</h3>
+                            <div className="space-y-6">
+                                {perfume.shops.map((shop, shopIndex) => (
+                                    <div key={shopIndex} className="bg-white/5 backdrop-blur-md border border-white/20 rounded-xl p-4">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <h4 className="text-lg font-semibold text-[#F8F5F0]">{shop.shop_name}</h4>
+                                            {shop.domain && (
+                                                <a
+                                                    href={`https://${shop.domain}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-sm text-[#C38E70] hover:text-[#E3B23C] transition-colors"
+                                                >
+                                                    {shop.domain}
+                                                </a>
+                                            )}
+                                        </div>
+                                        {shop.variants && shop.variants.length > 0 && (
+                                            <div className="flex flex-wrap gap-3">
+                                                {shop.variants.map((variant, variantIndex) => (
+                                                    <a
+                                                        key={variantIndex}
+                                                        href={variant.link}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="px-4 py-2 bg-white/15 backdrop-blur-md border border-white/30 rounded-lg text-[#F8F5F0] hover:bg-white/20 hover:border-[#E3B23C]/50 hover:shadow-[0_0_20px_rgba(227,178,60,0.5)] hover:scale-105 transition-all duration-300"
+                                                    >
+                                                        <div className="flex flex-col">
+                                                            <span className="font-semibold">{variant.volume} мл</span>
+                                                            {variant.price > 0 && (
+                                                                <span className="text-xs text-[#C38E70]">{variant.price} ₽</span>
+                                                            )}
+                                                        </div>
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 ))}
                             </div>
                         </div>

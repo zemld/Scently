@@ -2,21 +2,37 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api'
 
 // Types
+export interface PerfumeProperties {
+    perfume_type: string
+    family: string[]
+    upper_notes: string[]
+    core_notes: string[]
+    base_notes: string[]
+}
+
+export interface PerfumeVariant {
+    volume: number
+    link: string
+    price: number
+}
+
+export interface ShopInfo {
+    shop_name: string
+    domain: string
+    variants: PerfumeVariant[]
+}
+
 export interface Perfume {
-    id: number
+    id?: number
     brand: string
     name: string
-    description?: string
-    image?: string
-    notes?: {
-        upper: string[]
-        middle: string[]
-        base: string[]
-    }
-    type?: string
-    family?: string[]
-    sex?: string
-    links?: Record<string, string>
+    sex: string
+    image_url: string
+    properties: PerfumeProperties
+    shops: ShopInfo[]
+
+    rank?: number
+    similarity_score?: number
 }
 
 export interface PerfumeResponse {
@@ -44,15 +60,9 @@ export interface SuggestionResponse {
             brand: string
             name: string
             sex: string
-            properties: {
-                type: string
-                family: string[]
-                upper_notes: string[]
-                middle_notes: string[]
-                base_notes: string[]
-            }
-            links: Record<string, string>
             image_url: string
+            properties: PerfumeProperties
+            shops: ShopInfo[]
         }
         rank: number
         similarity_score: number
