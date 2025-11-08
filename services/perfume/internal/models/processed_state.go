@@ -1,4 +1,4 @@
-package core
+package models
 
 type ProcessedState struct {
 	Success         bool `json:"success"`

@@ -6,7 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/config"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/constants"
+	queries "github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/query"
 )
 
 func Initiate() {
@@ -20,24 +20,24 @@ func Initiate() {
 	}
 	defer conn.Close(ctx)
 
-	setupDatabase(ctx, conn)
+	setupDatabase(ctx, conn,
+		queries.NonEmptyTextField,
+		queries.CreateSexesTable,
+		queries.CreateShopsTable,
+		queries.CreateVariantsTable,
+		queries.CreateFamiliesTable,
+		queries.CreateUpperNotesTable,
+		queries.CreateCoreNotesTable,
+		queries.CreateBaseNotesTable,
+		queries.CreatePerfumeBaseInfoTable,
+	)
 	log.Println("Perfume table created successfully")
 }
 
-func setupDatabase(ctx context.Context, conn *pgx.Conn) {
-	if _, err := conn.Exec(ctx, constants.NonEmptyTextField); err != nil {
-		log.Fatalf("Unable to create nonempty_text_field domain: %v\n", err)
-	}
-	if _, err := conn.Exec(ctx, constants.CreateSexesTable); err != nil {
-		log.Fatalf("Unable to create sexes table: %v\n", err)
-	}
-	if _, err := conn.Exec(ctx, constants.CreatePerfumesTable); err != nil {
-		log.Fatalf("Unable to create perfumes table: %v\n", err)
-	}
-	if _, err := conn.Exec(ctx, constants.CreateLinksTable); err != nil {
-		log.Fatalf("Unable to create perfume_links table: %v\n", err)
-	}
-	if _, err := conn.Exec(ctx, constants.FillSexesTable); err != nil {
-		log.Fatalf("Unable to fill sexes table: %v\n", err)
+func setupDatabase(ctx context.Context, conn *pgx.Conn, setupQueries ...string) {
+	for _, query := range setupQueries {
+		if _, err := conn.Exec(ctx, query); err != nil {
+			log.Fatalf("Unable to execute query: %v\n", err)
+		}
 	}
 }
