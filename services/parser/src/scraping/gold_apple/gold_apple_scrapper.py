@@ -2,12 +2,14 @@ import logging
 import re
 import time
 from collections.abc import Iterable, Sequence
+from pathlib import Path
 from urllib.parse import parse_qs, urlencode, urljoin, urlparse
 
 from bs4 import BeautifulSoup
 
 from src.models import PerfumeFromConcreteShop, PerfumeKey
 from src.util import get_page
+from src.util.backup import BackupManager
 
 from ..page_parser import PageParser
 from ..scrapper import Scrapper
@@ -24,13 +26,21 @@ def _collect_product_links(
     product_type_ids: Sequence[int] | Iterable[int],
     *,
     max_pages: int | None = None,
+    backup_manager: BackupManager | None = None,
 ) -> list[str]:
     product_ids_str = _normalize_product_type_ids(product_type_ids)
     if not product_ids_str:
         raise ValueError("product_type_ids must contain at least one id")
 
-    collected_links: list[str] = []
-    seen_links: set[str] = set()
+    seen_links: set[str]
+    collected_links: list[str]
+    if backup_manager:
+        seen_links = backup_manager.load_links()
+        collected_links = list(seen_links)
+        print(f"Loaded {len(seen_links)} existing links from backup.")
+    else:
+        collected_links = []
+        seen_links = set()
 
     current_page = 1
     last_page = max_pages
@@ -73,12 +83,18 @@ def _collect_product_links(
             break
         print(f"Found {len(page_links)} product links on page {current_page}.")
         new_links = 0
+        new_links_list = []
         for link in page_links:
             if link in seen_links:
                 continue
             seen_links.add(link)
             collected_links.append(link)
+            new_links_list.append(link)
             new_links += 1
+
+        if backup_manager and new_links_list:
+            backup_manager.add_links(new_links_list)
+            print(f"Saved {new_links} new links to backup.")
 
         if new_links == 0:
             break
@@ -192,6 +208,7 @@ class GoldAppleScrapper(Scrapper):
         *,
         max_pages: int | None = None,
         batch_size: int = 400,
+        backup_dir: Path | None = None,
     ):
         self._page_parser = page_parser
         self._product_type_ids = (
@@ -201,10 +218,12 @@ class GoldAppleScrapper(Scrapper):
         )
         self._max_pages = max_pages
         self._batch_size = max(1, batch_size)
+        self._backup_manager = BackupManager("goldapple", backup_dir)
 
         self._product_links = _collect_product_links(
             self._product_type_ids,
             max_pages=self._max_pages,
+            backup_manager=self._backup_manager,
         )
         print(f"Collected {len(self._product_links)} product links.")
         if not self._product_links:
@@ -238,7 +257,7 @@ class GoldAppleScrapper(Scrapper):
             f"{len(self._product_batches)} with {len(batch_links)} products."
         )
 
-        return self.process_page_links(batch_links, index)
+        return self.process_page_links(batch_links, index, self._backup_manager)
 
     def fetch_perfume(self, link: str) -> PerfumeFromConcreteShop | None:
         perfume_page = get_page(link, use_playwright=True)
@@ -263,8 +282,8 @@ class GoldAppleScrapper(Scrapper):
         for perfume in perfumes:
             key = PerfumeKey(perfume)
             if key in perfumes_with_glued_links:
-                perfumes_with_glued_links[key].shop_info.volumes_with_prices.extend(
-                    perfume.shop_info.volumes_with_prices
+                perfumes_with_glued_links[key].shop_info.variants.extend(
+                    perfume.shop_info.variants
                 )
             else:
                 perfumes_with_glued_links[key] = perfume

@@ -35,7 +35,7 @@ class PageParser(ABC):
         sex = self._parse_sex(props)
         families = self._parse_families(props)
         upper_notes = self._parse_upper_notes(props)
-        middle_notes = self._parse_middle_notes(props)
+        core_notes = self._parse_core_notes(props)
         base_notes = self._parse_base_notes(props)
 
         shop_info = self._get_shop_info(page)
@@ -48,7 +48,7 @@ class PageParser(ABC):
             perfume_type=perfume_type,
             family=families,
             upper_notes=upper_notes,
-            middle_notes=middle_notes,
+            core_notes=core_notes,
             base_notes=base_notes,
         )
 
@@ -94,7 +94,7 @@ class PageParser(ABC):
         pass
 
     @abstractmethod
-    def _parse_middle_notes(self, props: dict[str, str]) -> list[str]:
+    def _parse_core_notes(self, props: dict[str, str]) -> list[str]:
         pass
 
     @abstractmethod

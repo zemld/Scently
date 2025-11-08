@@ -2,16 +2,20 @@ import re
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Lock
+from typing import TYPE_CHECKING
 
 from tqdm import tqdm
 
 from src.models.perfume import PerfumeFromConcreteShop
 from src.scraping.page_parser import PageParser
 
+if TYPE_CHECKING:
+    from src.util.backup import BackupManager
+
 
 class Scrapper(ABC):
     _pages: list[str]
-    _workers: int = 16
+    _workers: int = 8
     _perfumes_re = [
         re.compile(r"\bпарфюмированная\s+вода\b", re.IGNORECASE),
         re.compile(r"\bпарфюмерная\s+вода\b", re.IGNORECASE),
@@ -33,7 +37,10 @@ class Scrapper(ABC):
         pass
 
     def process_page_links(
-        self, page_links: list[str], page_index: int
+        self,
+        page_links: list[str],
+        page_index: int,
+        backup_manager: "BackupManager | None" = None,
     ) -> list[PerfumeFromConcreteShop]:
         perfumes = []
         locker = Lock()
@@ -44,6 +51,7 @@ class Scrapper(ABC):
                 futures = {
                     ex.submit(self.fetch_perfume, link): link for link in page_links
                 }
+                batch_perfumes = []
                 for fut in as_completed(futures):
                     perfume = fut.result()
                     pbar.update(1)
@@ -51,6 +59,11 @@ class Scrapper(ABC):
                         continue
                     with locker:
                         perfumes.append(perfume)
+                        batch_perfumes.append(perfume)
+
+                if backup_manager and batch_perfumes:
+                    backup_manager.add_perfumes(batch_perfumes)
+
         print(f"Collected {len(perfumes)} perfumes from page {page_index + 1}.")
         return perfumes
 
