@@ -70,36 +70,37 @@ func upsert(ctx context.Context, tx pgx.Tx, perfumes []models.Perfume) models.Pr
 }
 
 func runUpdateQueries(ctx context.Context, tx pgx.Tx, perfume models.Perfume) error {
-	if err := updateShopInfo(ctx, tx, perfume); err != nil {
+	canonizedPerfume := perfume.Canonize()
+	if err := updateShopInfo(ctx, tx, perfume, canonizedPerfume); err != nil {
 		return err
 	}
-	if err := updateFamilies(ctx, tx, perfume); err != nil {
+	if err := updateFamilies(ctx, tx, perfume, canonizedPerfume); err != nil {
 		return err
 	}
-	if err := updateNotes(ctx, tx, queries.InsertUpperNote, perfume, perfume.Properties.UpperNotes); err != nil {
+	if err := updateNotes(ctx, tx, queries.InsertUpperNote, perfume, canonizedPerfume, perfume.Properties.UpperNotes); err != nil {
 		return err
 	}
-	if err := updateNotes(ctx, tx, queries.InsertCoreNote, perfume, perfume.Properties.CoreNotes); err != nil {
+	if err := updateNotes(ctx, tx, queries.InsertCoreNote, perfume, canonizedPerfume, perfume.Properties.CoreNotes); err != nil {
 		return err
 	}
-	if err := updateNotes(ctx, tx, queries.InsertBaseNote, perfume, perfume.Properties.BaseNotes); err != nil {
+	if err := updateNotes(ctx, tx, queries.InsertBaseNote, perfume, canonizedPerfume, perfume.Properties.BaseNotes); err != nil {
 		return err
 	}
-	if err := updatePerfumeType(ctx, tx, perfume); err != nil {
+	if err := updatePerfumeType(ctx, tx, perfume, canonizedPerfume); err != nil {
 		return err
 	}
 	return nil
 }
 
-func updateShopInfo(ctx context.Context, tx pgx.Tx, perfume models.Perfume) error {
+func updateShopInfo(ctx context.Context, tx pgx.Tx, perfume models.Perfume, canonizedPerfume models.CanonizedPerfume) error {
 	for _, shop := range perfume.Shops {
 		if _, err := tx.Exec(ctx, queries.GetOrInsertShop, shop.ShopName, shop.Domain); err != nil {
 			return err
 		}
 		for _, variant := range shop.Variants {
 			if _, err := tx.Exec(ctx, queries.InsertVariant,
-				perfume.Brand,
-				perfume.Name,
+				canonizedPerfume.Brand,
+				canonizedPerfume.Name,
 				perfume.Sex,
 				shop.ShopName,
 				variant.Volume,
@@ -113,27 +114,27 @@ func updateShopInfo(ctx context.Context, tx pgx.Tx, perfume models.Perfume) erro
 	return nil
 }
 
-func updateFamilies(ctx context.Context, tx pgx.Tx, perfume models.Perfume) error {
+func updateFamilies(ctx context.Context, tx pgx.Tx, perfume models.Perfume, canonizedPerfume models.CanonizedPerfume) error {
 	for _, family := range perfume.Properties.Family {
-		if _, err := tx.Exec(ctx, queries.InsertFamily, perfume.Brand, perfume.Name, perfume.Sex, family); err != nil {
+		if _, err := tx.Exec(ctx, queries.InsertFamily, canonizedPerfume.Brand, canonizedPerfume.Name, perfume.Sex, family); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func updateNotes(ctx context.Context, tx pgx.Tx, query string, perfume models.Perfume, notes []string) error {
+func updateNotes(ctx context.Context, tx pgx.Tx, query string, perfume models.Perfume, canonizedPerfume models.CanonizedPerfume, notes []string) error {
 	for _, note := range notes {
-		if _, err := tx.Exec(ctx, query, perfume.Brand, perfume.Name, perfume.Sex, note); err != nil {
+		if _, err := tx.Exec(ctx, query, canonizedPerfume.Brand, canonizedPerfume.Name, perfume.Sex, note); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func updatePerfumeType(ctx context.Context, tx pgx.Tx, perfume models.Perfume) error {
+func updatePerfumeType(ctx context.Context, tx pgx.Tx, perfume models.Perfume, canonizedPerfume models.CanonizedPerfume) error {
 	imageUrl := getPreferredImageUrl(perfume)
-	if _, err := tx.Exec(ctx, queries.InsertPerfumeBaseInfo, perfume.Brand, perfume.Name, perfume.Sex, perfume.Properties.Type, imageUrl); err != nil {
+	if _, err := tx.Exec(ctx, queries.InsertPerfumeBaseInfo, canonizedPerfume.Brand, canonizedPerfume.Name, perfume.Sex, perfume.Brand, perfume.Name, perfume.Properties.Type, imageUrl); err != nil {
 		return err
 	}
 	return nil

@@ -6,6 +6,8 @@ const (
 		%s
 		),`
 	SelectPerfumesBaseInfo = `SELECT
+		pb.canonized_brand as canonized_brand,
+		pb.canonized_name as canonized_name,
 		pb.brand as brand,
 		pb.name as name,
 		pb.sex_id as sex_id,
@@ -18,33 +20,33 @@ const (
 
 	EnrichSelectedPerfumes = `
 	aggregated_families AS (
-		SELECT brand, name, sex_id, jsonb_agg(DISTINCT family) FILTER (WHERE family IS NOT NULL) as families
+		SELECT canonized_brand, canonized_name, sex_id, jsonb_agg(DISTINCT family) FILTER (WHERE family IS NOT NULL) as families
 		FROM families
-		WHERE (brand, name, sex_id) IN (SELECT brand, name, sex_id FROM selected_perfumes_base_info)
-		GROUP BY brand, name, sex_id
+		WHERE (canonized_brand, canonized_name, sex_id) IN (SELECT canonized_brand, canonized_name, sex_id FROM selected_perfumes_base_info)
+		GROUP BY canonized_brand, canonized_name, sex_id
 	),
 	aggregated_upper_notes AS (
-		SELECT brand, name, sex_id, jsonb_agg(DISTINCT note) FILTER (WHERE note IS NOT NULL) as upper_notes
+		SELECT canonized_brand, canonized_name, sex_id, jsonb_agg(DISTINCT note) FILTER (WHERE note IS NOT NULL) as upper_notes
 		FROM upper_notes
-		WHERE (brand, name, sex_id) IN (SELECT brand, name, sex_id FROM selected_perfumes_base_info)
-		GROUP BY brand, name, sex_id
+		WHERE (canonized_brand, canonized_name, sex_id) IN (SELECT canonized_brand, canonized_name, sex_id FROM selected_perfumes_base_info)
+		GROUP BY canonized_brand, canonized_name, sex_id
 	),
 	aggregated_core_notes AS (
-		SELECT brand, name, sex_id, jsonb_agg(DISTINCT note) FILTER (WHERE note IS NOT NULL) as core_notes
+		SELECT canonized_brand, canonized_name, sex_id, jsonb_agg(DISTINCT note) FILTER (WHERE note IS NOT NULL) as core_notes
 		FROM core_notes
-		WHERE (brand, name, sex_id) IN (SELECT brand, name, sex_id FROM selected_perfumes_base_info)
-		GROUP BY brand, name, sex_id
+		WHERE (canonized_brand, canonized_name, sex_id) IN (SELECT canonized_brand, canonized_name, sex_id FROM selected_perfumes_base_info)
+		GROUP BY canonized_brand, canonized_name, sex_id
 	),
 	aggregated_base_notes AS (
-		SELECT brand, name, sex_id, jsonb_agg(DISTINCT note) FILTER (WHERE note IS NOT NULL) as base_notes
+		SELECT canonized_brand, canonized_name, sex_id, jsonb_agg(DISTINCT note) FILTER (WHERE note IS NOT NULL) as base_notes
 		FROM base_notes
-		WHERE (brand, name, sex_id) IN (SELECT brand, name, sex_id FROM selected_perfumes_base_info)
-		GROUP BY brand, name, sex_id
+		WHERE (canonized_brand, canonized_name, sex_id) IN (SELECT canonized_brand, canonized_name, sex_id FROM selected_perfumes_base_info)
+		GROUP BY canonized_brand, canonized_name, sex_id
 	),
 	shops_with_variants AS (
 		SELECT 
-			v.brand,
-			v.name,
+			v.canonized_brand,
+			v.canonized_name,
 			v.sex_id,
 			sh.id as shop_id,
 			sh.name as shop_name,
@@ -58,11 +60,13 @@ const (
 			) FILTER (WHERE v.volume IS NOT NULL) as variants
 		FROM variants v
 		INNER JOIN shops sh ON v.shop_id = sh.id
-		WHERE (v.brand, v.name, v.sex_id) IN (SELECT brand, name, sex_id FROM selected_perfumes_base_info)
-		GROUP BY v.brand, v.name, v.sex_id, sh.id, sh.name, sh.domain
+		WHERE (v.canonized_brand, v.canonized_name, v.sex_id) IN (SELECT canonized_brand, canonized_name, sex_id FROM selected_perfumes_base_info)
+		GROUP BY v.canonized_brand, v.canonized_name, v.sex_id, sh.id, sh.name, sh.domain
 	),
 	enriched_selected_perfumes_with_properties AS (
 		SELECT
+			pb.canonized_brand as canonized_brand,
+			pb.canonized_name as canonized_name,
 			pb.brand as brand,
 			pb.name as name,
 			pb.sex_id as sex_id,
@@ -76,15 +80,15 @@ const (
 				'base_notes', COALESCE(abn.base_notes, '[]'::jsonb)
 			)::json AS properties
 		FROM selected_perfumes_base_info pb
-		LEFT JOIN aggregated_families af ON pb.brand = af.brand AND pb.name = af.name AND pb.sex_id = af.sex_id
-		LEFT JOIN aggregated_upper_notes aun ON pb.brand = aun.brand AND pb.name = aun.name AND pb.sex_id = aun.sex_id
-		LEFT JOIN aggregated_core_notes acn ON pb.brand = acn.brand AND pb.name = acn.name AND pb.sex_id = acn.sex_id
-		LEFT JOIN aggregated_base_notes abn ON pb.brand = abn.brand AND pb.name = abn.name AND pb.sex_id = abn.sex_id
+		LEFT JOIN aggregated_families af ON pb.canonized_brand = af.canonized_brand AND pb.canonized_name = af.canonized_name AND pb.sex_id = af.sex_id
+		LEFT JOIN aggregated_upper_notes aun ON pb.canonized_brand = aun.canonized_brand AND pb.canonized_name = aun.canonized_name AND pb.sex_id = aun.sex_id
+		LEFT JOIN aggregated_core_notes acn ON pb.canonized_brand = acn.canonized_brand AND pb.canonized_name = acn.canonized_name AND pb.sex_id = acn.sex_id
+		LEFT JOIN aggregated_base_notes abn ON pb.canonized_brand = abn.canonized_brand AND pb.canonized_name = abn.canonized_name AND pb.sex_id = abn.sex_id
 	),
 	enriched_shops_with_variants AS (
 		SELECT
-			swv.brand as brand,
-			swv.name as name,
+			swv.canonized_brand as canonized_brand,
+			swv.canonized_name as canonized_name,
 			swv.sex_id as sex_id,
 			jsonb_agg(
 				jsonb_build_object(
@@ -95,7 +99,7 @@ const (
 				)
 			) FILTER (WHERE swv.shop_id IS NOT NULL) AS shops
 		FROM shops_with_variants swv
-		GROUP BY swv.brand, swv.name, swv.sex_id
+		GROUP BY swv.canonized_brand, swv.canonized_name, swv.sex_id
 	)
 	SELECT 
 		espv.brand as brand,
@@ -105,6 +109,6 @@ const (
 		espv.properties as properties,
 		COALESCE(eswv.shops::json, '[]'::json) as shops
 	FROM enriched_selected_perfumes_with_properties espv
-	LEFT JOIN enriched_shops_with_variants eswv ON espv.brand = eswv.brand AND espv.name = eswv.name AND espv.sex_id = eswv.sex_id
+	LEFT JOIN enriched_shops_with_variants eswv ON espv.canonized_brand = eswv.canonized_brand AND espv.canonized_name = eswv.canonized_name AND espv.sex_id = eswv.sex_id
 	`
 )

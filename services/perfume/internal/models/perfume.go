@@ -29,3 +29,15 @@ type PerfumeVariant struct {
 	Link   string `json:"link"`
 	Price  int    `json:"price"`
 }
+
+type CanonizedPerfume struct {
+	Brand string
+	Name  string
+}
+
+func (p Perfume) Canonize() CanonizedPerfume {
+	return CanonizedPerfume{
+		Brand: canonize(p.Brand),
+		Name:  canonize(p.Name),
+	}
+}

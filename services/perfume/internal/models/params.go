@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"strings"
+	"unicode"
 
 	queries "github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/query"
 )
@@ -63,11 +64,11 @@ func (p SelectParameters) GetChoosingPerfumesQuery() string {
 
 	parametersCount := 1
 	if p.Brand != "" {
-		conditions = append(conditions, fmt.Sprintf("pb.brand = $%d", parametersCount))
+		conditions = append(conditions, fmt.Sprintf("pb.canonized_brand = $%d", parametersCount))
 		parametersCount++
 	}
 	if p.Name != "" {
-		conditions = append(conditions, fmt.Sprintf("pb.name = $%d", parametersCount))
+		conditions = append(conditions, fmt.Sprintf("pb.canonized_name = $%d", parametersCount))
 		parametersCount++
 	}
 	if p.Sex == "male" || p.Sex == "female" {
@@ -88,13 +89,25 @@ func (p SelectParameters) GetChoosingPerfumesQuery() string {
 func (p SelectParameters) Unpack() []any {
 	var args []any
 	if p.Brand != "" {
-		args = append(args, p.Brand)
+		args = append(args, canonize(p.Brand))
 	}
 	if p.Name != "" {
-		args = append(args, p.Name)
+		args = append(args, canonize(p.Name))
 	}
 	if p.Sex == "male" || p.Sex == "female" {
 		args = append(args, p.Sex)
 	}
 	return args
+}
+
+func canonize(s string) string {
+	canonized := strings.Builder{}
+
+	for _, r := range s {
+		if !unicode.IsLetter(r) && !unicode.IsNumber(r) {
+			continue
+		}
+		canonized.WriteRune(unicode.ToLower(r))
+	}
+	return canonized.String()
 }
