@@ -1,9 +1,13 @@
 import json
-import shutil
+import time
 from pathlib import Path
+
+import httpx
+from apscheduler.schedulers.background import BackgroundScheduler
 
 from src.app import get_all_perfumes, unite_perfumes
 from src.canonization import Canonizer, NoteCanonizer
+from src.models import PerfumeWithUnitedShops
 from src.scraping.gold_apple import GoldApplePageParser, GoldAppleScrapper
 from src.scraping.letu import LetuPageParser, LetuScrapper
 from src.scraping.randewoo import RandewooPageParser, RandewooScrapper
@@ -64,16 +68,39 @@ def collect_and_store_all_perfumes() -> None:
         print(f"Collected and stored perfumes for {shop_name}")
 
 
-if __name__ == "__main__":
+def try_to_upload_perfumes_to_database(
+    perfumes: list[PerfumeWithUnitedShops], try_number: int = 0, max_retries: int = 3
+) -> bool:
+    with httpx.Client() as client:
+        body = {"perfumes": [perfume.to_dict() for perfume in perfumes]}
+        try:
+            response = client.post(UPLOAD_PERFUME_INFO, json=body, timeout=30)
+            response.raise_for_status()
+            return True
+        except (httpx.HTTPStatusError, httpx.RequestError) as e:
+            if try_number == max_retries - 1:
+                raise e
+            time.sleep(2**try_number)
+            return try_to_upload_perfumes_to_database(
+                perfumes, try_number + 1, max_retries
+            )
+
+
+def update_perfumes_in_database() -> None:
     collect_and_store_all_perfumes()
     perfumes = unite_perfumes(get_all_perfumes(Path.cwd() / "data/collected_perfumes"))
-    with open(Path.cwd() / "data/collected_perfumes/all_perfumes.json", "w") as f:
-        json.dump(
-            [perfume.to_dict() for perfume in perfumes],
-            f,
-            indent=4,
-            ensure_ascii=False,
-        )
-        backup_dir = Path.cwd() / "data/backups"
-        if backup_dir.exists() and backup_dir.is_dir():
-            shutil.rmtree(backup_dir)
+    if try_to_upload_perfumes_to_database(perfumes):
+        print("Perfumes uploaded to database successfully")
+    else:
+        print("Failed to upload perfumes to database")
+
+
+if __name__ == "__main__":
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(update_perfumes_in_database, "interval", days=5)
+    scheduler.start()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        scheduler.shutdown()

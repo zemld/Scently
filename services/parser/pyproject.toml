@@ -45,5 +45,5 @@ disallow_incomplete_defs = true
 explicit_package_bases = true
 
 [[tool.mypy.overrides]]
-module = ["httpx", "playwright.*"]
+module = ["httpx", "playwright.*", "apscheduler.*"]
 ignore_missing_imports = true
