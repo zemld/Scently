@@ -20,7 +20,7 @@ type PerfumeProperties struct {
 type ShopInfo struct {
 	ShopName string           `json:"shop_name"`
 	Domain   string           `json:"domain"`
-	ImageUrl string           `json:"image_url"`
+	ImageUrl string           `json:"image_url,omitempty"`
 	Variants []PerfumeVariant `json:"variants"`
 }
 
