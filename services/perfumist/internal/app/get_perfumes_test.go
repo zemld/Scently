@@ -31,8 +31,8 @@ func TestFetchPerfumeResults_AccumulatesOKResults(t *testing.T) {
 	t.Parallel()
 
 	ch := make(chan perfumesFetchAndGlueResult, 3)
-	ch <- perfumesFetchAndGlueResult{Status: http.StatusOK, Perfumes: []models.GluedPerfume{{Name: "A"}}}
-	ch <- perfumesFetchAndGlueResult{Status: http.StatusOK, Perfumes: []models.GluedPerfume{{Name: "B"}, {Name: "C"}}}
+	ch <- perfumesFetchAndGlueResult{Status: http.StatusOK, Perfumes: []models.Perfume{{Name: "A"}}}
+	ch <- perfumesFetchAndGlueResult{Status: http.StatusOK, Perfumes: []models.Perfume{{Name: "B"}, {Name: "C"}}}
 	close(ch)
 
 	perfumes, status := fetchPerfumeResults(httptest.NewRequest(http.MethodGet, "/", nil).Context(), ch)
