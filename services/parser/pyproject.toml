@@ -18,9 +18,8 @@ dependencies = [
     "webdriver-manager>=4.0.2",
 ]
 
-[tool.uv]
-# Development-only dependencies
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "mypy>=1.18.2",
     "ruff>=0.14.0",
     "types-requests>=2.31.0",
@@ -45,5 +44,5 @@ disallow_incomplete_defs = true
 explicit_package_bases = true
 
 [[tool.mypy.overrides]]
-module = ["httpx", "playwright.*"]
+module = ["httpx", "playwright.*", "apscheduler.*"]
 ignore_missing_imports = true
