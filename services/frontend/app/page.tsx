@@ -170,16 +170,18 @@ export default function ScentlyLanding() {
                     className="group bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 hover:bg-white/15 hover:border-[#E3B23C]/50 hover:shadow-[0_8px_32px_rgba(227,178,60,0.3)] hover:scale-105 transition-all duration-300 cursor-pointer animate-fadeIn"
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    <div className="aspect-square mb-4 rounded-xl overflow-hidden bg-white/5">
+                    <div className="aspect-square mb-4 rounded-xl overflow-hidden bg-white flex items-center justify-center p-4">
                       <img
-                        src={perfume.image || defaultPerfumeImage}
+                        src={perfume.image_url || defaultPerfumeImage}
                         alt={perfume.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
                     <h3 className="text-xl font-bold text-[#F8F5F0] mb-1">{perfume.name}</h3>
                     <p className="text-sm text-[#C38E70] mb-2">{perfume.brand}</p>
-                    <p className="text-sm text-[#F8F5F0]/70">{perfume.description}</p>
+                    {perfume.properties?.perfume_type && (
+                      <p className="text-sm text-[#F8F5F0]/70">{perfume.properties.perfume_type}</p>
+                    )}
                     {perfume.sex && (
                       <div className="mt-2">
                         <span className="text-xs bg-white/10 backdrop-blur-md border border-white/20 text-[#E3B23C] px-2 py-1 rounded-full">
@@ -187,9 +189,9 @@ export default function ScentlyLanding() {
                         </span>
                       </div>
                     )}
-                    {perfume.family && (
+                    {perfume.properties?.family && perfume.properties.family.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1">
-                        {perfume.family.slice(0, 3).map((family, familyIndex) => (
+                        {perfume.properties.family.slice(0, 3).map((family: string, familyIndex: number) => (
                           <span
                             key={familyIndex}
                             className="text-xs bg-[#C38E70]/20 text-[#C38E70] px-2 py-1 rounded-full"
