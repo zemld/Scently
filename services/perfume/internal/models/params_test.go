@@ -8,6 +8,37 @@ import (
 	queries "github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/query"
 )
 
+func TestCanonize(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{"simple lowercase", "chanel", "chanel"},
+		{"uppercase to lowercase", "CHANEL", "chanel"},
+		{"mixed case", "ChAnEl", "chanel"},
+		{"with spaces", "Chanel No.5", "chanelno5"},
+		{"with numbers", "No.5", "no5"},
+		{"with special chars", "Dior-Sauvage!", "diorsauvage"},
+		{"with punctuation", "Tom Ford: Oud Wood", "tomfordoudwood"},
+		{"empty string", "", ""},
+		{"only special chars", "!@#$%", ""},
+		{"with unicode letters", "Café", "café"},
+		{"mixed with spaces and numbers", "Brand 123 Name", "brand123name"},
+		{"only numbers", "123", "123"},
+		{"numbers and letters", "Brand123Name", "brand123name"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := canonize(tt.input)
+			if got != tt.expected {
+				t.Errorf("canonize(%q) = %q, want %q", tt.input, got, tt.expected)
+			}
+		})
+	}
+}
+
 func TestSelectParameters_GetChoosingPerfumesQuery(t *testing.T) {
 	baseQuery := strings.TrimSpace(queries.SelectPerfumesBaseInfo)
 
@@ -24,12 +55,12 @@ func TestSelectParameters_GetChoosingPerfumesQuery(t *testing.T) {
 		{
 			"brand only",
 			NewSelectParameters().WithBrand("Chanel"),
-			baseQuery + " WHERE pb.brand = $1 AND s.sex = 'unisex'",
+			baseQuery + " WHERE pb.canonized_brand = $1 AND s.sex = 'unisex'",
 		},
 		{
 			"name only",
 			NewSelectParameters().WithName("No.5"),
-			baseQuery + " WHERE pb.name = $1 AND s.sex = 'unisex'",
+			baseQuery + " WHERE pb.canonized_name = $1 AND s.sex = 'unisex'",
 		},
 		{
 			"sex unisex",
@@ -49,37 +80,37 @@ func TestSelectParameters_GetChoosingPerfumesQuery(t *testing.T) {
 		{
 			"brand and name",
 			NewSelectParameters().WithBrand("Dior").WithName("Sauvage"),
-			baseQuery + " WHERE pb.brand = $1 AND pb.name = $2 AND s.sex = 'unisex'",
+			baseQuery + " WHERE pb.canonized_brand = $1 AND pb.canonized_name = $2 AND s.sex = 'unisex'",
 		},
 		{
 			"brand and sex female",
 			NewSelectParameters().WithBrand("Chanel").WithSex("female"),
-			baseQuery + " WHERE pb.brand = $1 AND (s.sex = $2 OR s.sex = 'unisex')",
+			baseQuery + " WHERE pb.canonized_brand = $1 AND (s.sex = $2 OR s.sex = 'unisex')",
 		},
 		{
 			"brand and sex unisex",
 			NewSelectParameters().WithBrand("Chanel").WithSex("unisex"),
-			baseQuery + " WHERE pb.brand = $1 AND s.sex = 'unisex'",
+			baseQuery + " WHERE pb.canonized_brand = $1 AND s.sex = 'unisex'",
 		},
 		{
 			"name and sex unisex",
 			NewSelectParameters().WithName("No.5").WithSex("unisex"),
-			baseQuery + " WHERE pb.name = $1 AND s.sex = 'unisex'",
+			baseQuery + " WHERE pb.canonized_name = $1 AND s.sex = 'unisex'",
 		},
 		{
 			"name and sex female",
 			NewSelectParameters().WithName("No.5").WithSex("female"),
-			baseQuery + " WHERE pb.name = $1 AND (s.sex = $2 OR s.sex = 'unisex')",
+			baseQuery + " WHERE pb.canonized_name = $1 AND (s.sex = $2 OR s.sex = 'unisex')",
 		},
 		{
 			"brand, name and sex male",
 			NewSelectParameters().WithBrand("Dior").WithName("Sauvage").WithSex("male"),
-			baseQuery + " WHERE pb.brand = $1 AND pb.name = $2 AND (s.sex = $3 OR s.sex = 'unisex')",
+			baseQuery + " WHERE pb.canonized_brand = $1 AND pb.canonized_name = $2 AND (s.sex = $3 OR s.sex = 'unisex')",
 		},
 		{
 			"brand, name and sex unisex",
 			NewSelectParameters().WithBrand("Dior").WithName("Sauvage").WithSex("unisex"),
-			baseQuery + " WHERE pb.brand = $1 AND pb.name = $2 AND s.sex = 'unisex'",
+			baseQuery + " WHERE pb.canonized_brand = $1 AND pb.canonized_name = $2 AND s.sex = 'unisex'",
 		},
 	}
 
@@ -107,12 +138,12 @@ func TestSelectParameters_Unpack(t *testing.T) {
 		{
 			"brand only",
 			NewSelectParameters().WithBrand("Chanel"),
-			[]any{"Chanel"},
+			[]any{"chanel"},
 		},
 		{
 			"name only",
 			NewSelectParameters().WithName("No.5"),
-			[]any{"No.5"},
+			[]any{"no5"},
 		},
 		{
 			"sex unisex - no args",
@@ -132,32 +163,32 @@ func TestSelectParameters_Unpack(t *testing.T) {
 		{
 			"brand and name",
 			NewSelectParameters().WithBrand("Dior").WithName("Sauvage"),
-			[]any{"Dior", "Sauvage"},
+			[]any{"dior", "sauvage"},
 		},
 		{
 			"brand and sex female",
 			NewSelectParameters().WithBrand("Chanel").WithSex("female"),
-			[]any{"Chanel", "female"},
+			[]any{"chanel", "female"},
 		},
 		{
 			"brand and sex unisex - no sex arg",
 			NewSelectParameters().WithBrand("Chanel").WithSex("unisex"),
-			[]any{"Chanel"},
+			[]any{"chanel"},
 		},
 		{
 			"name and sex female",
 			NewSelectParameters().WithName("No.5").WithSex("female"),
-			[]any{"No.5", "female"},
+			[]any{"no5", "female"},
 		},
 		{
 			"brand, name and sex male",
 			NewSelectParameters().WithBrand("Dior").WithName("Sauvage").WithSex("male"),
-			[]any{"Dior", "Sauvage", "male"},
+			[]any{"dior", "sauvage", "male"},
 		},
 		{
 			"brand, name and sex unisex - no sex arg",
 			NewSelectParameters().WithBrand("Dior").WithName("Sauvage").WithSex("unisex"),
-			[]any{"Dior", "Sauvage"},
+			[]any{"dior", "sauvage"},
 		},
 	}
 
@@ -190,7 +221,7 @@ func TestSelectParameters_GetQuery(t *testing.T) {
 			"with brand filter",
 			NewSelectParameters().WithBrand("Chanel"),
 			func() string {
-				choosingQuery := strings.TrimSpace(queries.SelectPerfumesBaseInfo) + " WHERE pb.brand = $1 AND s.sex = 'unisex'"
+				choosingQuery := strings.TrimSpace(queries.SelectPerfumesBaseInfo) + " WHERE pb.canonized_brand = $1 AND s.sex = 'unisex'"
 				withClause := strings.Replace(queries.WithSelect, "%s", choosingQuery, 1)
 				return withClause + queries.EnrichSelectedPerfumes
 			}(),

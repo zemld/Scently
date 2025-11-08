@@ -555,8 +555,9 @@ func TestUpdateShopInfo(t *testing.T) {
 
 	tx := newMockTx()
 	ctx := context.Background()
+	canonizedPerfume := perfume.Canonize()
 
-	err := updateShopInfo(ctx, tx, perfume)
+	err := updateShopInfo(ctx, tx, perfume, canonizedPerfume)
 
 	if err != nil {
 		t.Fatalf("updateShopInfo() error = %v, want nil", err)
@@ -587,7 +588,7 @@ func TestUpdateShopInfo(t *testing.T) {
 
 	// Проверяем аргументы первого варианта
 	firstVariantCall := tx.execCalls[1] // После первого GetOrInsertShop
-	expectedArgs := []any{"Brand", "Name", "male", "Gold Apple", 100, 5000, "http://link1.com"}
+	expectedArgs := []any{"brand", "name", "male", "Gold Apple", 100, 5000, "http://link1.com"}
 	if !reflect.DeepEqual(firstVariantCall.args, expectedArgs) {
 		t.Fatalf("updateShopInfo first variant args = %v, want %v", firstVariantCall.args, expectedArgs)
 	}
@@ -623,8 +624,9 @@ func TestUpdateShopInfoError(t *testing.T) {
 			tx := newMockTx()
 			tx.setExecError(tt.errorSQL, errors.New("database error"))
 			ctx := context.Background()
+			canonizedPerfume := perfume.Canonize()
 
-			err := updateShopInfo(ctx, tx, perfume)
+			err := updateShopInfo(ctx, tx, perfume, canonizedPerfume)
 
 			if err == nil {
 				t.Fatalf("updateShopInfo() error = nil, want error")
@@ -645,8 +647,9 @@ func TestUpdateFamilies(t *testing.T) {
 
 	tx := newMockTx()
 	ctx := context.Background()
+	canonizedPerfume := perfume.Canonize()
 
-	err := updateFamilies(ctx, tx, perfume)
+	err := updateFamilies(ctx, tx, perfume, canonizedPerfume)
 
 	if err != nil {
 		t.Fatalf("updateFamilies() error = %v, want nil", err)
@@ -660,7 +663,7 @@ func TestUpdateFamilies(t *testing.T) {
 		if call.sql != queries.InsertFamily {
 			t.Fatalf("updateFamilies exec[%d] sql = %q, want %q", i, call.sql, queries.InsertFamily)
 		}
-		expectedArgs := []any{"Brand", "Name", "male", perfume.Properties.Family[i]}
+		expectedArgs := []any{"brand", "name", "male", perfume.Properties.Family[i]}
 		if !reflect.DeepEqual(call.args, expectedArgs) {
 			t.Fatalf("updateFamilies exec[%d] args = %v, want %v", i, call.args, expectedArgs)
 		}
@@ -680,8 +683,9 @@ func TestUpdateFamiliesError(t *testing.T) {
 	tx := newMockTx()
 	tx.setExecError(queries.InsertFamily, errors.New("database error"))
 	ctx := context.Background()
+	canonizedPerfume := perfume.Canonize()
 
-	err := updateFamilies(ctx, tx, perfume)
+	err := updateFamilies(ctx, tx, perfume, canonizedPerfume)
 
 	if err == nil {
 		t.Fatalf("updateFamilies() error = nil, want error")
@@ -715,8 +719,9 @@ func TestUpdateNotes(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tx := newMockTx()
 			ctx := context.Background()
+			canonizedPerfume := perfume.Canonize()
 
-			err := updateNotes(ctx, tx, tt.query, perfume, tt.notes)
+			err := updateNotes(ctx, tx, tt.query, perfume, canonizedPerfume, tt.notes)
 
 			if err != nil {
 				t.Fatalf("updateNotes(%s) error = %v, want nil", tt.noteType, err)
@@ -730,7 +735,7 @@ func TestUpdateNotes(t *testing.T) {
 				if call.sql != tt.query {
 					t.Fatalf("updateNotes(%s) exec[%d] sql = %q, want %q", tt.noteType, i, call.sql, tt.query)
 				}
-				expectedArgs := []any{"Brand", "Name", "male", tt.notes[i]}
+				expectedArgs := []any{"brand", "name", "male", tt.notes[i]}
 				if !reflect.DeepEqual(call.args, expectedArgs) {
 					t.Fatalf("updateNotes(%s) exec[%d] args = %v, want %v", tt.noteType, i, call.args, expectedArgs)
 				}
@@ -752,8 +757,9 @@ func TestUpdateNotesError(t *testing.T) {
 	tx := newMockTx()
 	tx.setExecError(queries.InsertUpperNote, errors.New("database error"))
 	ctx := context.Background()
+	canonizedPerfume := perfume.Canonize()
 
-	err := updateNotes(ctx, tx, queries.InsertUpperNote, perfume, perfume.Properties.UpperNotes)
+	err := updateNotes(ctx, tx, queries.InsertUpperNote, perfume, canonizedPerfume, perfume.Properties.UpperNotes)
 
 	if err == nil {
 		t.Fatalf("updateNotes() error = nil, want error")
@@ -780,8 +786,9 @@ func TestUpdatePerfumeType(t *testing.T) {
 
 	tx := newMockTx()
 	ctx := context.Background()
+	canonizedPerfume := perfume.Canonize()
 
-	err := updatePerfumeType(ctx, tx, perfume)
+	err := updatePerfumeType(ctx, tx, perfume, canonizedPerfume)
 
 	if err != nil {
 		t.Fatalf("updatePerfumeType() error = %v, want nil", err)
@@ -796,7 +803,7 @@ func TestUpdatePerfumeType(t *testing.T) {
 		t.Fatalf("updatePerfumeType exec sql = %q, want %q", call.sql, queries.InsertPerfumeBaseInfo)
 	}
 
-	expectedArgs := []any{"Brand", "Name", "male", "Eau de Parfum", "http://image1.com"}
+	expectedArgs := []any{"brand", "name", "male", "Brand", "Name", "Eau de Parfum", "http://image1.com"}
 	if !reflect.DeepEqual(call.args, expectedArgs) {
 		t.Fatalf("updatePerfumeType exec args = %v, want %v", call.args, expectedArgs)
 	}
@@ -823,8 +830,9 @@ func TestUpdatePerfumeTypeError(t *testing.T) {
 	tx := newMockTx()
 	tx.setExecError(queries.InsertPerfumeBaseInfo, errors.New("database error"))
 	ctx := context.Background()
+	canonizedPerfume := perfume.Canonize()
 
-	err := updatePerfumeType(ctx, tx, perfume)
+	err := updatePerfumeType(ctx, tx, perfume, canonizedPerfume)
 
 	if err == nil {
 		t.Fatalf("updatePerfumeType() error = nil, want error")
