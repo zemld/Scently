@@ -23,6 +23,7 @@ func Initiate() {
 	setupDatabase(ctx, conn,
 		queries.NonEmptyTextField,
 		queries.CreateSexesTable,
+		queries.FillSexesTable,
 		queries.CreateShopsTable,
 		queries.CreateVariantsTable,
 		queries.CreateFamiliesTable,
