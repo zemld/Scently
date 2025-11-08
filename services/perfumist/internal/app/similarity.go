@@ -17,8 +17,8 @@ const (
 	baseNotesWeight   = 0.4
 )
 
-func FoundSimilarities(favourite models.GluedPerfume, all []models.GluedPerfume, suggestsCount int) []models.GluedPerfumeWithScore {
-	mostSimilar := make([]models.GluedPerfumeWithScore, 0, suggestsCount)
+func FoundSimilarities(favourite models.Perfume, all []models.Perfume, suggestsCount int) []models.PerfumeWithScore {
+	mostSimilar := make([]models.PerfumeWithScore, 0, suggestsCount)
 	for _, perfume := range all {
 		if favourite.Equal(perfume) {
 			continue
@@ -29,21 +29,21 @@ func FoundSimilarities(favourite models.GluedPerfume, all []models.GluedPerfume,
 	return mostSimilar
 }
 
-func updateMostSimilarIfNeeded(mostSimilar []models.GluedPerfumeWithScore, perfume models.GluedPerfume, similarityScore float64) []models.GluedPerfumeWithScore {
+func updateMostSimilarIfNeeded(mostSimilar []models.PerfumeWithScore, perfume models.Perfume, similarityScore float64) []models.PerfumeWithScore {
 	current := perfume
 	for i := range mostSimilar {
 		if similarityScore > mostSimilar[i].Score {
 			tmp := mostSimilar[i]
 			mostSimilar[i].Score = similarityScore
-			mostSimilar[i].GluedPerfume = current
-			current = tmp.GluedPerfume
+			mostSimilar[i].Perfume = current
+			current = tmp.Perfume
 			similarityScore = tmp.Score
 		}
 	}
 	if len(mostSimilar) < cap(mostSimilar) {
-		mostSimilar = append(mostSimilar, models.GluedPerfumeWithScore{
-			GluedPerfume: current,
-			Score:        similarityScore,
+		mostSimilar = append(mostSimilar, models.PerfumeWithScore{
+			Perfume: current,
+			Score:   similarityScore,
 		})
 	}
 	return mostSimilar
@@ -70,7 +70,7 @@ func getListSimilarityScore(first []string, second []string) float64 {
 
 func getNotesSimilarityScore(first models.PerfumeProperties, second models.PerfumeProperties) float64 {
 	upperNotesSimilarityScore := getListSimilarityScore(first.UpperNotes, second.UpperNotes)
-	middleNotesSimilarityScore := getListSimilarityScore(first.MiddleNotes, second.MiddleNotes)
+	middleNotesSimilarityScore := getListSimilarityScore(first.CoreNotes, second.CoreNotes)
 	baseNotesSimilarityScore := getListSimilarityScore(first.BaseNotes, second.BaseNotes)
 
 	return upperNotesSimilarityScore*upperNotesWeight + middleNotesSimilarityScore*middleNotesWeight + baseNotesSimilarityScore*baseNotesWeight

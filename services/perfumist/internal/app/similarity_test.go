@@ -24,11 +24,11 @@ func TestGetPerfumeSimilarityScore_FullMatch(t *testing.T) {
 	t.Parallel()
 
 	a := models.PerfumeProperties{
-		Type:        "edt",
-		Family:      []string{"woody", "spicy"},
-		UpperNotes:  []string{"bergamot"},
-		MiddleNotes: []string{"lavender"},
-		BaseNotes:   []string{"cedar"},
+		Type:       "edt",
+		Family:     []string{"woody", "spicy"},
+		UpperNotes: []string{"bergamot"},
+		CoreNotes:  []string{"lavender"},
+		BaseNotes:  []string{"cedar"},
 	}
 	b := a
 	got := GetPerfumeSimilarityScore(a, b)
@@ -54,23 +54,23 @@ func TestGetPerfumeSimilarityScore_PartialNotes(t *testing.T) {
 	t.Parallel()
 
 	a := models.PerfumeProperties{
-		Type:        "edt",
-		Family:      []string{"woody", "spicy"},
-		UpperNotes:  []string{"bergamot", "lemon"},
-		MiddleNotes: []string{"lavender"},
-		BaseNotes:   []string{"cedar", "musk"},
+		Type:       "edt",
+		Family:     []string{"woody", "spicy"},
+		UpperNotes: []string{"bergamot", "lemon"},
+		CoreNotes:  []string{"lavender"},
+		BaseNotes:  []string{"cedar", "musk"},
 	}
 	b := models.PerfumeProperties{
-		Type:        "edp",
-		Family:      []string{"woody", "amber"},
-		UpperNotes:  []string{"bergamot"},
-		MiddleNotes: []string{"lavender", "rose"},
-		BaseNotes:   []string{"musk"},
+		Type:       "edp",
+		Family:     []string{"woody", "amber"},
+		UpperNotes: []string{"bergamot"},
+		CoreNotes:  []string{"lavender", "rose"},
+		BaseNotes:  []string{"musk"},
 	}
 
 	// families: {woody} / {woody, spicy, amber} -> Jaccard 1/3
 	// upper: {bergamot} / {bergamot, lemon} -> 1/2
-	// middle: {lavender} / {lavender, rose} -> 1/2
+	// core: {lavender} / {lavender, rose} -> 1/2
 	// base: {musk} / {cedar, musk} -> 1/2
 	// notes weighted = 0.15*0.5 + 0.45*0.5 + 0.4*0.5 = 0.5
 	// type: diff -> 0
@@ -109,14 +109,19 @@ func TestGetListSimilarityScore(t *testing.T) {
 func TestUpdateMostSimilarIfNeeded(t *testing.T) {
 	t.Parallel()
 
-	arr := make([]models.GluedPerfumeWithScore, 4)
-	for i, s := range []float64{0.1, 0.2, 0.3, 0.4} {
-		updateMostSimilarIfNeeded(arr, models.GluedPerfume{Name: "n"}, s)
-		if arr[i].Score == 0 {
-			t.Fatalf("position %d should be filled", i)
+	arr := make([]models.PerfumeWithScore, 0, 4)
+	for _, s := range []float64{0.1, 0.2, 0.3, 0.4} {
+		arr = updateMostSimilarIfNeeded(arr, models.Perfume{Name: "n"}, s)
+	}
+	if len(arr) != 4 {
+		t.Fatalf("expected 4 items, got %d", len(arr))
+	}
+	for i, expectedScore := range []float64{0.4, 0.3, 0.2, 0.1} {
+		if arr[i].Score != expectedScore {
+			t.Fatalf("position %d expected score %v, got %v", i, expectedScore, arr[i].Score)
 		}
 	}
-	updateMostSimilarIfNeeded(arr, models.GluedPerfume{Name: "m"}, 0.25)
+	arr = updateMostSimilarIfNeeded(arr, models.Perfume{Name: "m"}, 0.25)
 	if !(arr[1].Score >= 0.25 && arr[2].Score >= 0.25) {
 		t.Fatalf("middle insertion not reflected: %+v", arr)
 	}

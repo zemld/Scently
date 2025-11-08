@@ -16,11 +16,11 @@ const (
 )
 
 type aISuggestion struct {
-	Perfumes []models.GluedPerfume `json:"perfumes"`
+	Perfumes []models.Perfume `json:"perfumes"`
 }
 
-func GetAIEnrichedSuggestions(ctx context.Context, params parameters.RequestPerfume) []models.GluedPerfumeWithScore {
-	var mostSimilar []models.GluedPerfumeWithScore
+func GetAIEnrichedSuggestions(ctx context.Context, params parameters.RequestPerfume) []models.PerfumeWithScore {
+	var mostSimilar []models.PerfumeWithScore
 	aiSuggests, err := AISuggest(ctx, params)
 	if err == nil && aiSuggests != nil {
 		mostSimilar = aiSuggests
@@ -29,19 +29,19 @@ func GetAIEnrichedSuggestions(ctx context.Context, params parameters.RequestPerf
 	if mostSimilar != nil {
 		enrichmentParams := make([]parameters.RequestPerfume, len(mostSimilar))
 		for i, suggestion := range mostSimilar {
-			enrichmentParams[i] = *parameters.NewGet().WithBrand(suggestion.GluedPerfume.Brand).WithName(suggestion.GluedPerfume.Name).WithSex(params.Sex)
+			enrichmentParams[i] = *parameters.NewGet().WithBrand(suggestion.Perfume.Brand).WithName(suggestion.Perfume.Name).WithSex(params.Sex)
 		}
 		enrichedSuggests, ok := FetchPerfumes(ctx, enrichmentParams)
 		if ok && enrichedSuggests != nil {
 			for i, suggestion := range enrichedSuggests {
-				mostSimilar[i].GluedPerfume = suggestion
+				mostSimilar[i].Perfume = suggestion
 			}
 		}
 	}
 	return mostSimilar
 }
 
-func AISuggest(ctx context.Context, params parameters.RequestPerfume) ([]models.GluedPerfumeWithScore, error) {
+func AISuggest(ctx context.Context, params parameters.RequestPerfume) ([]models.PerfumeWithScore, error) {
 	r, _ := http.NewRequestWithContext(ctx, "GET", aiSuggestUrl, nil)
 	updateQuery(r, params)
 
@@ -64,10 +64,10 @@ func AISuggest(ctx context.Context, params parameters.RequestPerfume) ([]models.
 	if err != nil {
 		return nil, err
 	}
-	var suggestionsWithScore []models.GluedPerfumeWithScore
+	var suggestionsWithScore []models.PerfumeWithScore
 	for _, suggestion := range suggestions.Perfumes {
-		suggestionsWithScore = append(suggestionsWithScore, models.GluedPerfumeWithScore{
-			GluedPerfume: suggestion,
+		suggestionsWithScore = append(suggestionsWithScore, models.PerfumeWithScore{
+			Perfume: suggestion,
 		})
 	}
 	return suggestionsWithScore, nil
