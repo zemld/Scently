@@ -74,13 +74,8 @@ def _get_page_with_playwright(link: str) -> BeautifulSoup | None:
             page = context.new_page()
 
             try:
-                page.goto(link, wait_until="domcontentloaded", timeout=60000)
+                page.goto(link, wait_until="domcontentloaded", timeout=30000)
             except (PlaywrightTimeoutError, PlaywrightError):
-                pass
-
-            if not _safe_wait_for_selector(
-                page, "body", timeout=10000, fallback_sleep=0
-            ):
                 browser.close()
                 return None
 
@@ -94,27 +89,11 @@ def _get_page_with_playwright(link: str) -> BeautifulSoup | None:
                 except (PlaywrightTimeoutError, PlaywrightError):
                     pass
 
-            time.sleep(0.5)
+            time.sleep(0.3)
 
-            html_content = None
-            max_retries = 3
-            for attempt in range(max_retries):
-                try:
-                    html_content = page.content()
-                    break
-                except (PlaywrightError, Exception):
-                    if attempt < max_retries - 1:
-                        time.sleep(1)
-                        continue
-                    try:
-                        page.wait_for_load_state("load", timeout=3000)
-                        time.sleep(1)
-                        html_content = page.content()
-                    except Exception:
-                        browser.close()
-                        return None
-
-            if html_content is None:
+            try:
+                html_content = page.content()
+            except (PlaywrightError, Exception):
                 browser.close()
                 return None
 
@@ -136,15 +115,17 @@ def _safe_wait_for_selector(
         page.wait_for_selector(selector, timeout=timeout)
         return True
     except (PlaywrightTimeoutError, PlaywrightError):
-        time.sleep(fallback_sleep)
+        if fallback_sleep > 0:
+            time.sleep(fallback_sleep)
         return False
 
 
-def _scroll_page(page: Page, scroll_delay: float = 1.0) -> None:
+def _scroll_page(page: Page, scroll_delay: float = 0.8) -> None:
     page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
     time.sleep(scroll_delay)
     page.evaluate("window.scrollTo(0, 0)")
     time.sleep(scroll_delay)
+    time.sleep(0.5)
 
 
 def _wait_for_page_content(page: Page, link: str) -> None:
@@ -172,34 +153,40 @@ def _wait_for_page_content(page: Page, link: str) -> None:
     }
 
     site = None
-    page_type = None
-
-    for site_name in site_configs:
-        if site_name in link:
-            site = site_name
-            break
+    if "letu.ru" in link:
+        site = "letu.ru"
+    elif "goldapple.ru" in link:
+        site = "goldapple.ru"
 
     if site:
         if site == "letu.ru":
-            if "/browse/" in link:
-                page_type = "catalog"
-            elif "/product/" in link:
-                page_type = "product"
-        elif site == "goldapple.ru":
-            if "/parfjumerija" in link or "producttype" in link:
-                page_type = "catalog"
-            else:
-                page_type = "product"
+            page_type = (
+                "catalog"
+                if "/browse/" in link
+                else ("product" if "/product/" in link else None)
+            )
+        else:
+            page_type = (
+                "catalog"
+                if ("/parfjumerija" in link or "producttype" in link)
+                else "product"
+            )
 
-    if site and page_type:
-        config = site_configs[site][page_type]
-        found = _safe_wait_for_selector(page, config["selector"])
-        if found and config["needs_scroll"]:
-            _scroll_page(page)
+        if page_type:
+            config = site_configs[site][page_type]
+            timeout = 20000 if config["needs_scroll"] else 15000
+            found = _safe_wait_for_selector(
+                page, config["selector"], timeout=timeout, fallback_sleep=0
+            )
+            if config["needs_scroll"]:
+                _scroll_page(page)
+                time.sleep(1.0)
+            elif found:
+                time.sleep(0.5)
+        else:
+            time.sleep(0.5)
     else:
-        time.sleep(2)
-
-    time.sleep(2)
+        time.sleep(0.5)
 
 
 def _define_bs_type_from_link(link: str) -> str:

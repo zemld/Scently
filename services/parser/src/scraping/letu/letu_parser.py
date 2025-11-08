@@ -95,7 +95,7 @@ class LetuPageParser(PageParser):
     def _parse_upper_notes(self, props: dict[str, str]) -> list[str]:
         return self._parse_notes(props, "верхние ноты")
 
-    def _parse_middle_notes(self, props: dict[str, str]) -> list[str]:
+    def _parse_core_notes(self, props: dict[str, str]) -> list[str]:
         return self._parse_notes(props, "ноты сердца")
 
     def _parse_base_notes(self, props: dict[str, str]) -> list[str]:
@@ -104,13 +104,13 @@ class LetuPageParser(PageParser):
     def _get_shop_info(self, page: BeautifulSoup) -> PerfumeFromConcreteShop.ShopInfo:
         shop_info = PerfumeFromConcreteShop.ShopInfo(
             shop_name="Letu",
-            shop_link="https://www.letu.ru",
+            domain="https://www.letu.ru",
             image_url=self._parse_image_url(page),
-            volumes_with_prices=[],
+            variants=[],
         )
         current_item_variant = self._parse_current_item_variant(page)
         if current_item_variant:
-            shop_info.volumes_with_prices.append(current_item_variant)
+            shop_info.variants.append(current_item_variant)
 
         other_variants_tags = page.find_all(
             "a", class_="product-detail-sku-volume sku-view-table__item-volume"
@@ -128,7 +128,7 @@ class LetuPageParser(PageParser):
                 continue
             other_variant = self._parse_current_item_variant(other_page)
             if other_variant:
-                shop_info.volumes_with_prices.append(other_variant)
+                shop_info.variants.append(other_variant)
         return shop_info
 
     def _parse_image_url(self, page: BeautifulSoup) -> str:

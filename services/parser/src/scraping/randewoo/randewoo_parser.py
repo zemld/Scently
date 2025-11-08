@@ -206,7 +206,7 @@ class RandewooPageParser(PageParser):
     def _parse_upper_notes(self, props: dict[str, str]) -> list[str]:
         return self._parse_notes(props, "верхние ноты")
 
-    def _parse_middle_notes(self, props: dict[str, str]) -> list[str]:
+    def _parse_core_notes(self, props: dict[str, str]) -> list[str]:
         return self._parse_notes(props, "средние ноты")
 
     def _parse_base_notes(self, props: dict[str, str]) -> list[str]:
@@ -264,17 +264,17 @@ class RandewooPageParser(PageParser):
     def _get_shop_info(self, page: BeautifulSoup) -> PerfumeFromConcreteShop.ShopInfo:
         shop_info = PerfumeFromConcreteShop.ShopInfo(
             shop_name="Randewoo",
-            shop_link="https://randewoo.ru",
+            domain="https://randewoo.ru",
             image_url=self._parse_image_url(page),
-            volumes_with_prices=[],
+            variants=[],
         )
-        volumes_with_prices_tags = page.find_all("div", class_="s-productType__main")
-        if not volumes_with_prices_tags:
+        variants_tags = page.find_all("div", class_="s-productType__main")
+        if not variants_tags:
             price_value = self._extract_price(page)
             if price_value is None:
                 return shop_info
             volume_value = self._extract_volume(page)
-            shop_info.volumes_with_prices.append(
+            shop_info.variants.append(
                 PerfumeFromConcreteShop.ShopInfo.VolumeWithPrices(
                     volume_value,
                     price_value,
@@ -282,8 +282,8 @@ class RandewooPageParser(PageParser):
                 )
             )
             return shop_info
-        for volumes_with_prices_tag in volumes_with_prices_tags:
-            volume_anchor = volumes_with_prices_tag.find(
+        for variants_tag in variants_tags:
+            volume_anchor = variants_tag.find(
                 "a",
                 class_=(
                     "s-productType__titleText s-link "
@@ -298,16 +298,14 @@ class RandewooPageParser(PageParser):
                 volume_value = int(volume_text)
             except ValueError:
                 continue
-            cost_tag = volumes_with_prices_tag.find(
-                "span", class_="s-productType__priceNewValue"
-            )
+            cost_tag = variants_tag.find("span", class_="s-productType__priceNewValue")
             if cost_tag is None:
                 continue
             raw_cost = str(cost_tag.get_text(strip=True))
             price_digits = re.sub(r"\D", "", raw_cost)
             if not price_digits:
                 continue
-            shop_info.volumes_with_prices.append(
+            shop_info.variants.append(
                 PerfumeFromConcreteShop.ShopInfo.VolumeWithPrices(
                     int(volume_text), int(price_digits), ""
                 )
