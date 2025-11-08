@@ -53,12 +53,12 @@ func (p *SelectParameters) WithSex(sex string) *SelectParameters {
 
 func (p SelectParameters) GetQuery() string {
 	choosingPerfumesQuery := p.GetChoosingPerfumesQuery()
-	withClause := fmt.Sprintf(queries.With, choosingPerfumesQuery)
+	withClause := fmt.Sprintf(queries.WithSelect, choosingPerfumesQuery)
 	return withClause + queries.EnrichSelectedPerfumes
 }
 
 func (p SelectParameters) GetChoosingPerfumesQuery() string {
-	query := strings.TrimSpace(queries.PerfumesBaseInfo)
+	query := strings.TrimSpace(queries.SelectPerfumesBaseInfo)
 	conditions := []string{}
 
 	parametersCount := 1

@@ -1,11 +1,11 @@
 package queries
 
 const (
-	With = `WITH
+	WithSelect = `WITH
 		selected_perfumes_base_info AS (
 		%s
 		),`
-	PerfumesBaseInfo = `SELECT
+	SelectPerfumesBaseInfo = `SELECT
 		pb.brand as brand,
 		pb.name as name,
 		pb.sex_id as sex_id,

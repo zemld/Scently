@@ -9,7 +9,7 @@ import (
 )
 
 func TestSelectParameters_GetChoosingPerfumesQuery(t *testing.T) {
-	baseQuery := strings.TrimSpace(queries.PerfumesBaseInfo)
+	baseQuery := strings.TrimSpace(queries.SelectPerfumesBaseInfo)
 
 	tests := []struct {
 		name string
@@ -181,8 +181,8 @@ func TestSelectParameters_GetQuery(t *testing.T) {
 			"no filters - defaults to unisex",
 			NewSelectParameters(),
 			func() string {
-				choosingQuery := strings.TrimSpace(queries.PerfumesBaseInfo) + " WHERE s.sex = 'unisex'"
-				withClause := strings.Replace(queries.With, "%s", choosingQuery, 1)
+				choosingQuery := strings.TrimSpace(queries.SelectPerfumesBaseInfo) + " WHERE s.sex = 'unisex'"
+				withClause := strings.Replace(queries.WithSelect, "%s", choosingQuery, 1)
 				return withClause + queries.EnrichSelectedPerfumes
 			}(),
 		},
@@ -190,8 +190,8 @@ func TestSelectParameters_GetQuery(t *testing.T) {
 			"with brand filter",
 			NewSelectParameters().WithBrand("Chanel"),
 			func() string {
-				choosingQuery := strings.TrimSpace(queries.PerfumesBaseInfo) + " WHERE pb.brand = $1 AND s.sex = 'unisex'"
-				withClause := strings.Replace(queries.With, "%s", choosingQuery, 1)
+				choosingQuery := strings.TrimSpace(queries.SelectPerfumesBaseInfo) + " WHERE pb.brand = $1 AND s.sex = 'unisex'"
+				withClause := strings.Replace(queries.WithSelect, "%s", choosingQuery, 1)
 				return withClause + queries.EnrichSelectedPerfumes
 			}(),
 		},
@@ -199,8 +199,8 @@ func TestSelectParameters_GetQuery(t *testing.T) {
 			"with sex filter",
 			NewSelectParameters().WithSex("female"),
 			func() string {
-				choosingQuery := strings.TrimSpace(queries.PerfumesBaseInfo) + " WHERE (s.sex = $1 OR s.sex = 'unisex')"
-				withClause := strings.Replace(queries.With, "%s", choosingQuery, 1)
+				choosingQuery := strings.TrimSpace(queries.SelectPerfumesBaseInfo) + " WHERE (s.sex = $1 OR s.sex = 'unisex')"
+				withClause := strings.Replace(queries.WithSelect, "%s", choosingQuery, 1)
 				return withClause + queries.EnrichSelectedPerfumes
 			}(),
 		},

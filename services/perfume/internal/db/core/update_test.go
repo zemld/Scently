@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/constants"
+	queries "github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/query"
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
 )
 
@@ -157,15 +157,15 @@ func TestUpsertSuccess(t *testing.T) {
 
 	// Проверяем, что были вызваны правильные SQL запросы
 	expectedQueries := []string{
-		getSavepointQuery(constants.Savepoint, 0),
-		constants.GetOrInsertShop,
-		constants.InsertVariant,
-		constants.InsertFamily,
-		constants.InsertUpperNote,
-		constants.InsertCoreNote,
-		constants.InsertBaseNote,
-		constants.InsertPerfumeBaseInfo,
-		getSavepointQuery(constants.ReleaseSavepoint, 0),
+		getSavepointQuery(queries.Savepoint, 0),
+		queries.GetOrInsertShop,
+		queries.InsertVariant,
+		queries.InsertFamily,
+		queries.InsertUpperNote,
+		queries.InsertCoreNote,
+		queries.InsertBaseNote,
+		queries.InsertPerfumeBaseInfo,
+		getSavepointQuery(queries.ReleaseSavepoint, 0),
 	}
 
 	if len(tx.execCalls) != len(expectedQueries) {
@@ -204,7 +204,7 @@ func TestUpsertFailureRollsBack(t *testing.T) {
 	}
 
 	tx := newMockTx()
-	tx.setExecError(constants.GetOrInsertShop, errors.New("database error"))
+	tx.setExecError(queries.GetOrInsertShop, errors.New("database error"))
 	ctx := context.Background()
 
 	status := upsert(ctx, tx, []models.Perfume{perfume})
@@ -218,9 +218,9 @@ func TestUpsertFailureRollsBack(t *testing.T) {
 
 	// Проверяем, что был выполнен rollback
 	expectedQueries := []string{
-		getSavepointQuery(constants.Savepoint, 0),
-		constants.GetOrInsertShop,
-		getSavepointQuery(constants.RollbackSavepoint, 0),
+		getSavepointQuery(queries.Savepoint, 0),
+		queries.GetOrInsertShop,
+		getSavepointQuery(queries.RollbackSavepoint, 0),
 	}
 
 	if len(tx.execCalls) != len(expectedQueries) {
@@ -296,18 +296,18 @@ func TestUpsertMultiplePerfumes(t *testing.T) {
 
 	// Проверяем, что для каждого парфюма были созданы savepoints
 	expectedSavepoints := []string{
-		getSavepointQuery(constants.Savepoint, 0),
-		getSavepointQuery(constants.ReleaseSavepoint, 0),
-		getSavepointQuery(constants.Savepoint, 1),
-		getSavepointQuery(constants.ReleaseSavepoint, 1),
+		getSavepointQuery(queries.Savepoint, 0),
+		getSavepointQuery(queries.ReleaseSavepoint, 0),
+		getSavepointQuery(queries.Savepoint, 1),
+		getSavepointQuery(queries.ReleaseSavepoint, 1),
 	}
 
 	savepointCalls := []string{}
 	for _, call := range tx.execCalls {
-		if call.sql == getSavepointQuery(constants.Savepoint, 0) ||
-			call.sql == getSavepointQuery(constants.Savepoint, 1) ||
-			call.sql == getSavepointQuery(constants.ReleaseSavepoint, 0) ||
-			call.sql == getSavepointQuery(constants.ReleaseSavepoint, 1) {
+		if call.sql == getSavepointQuery(queries.Savepoint, 0) ||
+			call.sql == getSavepointQuery(queries.Savepoint, 1) ||
+			call.sql == getSavepointQuery(queries.ReleaseSavepoint, 0) ||
+			call.sql == getSavepointQuery(queries.ReleaseSavepoint, 1) {
 			savepointCalls = append(savepointCalls, call.sql)
 		}
 	}
@@ -368,7 +368,7 @@ func TestUpsertPartialFailure(t *testing.T) {
 	tx := newMockTx()
 	// Устанавливаем ошибку для InsertFamily на втором вызове (для второго парфюма)
 	// Первый парфюм обработается успешно, второй упадет
-	tx.setExecErrorOnCall(constants.InsertFamily, errors.New("database error"), 2)
+	tx.setExecErrorOnCall(queries.InsertFamily, errors.New("database error"), 2)
 	ctx := context.Background()
 
 	status := upsert(ctx, tx, perfumes)
@@ -396,14 +396,14 @@ func TestDeleteOldPerfumes(t *testing.T) {
 		t.Fatalf("deleteOldPerfumes exec calls len = %d, want %d", len(tx.execCalls), 1)
 	}
 
-	if tx.execCalls[0].sql != constants.DeleteOldPerfumes {
-		t.Fatalf("deleteOldPerfumes exec sql = %q, want %q", tx.execCalls[0].sql, constants.DeleteOldPerfumes)
+	if tx.execCalls[0].sql != queries.DeleteOldPerfumes {
+		t.Fatalf("deleteOldPerfumes exec sql = %q, want %q", tx.execCalls[0].sql, queries.DeleteOldPerfumes)
 	}
 }
 
 func TestDeleteOldPerfumesError(t *testing.T) {
 	tx := newMockTx()
-	tx.setExecError(constants.DeleteOldPerfumes, errors.New("database error"))
+	tx.setExecError(queries.DeleteOldPerfumes, errors.New("database error"))
 	ctx := context.Background()
 
 	result := deleteOldPerfumes(ctx, tx)
@@ -449,18 +449,18 @@ func TestRunUpdateQueries(t *testing.T) {
 
 	// Проверяем, что все запросы были выполнены
 	expectedQueries := []string{
-		constants.GetOrInsertShop,
-		constants.InsertVariant,
-		constants.InsertVariant,
-		constants.InsertFamily,
-		constants.InsertFamily,
-		constants.InsertUpperNote,
-		constants.InsertUpperNote,
-		constants.InsertCoreNote,
-		constants.InsertCoreNote,
-		constants.InsertBaseNote,
-		constants.InsertBaseNote,
-		constants.InsertPerfumeBaseInfo,
+		queries.GetOrInsertShop,
+		queries.InsertVariant,
+		queries.InsertVariant,
+		queries.InsertFamily,
+		queries.InsertFamily,
+		queries.InsertUpperNote,
+		queries.InsertUpperNote,
+		queries.InsertCoreNote,
+		queries.InsertCoreNote,
+		queries.InsertBaseNote,
+		queries.InsertBaseNote,
+		queries.InsertPerfumeBaseInfo,
 	}
 
 	if len(tx.execCalls) != len(expectedQueries) {
@@ -503,13 +503,13 @@ func TestRunUpdateQueriesError(t *testing.T) {
 		errorSQL  string
 		errorFunc func(*mockTx)
 	}{
-		{"shop error", constants.GetOrInsertShop, func(tx *mockTx) { tx.setExecError(constants.GetOrInsertShop, errors.New("shop error")) }},
-		{"variant error", constants.InsertVariant, func(tx *mockTx) { tx.setExecError(constants.InsertVariant, errors.New("variant error")) }},
-		{"family error", constants.InsertFamily, func(tx *mockTx) { tx.setExecError(constants.InsertFamily, errors.New("family error")) }},
-		{"upper note error", constants.InsertUpperNote, func(tx *mockTx) { tx.setExecError(constants.InsertUpperNote, errors.New("note error")) }},
-		{"core note error", constants.InsertCoreNote, func(tx *mockTx) { tx.setExecError(constants.InsertCoreNote, errors.New("note error")) }},
-		{"base note error", constants.InsertBaseNote, func(tx *mockTx) { tx.setExecError(constants.InsertBaseNote, errors.New("note error")) }},
-		{"perfume type error", constants.InsertPerfumeBaseInfo, func(tx *mockTx) { tx.setExecError(constants.InsertPerfumeBaseInfo, errors.New("perfume error")) }},
+		{"shop error", queries.GetOrInsertShop, func(tx *mockTx) { tx.setExecError(queries.GetOrInsertShop, errors.New("shop error")) }},
+		{"variant error", queries.InsertVariant, func(tx *mockTx) { tx.setExecError(queries.InsertVariant, errors.New("variant error")) }},
+		{"family error", queries.InsertFamily, func(tx *mockTx) { tx.setExecError(queries.InsertFamily, errors.New("family error")) }},
+		{"upper note error", queries.InsertUpperNote, func(tx *mockTx) { tx.setExecError(queries.InsertUpperNote, errors.New("note error")) }},
+		{"core note error", queries.InsertCoreNote, func(tx *mockTx) { tx.setExecError(queries.InsertCoreNote, errors.New("note error")) }},
+		{"base note error", queries.InsertBaseNote, func(tx *mockTx) { tx.setExecError(queries.InsertBaseNote, errors.New("note error")) }},
+		{"perfume type error", queries.InsertPerfumeBaseInfo, func(tx *mockTx) { tx.setExecError(queries.InsertPerfumeBaseInfo, errors.New("perfume error")) }},
 	}
 
 	for _, tt := range tests {
@@ -570,10 +570,10 @@ func TestUpdateShopInfo(t *testing.T) {
 	variantCalls := 0
 
 	for _, call := range tx.execCalls {
-		if call.sql == constants.GetOrInsertShop {
+		if call.sql == queries.GetOrInsertShop {
 			shopCalls++
 		}
-		if call.sql == constants.InsertVariant {
+		if call.sql == queries.InsertVariant {
 			variantCalls++
 		}
 	}
@@ -614,8 +614,8 @@ func TestUpdateShopInfoError(t *testing.T) {
 		name     string
 		errorSQL string
 	}{
-		{"shop error", constants.GetOrInsertShop},
-		{"variant error", constants.InsertVariant},
+		{"shop error", queries.GetOrInsertShop},
+		{"variant error", queries.InsertVariant},
 	}
 
 	for _, tt := range tests {
@@ -657,8 +657,8 @@ func TestUpdateFamilies(t *testing.T) {
 	}
 
 	for i, call := range tx.execCalls {
-		if call.sql != constants.InsertFamily {
-			t.Fatalf("updateFamilies exec[%d] sql = %q, want %q", i, call.sql, constants.InsertFamily)
+		if call.sql != queries.InsertFamily {
+			t.Fatalf("updateFamilies exec[%d] sql = %q, want %q", i, call.sql, queries.InsertFamily)
 		}
 		expectedArgs := []any{"Brand", "Name", "male", perfume.Properties.Family[i]}
 		if !reflect.DeepEqual(call.args, expectedArgs) {
@@ -678,7 +678,7 @@ func TestUpdateFamiliesError(t *testing.T) {
 	}
 
 	tx := newMockTx()
-	tx.setExecError(constants.InsertFamily, errors.New("database error"))
+	tx.setExecError(queries.InsertFamily, errors.New("database error"))
 	ctx := context.Background()
 
 	err := updateFamilies(ctx, tx, perfume)
@@ -706,9 +706,9 @@ func TestUpdateNotes(t *testing.T) {
 		notes    []string
 		noteType string
 	}{
-		{"upper notes", constants.InsertUpperNote, perfume.Properties.UpperNotes, "upper"},
-		{"core notes", constants.InsertCoreNote, perfume.Properties.CoreNotes, "core"},
-		{"base notes", constants.InsertBaseNote, perfume.Properties.BaseNotes, "base"},
+		{"upper notes", queries.InsertUpperNote, perfume.Properties.UpperNotes, "upper"},
+		{"core notes", queries.InsertCoreNote, perfume.Properties.CoreNotes, "core"},
+		{"base notes", queries.InsertBaseNote, perfume.Properties.BaseNotes, "base"},
 	}
 
 	for _, tt := range tests {
@@ -750,10 +750,10 @@ func TestUpdateNotesError(t *testing.T) {
 	}
 
 	tx := newMockTx()
-	tx.setExecError(constants.InsertUpperNote, errors.New("database error"))
+	tx.setExecError(queries.InsertUpperNote, errors.New("database error"))
 	ctx := context.Background()
 
-	err := updateNotes(ctx, tx, constants.InsertUpperNote, perfume, perfume.Properties.UpperNotes)
+	err := updateNotes(ctx, tx, queries.InsertUpperNote, perfume, perfume.Properties.UpperNotes)
 
 	if err == nil {
 		t.Fatalf("updateNotes() error = nil, want error")
@@ -792,8 +792,8 @@ func TestUpdatePerfumeType(t *testing.T) {
 	}
 
 	call := tx.execCalls[0]
-	if call.sql != constants.InsertPerfumeBaseInfo {
-		t.Fatalf("updatePerfumeType exec sql = %q, want %q", call.sql, constants.InsertPerfumeBaseInfo)
+	if call.sql != queries.InsertPerfumeBaseInfo {
+		t.Fatalf("updatePerfumeType exec sql = %q, want %q", call.sql, queries.InsertPerfumeBaseInfo)
 	}
 
 	expectedArgs := []any{"Brand", "Name", "male", "Eau de Parfum", "http://image1.com"}
@@ -821,7 +821,7 @@ func TestUpdatePerfumeTypeError(t *testing.T) {
 	}
 
 	tx := newMockTx()
-	tx.setExecError(constants.InsertPerfumeBaseInfo, errors.New("database error"))
+	tx.setExecError(queries.InsertPerfumeBaseInfo, errors.New("database error"))
 	ctx := context.Background()
 
 	err := updatePerfumeType(ctx, tx, perfume)
@@ -900,18 +900,18 @@ func TestUpdateSavepointStatus(t *testing.T) {
 	tx := newMockTx()
 	ctx := context.Background()
 
-	updateSavepointStatus(ctx, tx, constants.Savepoint, 0)
-	updateSavepointStatus(ctx, tx, constants.RollbackSavepoint, 1)
-	updateSavepointStatus(ctx, tx, constants.ReleaseSavepoint, 2)
+	updateSavepointStatus(ctx, tx, queries.Savepoint, 0)
+	updateSavepointStatus(ctx, tx, queries.RollbackSavepoint, 1)
+	updateSavepointStatus(ctx, tx, queries.ReleaseSavepoint, 2)
 
 	if len(tx.execCalls) != 3 {
 		t.Fatalf("updateSavepointStatus exec calls len = %d, want %d", len(tx.execCalls), 3)
 	}
 
 	expected := []string{
-		getSavepointQuery(constants.Savepoint, 0),
-		getSavepointQuery(constants.RollbackSavepoint, 1),
-		getSavepointQuery(constants.ReleaseSavepoint, 2),
+		getSavepointQuery(queries.Savepoint, 0),
+		getSavepointQuery(queries.RollbackSavepoint, 1),
+		getSavepointQuery(queries.ReleaseSavepoint, 2),
 	}
 
 	for i, expectedSQL := range expected {

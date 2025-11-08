@@ -7,7 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/config"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/constants"
+	queries "github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/query"
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
 )
 
@@ -43,7 +43,7 @@ func Update(ctx context.Context, params *models.UpdateParameters) models.Process
 }
 
 func deleteOldPerfumes(ctx context.Context, tx pgx.Tx) bool {
-	_, err := tx.Exec(ctx, constants.DeleteOldPerfumes)
+	_, err := tx.Exec(ctx, queries.DeleteOldPerfumes)
 	if err != nil {
 		log.Printf("Error deleting old perfumes: %v\n", err)
 		return false
@@ -55,14 +55,14 @@ func deleteOldPerfumes(ctx context.Context, tx pgx.Tx) bool {
 func upsert(ctx context.Context, tx pgx.Tx, perfumes []models.Perfume) models.ProcessedState {
 	updateState := models.NewProcessedState()
 	for i, perfume := range perfumes {
-		updateSavepointStatus(ctx, tx, constants.Savepoint, i)
+		updateSavepointStatus(ctx, tx, queries.Savepoint, i)
 		if err := runUpdateQueries(ctx, tx, perfume); err != nil {
 			log.Printf("Error updating perfume %s %s: %v\n", perfume.Brand, perfume.Name, err)
-			updateSavepointStatus(ctx, tx, constants.RollbackSavepoint, i)
+			updateSavepointStatus(ctx, tx, queries.RollbackSavepoint, i)
 			updateState.FailedCount++
 			continue
 		}
-		updateSavepointStatus(ctx, tx, constants.ReleaseSavepoint, i)
+		updateSavepointStatus(ctx, tx, queries.ReleaseSavepoint, i)
 		updateState.SuccessfulCount++
 	}
 
@@ -76,13 +76,13 @@ func runUpdateQueries(ctx context.Context, tx pgx.Tx, perfume models.Perfume) er
 	if err := updateFamilies(ctx, tx, perfume); err != nil {
 		return err
 	}
-	if err := updateNotes(ctx, tx, constants.InsertUpperNote, perfume, perfume.Properties.UpperNotes); err != nil {
+	if err := updateNotes(ctx, tx, queries.InsertUpperNote, perfume, perfume.Properties.UpperNotes); err != nil {
 		return err
 	}
-	if err := updateNotes(ctx, tx, constants.InsertCoreNote, perfume, perfume.Properties.CoreNotes); err != nil {
+	if err := updateNotes(ctx, tx, queries.InsertCoreNote, perfume, perfume.Properties.CoreNotes); err != nil {
 		return err
 	}
-	if err := updateNotes(ctx, tx, constants.InsertBaseNote, perfume, perfume.Properties.BaseNotes); err != nil {
+	if err := updateNotes(ctx, tx, queries.InsertBaseNote, perfume, perfume.Properties.BaseNotes); err != nil {
 		return err
 	}
 	if err := updatePerfumeType(ctx, tx, perfume); err != nil {
@@ -93,11 +93,11 @@ func runUpdateQueries(ctx context.Context, tx pgx.Tx, perfume models.Perfume) er
 
 func updateShopInfo(ctx context.Context, tx pgx.Tx, perfume models.Perfume) error {
 	for _, shop := range perfume.Shops {
-		if _, err := tx.Exec(ctx, constants.GetOrInsertShop, shop.ShopName, shop.Domain); err != nil {
+		if _, err := tx.Exec(ctx, queries.GetOrInsertShop, shop.ShopName, shop.Domain); err != nil {
 			return err
 		}
 		for _, variant := range shop.Variants {
-			if _, err := tx.Exec(ctx, constants.InsertVariant,
+			if _, err := tx.Exec(ctx, queries.InsertVariant,
 				perfume.Brand,
 				perfume.Name,
 				perfume.Sex,
@@ -115,7 +115,7 @@ func updateShopInfo(ctx context.Context, tx pgx.Tx, perfume models.Perfume) erro
 
 func updateFamilies(ctx context.Context, tx pgx.Tx, perfume models.Perfume) error {
 	for _, family := range perfume.Properties.Family {
-		if _, err := tx.Exec(ctx, constants.InsertFamily, perfume.Brand, perfume.Name, perfume.Sex, family); err != nil {
+		if _, err := tx.Exec(ctx, queries.InsertFamily, perfume.Brand, perfume.Name, perfume.Sex, family); err != nil {
 			return err
 		}
 	}
@@ -133,7 +133,7 @@ func updateNotes(ctx context.Context, tx pgx.Tx, query string, perfume models.Pe
 
 func updatePerfumeType(ctx context.Context, tx pgx.Tx, perfume models.Perfume) error {
 	imageUrl := getPreferredImageUrl(perfume)
-	if _, err := tx.Exec(ctx, constants.InsertPerfumeBaseInfo, perfume.Brand, perfume.Name, perfume.Sex, perfume.Properties.Type, imageUrl); err != nil {
+	if _, err := tx.Exec(ctx, queries.InsertPerfumeBaseInfo, perfume.Brand, perfume.Name, perfume.Sex, perfume.Properties.Type, imageUrl); err != nil {
 		return err
 	}
 	return nil

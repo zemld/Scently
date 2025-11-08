@@ -6,7 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/config"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/constants"
+	queries "github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/query"
 )
 
 func Initiate() {
@@ -21,16 +21,15 @@ func Initiate() {
 	defer conn.Close(ctx)
 
 	setupDatabase(ctx, conn,
-		constants.NonEmptyTextField,
-		constants.CreateSexesTable,
-		constants.FillSexesTable,
-		constants.CreateShopsTable,
-		constants.CreateVariantsTable,
-		constants.CreateFamiliesTable,
-		constants.CreateUpperNotesTable,
-		constants.CreateCoreNotesTable,
-		constants.CreateBaseNotesTable,
-		constants.CreatePerfumeBaseInfoTable,
+		queries.NonEmptyTextField,
+		queries.CreateSexesTable,
+		queries.CreateShopsTable,
+		queries.CreateVariantsTable,
+		queries.CreateFamiliesTable,
+		queries.CreateUpperNotesTable,
+		queries.CreateCoreNotesTable,
+		queries.CreateBaseNotesTable,
+		queries.CreatePerfumeBaseInfoTable,
 	)
 	log.Println("Perfume table created successfully")
 }
