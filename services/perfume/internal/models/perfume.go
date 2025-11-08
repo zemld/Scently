@@ -4,6 +4,7 @@ type Perfume struct {
 	Brand      string            `json:"brand"`
 	Name       string            `json:"name"`
 	Sex        string            `json:"sex"`
+	ImageUrl   string            `json:"image_url"`
 	Properties PerfumeProperties `json:"properties"`
 	Shops      []ShopInfo        `json:"shops"`
 }

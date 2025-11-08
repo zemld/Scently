@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/constants"
+	queries "github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/query"
 )
 
 type contextKey string
@@ -51,8 +51,14 @@ func (p *SelectParameters) WithSex(sex string) *SelectParameters {
 	return p
 }
 
-func (p *SelectParameters) GetQuery() string {
-	query := strings.TrimSpace(constants.Select)
+func (p SelectParameters) GetQuery() string {
+	choosingPerfumesQuery := p.GetChoosingPerfumesQuery()
+	withClause := fmt.Sprintf(queries.With, choosingPerfumesQuery)
+	return withClause + queries.EnrichSelectedPerfumes
+}
+
+func (p SelectParameters) GetChoosingPerfumesQuery() string {
+	query := strings.TrimSpace(queries.PerfumesBaseInfo)
 	conditions := []string{}
 
 	parametersCount := 1
@@ -73,17 +79,13 @@ func (p *SelectParameters) GetQuery() string {
 
 	if len(conditions) > 0 {
 		whereClause := " WHERE " + strings.Join(conditions, " AND ")
-		groupByIndex := strings.LastIndex(query, "GROUP BY")
-		if groupByIndex != -1 {
-			return query[:groupByIndex] + whereClause + " " + query[groupByIndex:]
-		}
-		return query + whereClause
+		query = query + whereClause
 	}
 
 	return query
 }
 
-func (p *SelectParameters) Unpack() []any {
+func (p SelectParameters) Unpack() []any {
 	var args []any
 	if p.Brand != "" {
 		args = append(args, p.Brand)

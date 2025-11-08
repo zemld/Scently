@@ -19,7 +19,6 @@ func Select(ctx context.Context, params *models.SelectParameters) ([]models.Perf
 	}
 	defer conn.Close(ctx)
 
-	log.Printf("Executing query: %s\n", params.GetQuery())
 	rows, err := conn.Query(ctx, params.GetQuery(), params.Unpack()...)
 	if err != nil {
 		log.Printf("Error executing query: %v\n", err)
@@ -35,6 +34,7 @@ func Select(ctx context.Context, params *models.SelectParameters) ([]models.Perf
 			&perfume.Brand,
 			&perfume.Name,
 			&perfume.Sex,
+			&perfume.ImageUrl,
 			&perfume.Properties,
 			&perfume.Shops,
 		)

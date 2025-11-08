@@ -21,6 +21,7 @@ func Initiate() {
 	defer conn.Close(ctx)
 
 	setupDatabase(ctx, conn,
+		constants.NonEmptyTextField,
 		constants.CreateSexesTable,
 		constants.FillSexesTable,
 		constants.CreateShopsTable,
