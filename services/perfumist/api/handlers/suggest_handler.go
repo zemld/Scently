@@ -18,7 +18,7 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 	var suggestResponse SuggestResponse
 	params := r.Context().Value(parameters.ParamsKey).(parameters.RequestPerfume)
 
-	var mostSimilar []models.GluedPerfumeWithScore
+	var mostSimilar []models.PerfumeWithScore
 	if params.UseAI {
 		mostSimilar = app.GetAIEnrichedSuggestions(r.Context(), params)
 	}
@@ -37,14 +37,14 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 	*r = *r.WithContext(ctxWithSuggestions)
 }
 
-func rankSuggestions(suggestions []models.GluedPerfumeWithScore) []models.RankedPerfumeWithProps {
+func rankSuggestions(suggestions []models.PerfumeWithScore) []models.RankedPerfumeWithProps {
 	rankedSuggestions := make([]models.RankedPerfumeWithProps, 0, len(suggestions))
 	for i, suggestion := range suggestions {
 		rankedSuggestions = append(
 			rankedSuggestions,
 			models.RankedPerfumeWithProps{
 				Rank:    i + 1,
-				Perfume: suggestion.GluedPerfume,
+				Perfume: suggestion.Perfume,
 				Score:   math.Round(suggestion.Score*100) / 100,
 			})
 	}

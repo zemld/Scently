@@ -3,8 +3,8 @@ package main
 import (
 	"net/http"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/api/handlers"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/api/middleware"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/api/handlers"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/api/middleware"
 )
 
 func main() {

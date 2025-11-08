@@ -9,7 +9,7 @@ import (
 
 const suggestsCount = 4
 
-func GetComparisionSuggestions(ctx context.Context, params parameters.RequestPerfume) []models.GluedPerfumeWithScore {
+func GetComparisionSuggestions(ctx context.Context, params parameters.RequestPerfume) []models.PerfumeWithScore {
 	favouritePerfumes, ok := FetchPerfumes(ctx, []parameters.RequestPerfume{params})
 	if !ok || favouritePerfumes == nil || len(favouritePerfumes) == 0 {
 		return nil

@@ -23,7 +23,7 @@ const (
 	badServerStatus = 500
 )
 
-func FetchPerfumes(ctx context.Context, params []parameters.RequestPerfume) ([]models.GluedPerfume, bool) {
+func FetchPerfumes(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
 	perfumesChan := make(chan perfumesFetchAndGlueResult, len(params))
 
 	wg := sync.WaitGroup{}
@@ -46,7 +46,7 @@ func FetchPerfumes(ctx context.Context, params []parameters.RequestPerfume) ([]m
 }
 
 type perfumesFetchAndGlueResult struct {
-	Perfumes []models.GluedPerfume
+	Perfumes []models.Perfume
 	Status   int
 }
 
@@ -59,7 +59,7 @@ func getAndGluePerfumesAsync(ctx context.Context, params parameters.RequestPerfu
 		results <- perfumesFetchAndGlueResult{Perfumes: nil, Status: status}
 		return
 	}
-	results <- perfumesFetchAndGlueResult{Perfumes: Glue(perfumes), Status: status}
+	results <- perfumesFetchAndGlueResult{Perfumes: perfumes, Status: status}
 }
 
 func getPerfumes(ctx context.Context, p parameters.RequestPerfume) ([]models.Perfume, int) {
@@ -111,8 +111,8 @@ func addQueryParameter(r *http.Request, key string, value string) {
 	r.URL.RawQuery = updatedQuery.Encode()
 }
 
-func fetchPerfumeResults(ctx context.Context, perfumesChan <-chan perfumesFetchAndGlueResult) ([]models.GluedPerfume, int) {
-	var perfumes []models.GluedPerfume
+func fetchPerfumeResults(ctx context.Context, perfumesChan <-chan perfumesFetchAndGlueResult) ([]models.Perfume, int) {
+	var perfumes []models.Perfume
 	var status int
 
 	for {

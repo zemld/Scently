@@ -1,58 +1,36 @@
 package models
 
-import "encoding/json"
-
 type Perfume struct {
-	Brand       string   `json:"brand"`
-	Name        string   `json:"name"`
-	Type        string   `json:"type"`
-	Sex         string   `json:"sex"`
-	Family      []string `json:"family"`
-	UpperNotes  []string `json:"upper_notes"`
-	MiddleNotes []string `json:"middle_notes"`
-	BaseNotes   []string `json:"base_notes"`
-	Link        string   `json:"link"`
-	Volume      int      `json:"volume"`
-	ImageUrl    string   `json:"image_url"`
-}
-
-type GluedPerfume struct {
 	Brand      string            `json:"brand"`
 	Name       string            `json:"name"`
 	Sex        string            `json:"sex"`
-	Properties PerfumeProperties `json:"properties"`
-	Links      map[int]string    `json:"links"`
 	ImageUrl   string            `json:"image_url"`
-}
-
-func NewGluedPerfume(p Perfume) GluedPerfume {
-	return GluedPerfume{
-		Brand:      p.Brand,
-		Name:       p.Name,
-		Sex:        p.Sex,
-		Properties: p.getProperties(),
-		Links:      map[int]string{p.Volume: p.Link},
-		ImageUrl:   p.ImageUrl,
-	}
-}
-
-func (g GluedPerfume) Equal(other GluedPerfume) bool {
-	return g.Brand == other.Brand && g.Name == other.Name && g.Sex == other.Sex
+	Properties PerfumeProperties `json:"properties"`
+	Shops      []ShopInfo        `json:"shops"`
 }
 
 type PerfumeProperties struct {
-	Type        string   `json:"type"`
-	Family      []string `json:"family"`
-	UpperNotes  []string `json:"upper_notes"`
-	MiddleNotes []string `json:"middle_notes"`
-	BaseNotes   []string `json:"base_notes"`
+	Type       string   `json:"perfume_type"`
+	Family     []string `json:"family"`
+	UpperNotes []string `json:"upper_notes"`
+	CoreNotes  []string `json:"core_notes"`
+	BaseNotes  []string `json:"base_notes"`
 }
 
-func (p Perfume) getProperties() PerfumeProperties {
-	encodedPerfume, _ := json.Marshal(p)
-	var props PerfumeProperties
-	json.Unmarshal(encodedPerfume, &props)
-	return props
+type ShopInfo struct {
+	ShopName string           `json:"shop_name"`
+	Domain   string           `json:"domain"`
+	Variants []PerfumeVariant `json:"variants"`
+}
+
+type PerfumeVariant struct {
+	Volume int    `json:"volume"`
+	Link   string `json:"link"`
+	Price  int    `json:"price"`
+}
+
+func (p Perfume) Equal(other Perfume) bool {
+	return p.Brand == other.Brand && p.Name == other.Name && p.Sex == other.Sex
 }
 
 type State struct {
@@ -67,12 +45,12 @@ type PerfumeResponse struct {
 }
 
 type RankedPerfumeWithProps struct {
-	Perfume GluedPerfume `json:"perfume"`
-	Rank    int          `json:"rank"`
-	Score   float64      `json:"similarity_score"`
+	Perfume Perfume `json:"perfume"`
+	Rank    int     `json:"rank,omitempty"`
+	Score   float64 `json:"similarity_score,omitempty"`
 }
 
-type GluedPerfumeWithScore struct {
-	GluedPerfume
+type PerfumeWithScore struct {
+	Perfume
 	Score float64
 }
