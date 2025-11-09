@@ -37,12 +37,12 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 	*r = *r.WithContext(ctxWithSuggestions)
 }
 
-func rankSuggestions(suggestions []perfume.WithScore) []perfume.RankedWithProps {
-	rankedSuggestions := make([]perfume.RankedWithProps, 0, len(suggestions))
+func rankSuggestions(suggestions []perfume.WithScore) []perfume.Ranked {
+	rankedSuggestions := make([]perfume.Ranked, 0, len(suggestions))
 	for i, suggestion := range suggestions {
 		rankedSuggestions = append(
 			rankedSuggestions,
-			perfume.RankedWithProps{
+			perfume.Ranked{
 				Rank:    i + 1,
 				Perfume: suggestion.Perfume,
 				Score:   math.Round(suggestion.Score*100) / 100,

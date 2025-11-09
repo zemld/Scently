@@ -44,7 +44,7 @@ type PerfumeResponse struct {
 	State    State     `json:"state"`
 }
 
-type RankedWithProps struct {
+type Ranked struct {
 	Perfume Perfume `json:"perfume"`
 	Rank    int     `json:"rank,omitempty"`
 	Score   float64 `json:"similarity_score,omitempty"`

@@ -14,7 +14,7 @@ import (
 
 const cacheTTL = 3600 * time.Second
 
-func LookupCache(ctx context.Context, requestedPerfume parameters.RequestPerfume) ([]perfume.RankedWithProps, error) {
+func LookupCache(ctx context.Context, requestedPerfume parameters.RequestPerfume) ([]perfume.Ranked, error) {
 	key := getCacheKey(requestedPerfume)
 	client := rdb.GetRedisClient()
 
@@ -25,14 +25,14 @@ func LookupCache(ctx context.Context, requestedPerfume parameters.RequestPerfume
 	if err != nil {
 		return nil, err
 	}
-	var result []perfume.RankedWithProps
+	var result []perfume.Ranked
 	if err := json.Unmarshal([]byte(cached), &result); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func Cache(ctx context.Context, requestedPerfume parameters.RequestPerfume, toCache []perfume.RankedWithProps) error {
+func Cache(ctx context.Context, requestedPerfume parameters.RequestPerfume, toCache []perfume.Ranked) error {
 	encoded, err := json.Marshal(toCache)
 	if err != nil {
 		return err

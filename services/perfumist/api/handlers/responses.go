@@ -8,7 +8,7 @@ import (
 )
 
 type SuggestResponse struct {
-	Suggested []perfume.RankedWithProps `json:"suggested"`
+	Suggested []perfume.Ranked `json:"suggested"`
 }
 
 func WriteResponse(w http.ResponseWriter, response any, status int) {

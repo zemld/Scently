@@ -27,7 +27,7 @@ func Cache(next http.HandlerFunc) http.HandlerFunc {
 		next(w, r)
 
 		suggestionsValue := r.Context().Value(handlers.SuggestionsContextKey)
-		suggestions, _ := suggestionsValue.([]perfume.RankedWithProps)
+		suggestions, _ := suggestionsValue.([]perfume.Ranked)
 		if err := app.Cache(r.Context(), params, suggestions); err != nil {
 			log.Printf("Cannot cache: %v\n", err)
 		}
