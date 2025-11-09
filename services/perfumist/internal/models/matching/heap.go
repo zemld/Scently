@@ -1,6 +1,7 @@
 package matching
 
 import (
+	"container/heap"
 	"sync"
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
@@ -38,12 +39,12 @@ func (h *PerfumeHeap) PushSafe(x perfume.WithScore) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	h.Push(x)
+	heap.Push(h, x)
 }
 
-func (h *PerfumeHeap) PopSafe() {
+func (h *PerfumeHeap) PopSafe() perfume.WithScore {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	h.Pop()
+	return heap.Pop(h).(perfume.WithScore)
 }

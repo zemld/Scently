@@ -46,28 +46,27 @@ func (m Overlay) Find(favourite perfume.Perfume, all []perfume.Perfume, matchesC
 	wg := sync.WaitGroup{}
 	wg.Add(m.threadsCount)
 
-	for range m.threadsCount {
-		go m.buildHeapAsync(&matchingHeap, &wg, favourite, all)
+	chunkSize := len(all) / m.threadsCount
+	for i := range m.threadsCount {
+		start := i * chunkSize
+		end := start + chunkSize
+		if i == m.threadsCount-1 {
+			end = len(all)
+		}
+		go m.buildHeapAsync(&matchingHeap, &wg, favourite, all[start:end])
 	}
 
 	wg.Wait()
 
-	availableCount := matchingHeap.Len()
-	if matchesCount > availableCount {
-		matchesCount = availableCount
-	}
+	matchesCount = min(matchesCount, matchingHeap.Len())
 
-	if matchesCount == 0 {
-		return []perfume.Ranked{}
-	}
-
-	mostSimilar := matchingHeap.perfumes[:matchesCount]
-	ranked := make([]perfume.Ranked, 0, len(mostSimilar))
-	for i := range mostSimilar {
+	ranked := make([]perfume.Ranked, 0, matchesCount)
+	for i := range matchesCount {
+		mostSimilar := matchingHeap.PopSafe()
 		ranked = append(ranked, perfume.Ranked{
-			Perfume: mostSimilar[i].Perfume,
+			Perfume: mostSimilar.Perfume,
 			Rank:    i + 1,
-			Score:   mostSimilar[i].Score,
+			Score:   mostSimilar.Score,
 		})
 	}
 	return ranked
