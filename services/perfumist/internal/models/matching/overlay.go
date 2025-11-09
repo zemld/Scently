@@ -20,7 +20,7 @@ type Overlay struct {
 	threadsCount int
 }
 
-func NewSimpleMatcher(familyWeight float64,
+func NewOverlay(familyWeight float64,
 	notesWeight float64,
 	typeWeight float64,
 	upperNotesWeight float64,

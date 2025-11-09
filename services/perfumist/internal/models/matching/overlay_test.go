@@ -11,7 +11,7 @@ import (
 func TestNewSimpleMatcher(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewSimpleMatcher(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 4)
+	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 4)
 
 	if matcher == nil {
 		t.Fatal("expected non-nil matcher")
@@ -42,7 +42,7 @@ func TestNewSimpleMatcher(t *testing.T) {
 func TestOverlay_getTypeSimilarityScore_Identical(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewSimpleMatcher(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
+	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 	score := matcher.getTypeSimilarityScore("EDT", "EDT")
 
 	if score != 1.0 {
@@ -53,7 +53,7 @@ func TestOverlay_getTypeSimilarityScore_Identical(t *testing.T) {
 func TestOverlay_getTypeSimilarityScore_Different(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewSimpleMatcher(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
+	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 	score := matcher.getTypeSimilarityScore("EDT", "EDP")
 
 	if score != 0.0 {
@@ -64,7 +64,7 @@ func TestOverlay_getTypeSimilarityScore_Different(t *testing.T) {
 func TestOverlay_getListSimilarityScore_Identical(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewSimpleMatcher(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
+	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 	first := []string{"floral", "woody", "spicy"}
 	second := []string{"floral", "woody", "spicy"}
 
@@ -78,7 +78,7 @@ func TestOverlay_getListSimilarityScore_Identical(t *testing.T) {
 func TestOverlay_getListSimilarityScore_PartialOverlap(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewSimpleMatcher(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
+	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 	first := []string{"floral", "woody"}
 	second := []string{"floral", "woody", "spicy"}
 
@@ -96,7 +96,7 @@ func TestOverlay_getListSimilarityScore_PartialOverlap(t *testing.T) {
 func TestOverlay_getListSimilarityScore_NoOverlap(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewSimpleMatcher(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
+	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 	first := []string{"floral", "woody"}
 	second := []string{"citrus", "spicy"}
 
@@ -110,7 +110,7 @@ func TestOverlay_getListSimilarityScore_NoOverlap(t *testing.T) {
 func TestOverlay_getListSimilarityScore_EmptyLists(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewSimpleMatcher(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
+	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 	first := []string{}
 	second := []string{}
 
@@ -124,7 +124,7 @@ func TestOverlay_getListSimilarityScore_EmptyLists(t *testing.T) {
 func TestOverlay_getListSimilarityScore_OneEmpty(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewSimpleMatcher(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
+	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 	first := []string{"floral", "woody"}
 	second := []string{}
 
@@ -138,7 +138,7 @@ func TestOverlay_getListSimilarityScore_OneEmpty(t *testing.T) {
 func TestOverlay_getListSimilarityScore_Duplicates(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewSimpleMatcher(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
+	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 	first := []string{"floral", "floral", "woody"}
 	second := []string{"floral", "woody", "woody"}
 
@@ -156,7 +156,7 @@ func TestOverlay_getListSimilarityScore_Duplicates(t *testing.T) {
 func TestOverlay_getNotesSimilarityScore(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewSimpleMatcher(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
+	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 
 	first := perfume.Properties{
 		UpperNotes: []string{"bergamot", "lemon"},
@@ -185,7 +185,7 @@ func TestOverlay_getNotesSimilarityScore(t *testing.T) {
 func TestOverlay_GetPerfumeSimilarityScore(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewSimpleMatcher(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
+	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 
 	first := perfume.Properties{
 		Type:       "EDT",
@@ -218,7 +218,7 @@ func TestOverlay_GetPerfumeSimilarityScore(t *testing.T) {
 func TestOverlay_GetPerfumeSimilarityScore_DifferentType(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewSimpleMatcher(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
+	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 
 	first := perfume.Properties{
 		Type:       "EDT",
@@ -251,7 +251,7 @@ func TestOverlay_GetPerfumeSimilarityScore_DifferentType(t *testing.T) {
 func TestOverlay_buildHeapAsync_SkipsEqual(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewSimpleMatcher(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
+	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 
 	favourite := perfume.Perfume{
 		Brand: "Chanel",
@@ -281,7 +281,7 @@ func TestOverlay_buildHeapAsync_SkipsEqual(t *testing.T) {
 func TestOverlay_Find(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewSimpleMatcher(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 2)
+	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 2)
 
 	favourite := perfume.Perfume{
 		Brand: "Chanel",
@@ -371,7 +371,7 @@ func TestOverlay_Find(t *testing.T) {
 func TestOverlay_Find_EmptyList(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewSimpleMatcher(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
+	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 
 	favourite := perfume.Perfume{
 		Brand: "Chanel",
@@ -394,7 +394,7 @@ func TestOverlay_Find_EmptyList(t *testing.T) {
 func TestOverlay_Find_OnlyFavourite(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewSimpleMatcher(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
+	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 
 	favourite := perfume.Perfume{
 		Brand: "Chanel",
@@ -417,7 +417,7 @@ func TestOverlay_Find_OnlyFavourite(t *testing.T) {
 func TestOverlay_Find_MoreThanAvailable(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewSimpleMatcher(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
+	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 
 	favourite := perfume.Perfume{
 		Brand: "Chanel",
@@ -459,7 +459,7 @@ func TestOverlay_Find_MoreThanAvailable(t *testing.T) {
 func TestOverlay_Find_OrderedByScore(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewSimpleMatcher(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
+	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 
 	favourite := perfume.Perfume{
 		Brand: "Chanel",
