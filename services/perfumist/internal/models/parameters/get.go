@@ -1,5 +1,7 @@
 package parameters
 
+import "net/http"
+
 type contextKey string
 
 const ParamsKey contextKey = "params"
@@ -49,4 +51,21 @@ func (p *RequestPerfume) WithSex(sex string) *RequestPerfume {
 
 func NewGet() *RequestPerfume {
 	return &RequestPerfume{UseAI: false}
+}
+
+func (p RequestPerfume) AddToQuery(r *http.Request) {
+	addQueryParameter(r, "brand", p.Brand)
+	addQueryParameter(r, "name", p.Name)
+	if p.Sex == "male" || p.Sex == "female" {
+		addQueryParameter(r, "sex", p.Sex)
+	}
+}
+
+func addQueryParameter(r *http.Request, key string, value string) {
+	if value == "" {
+		return
+	}
+	updatedQuery := r.URL.Query()
+	updatedQuery.Set(key, value)
+	r.URL.RawQuery = updatedQuery.Encode()
 }
