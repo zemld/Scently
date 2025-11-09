@@ -1,4 +1,4 @@
-package models
+package perfume
 
 import "testing"
 
@@ -10,7 +10,7 @@ func TestPerfume_Equal(t *testing.T) {
 		Name:     "X",
 		Sex:      "male",
 		ImageUrl: "url",
-		Properties: PerfumeProperties{
+		Properties: Properties{
 			Type:       "edt",
 			Family:     []string{"woody"},
 			UpperNotes: []string{"bergamot"},
@@ -45,7 +45,7 @@ func TestPerfume_Equal(t *testing.T) {
 func TestPerfumeProperties(t *testing.T) {
 	t.Parallel()
 
-	props := PerfumeProperties{
+	props := Properties{
 		Type:       "edt",
 		Family:     []string{"woody"},
 		UpperNotes: []string{"bergamot"},

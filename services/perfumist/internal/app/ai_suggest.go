@@ -7,8 +7,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
 )
 
 const (
@@ -16,11 +16,11 @@ const (
 )
 
 type aISuggestion struct {
-	Perfumes []models.Perfume `json:"perfumes"`
+	Perfumes []perfume.Perfume `json:"perfumes"`
 }
 
-func GetAIEnrichedSuggestions(ctx context.Context, params parameters.RequestPerfume) []models.PerfumeWithScore {
-	var mostSimilar []models.PerfumeWithScore
+func GetAIEnrichedSuggestions(ctx context.Context, params parameters.RequestPerfume) []perfume.WithScore {
+	var mostSimilar []perfume.WithScore
 	aiSuggests, err := AISuggest(ctx, params)
 	if err == nil && aiSuggests != nil {
 		mostSimilar = aiSuggests
@@ -41,7 +41,7 @@ func GetAIEnrichedSuggestions(ctx context.Context, params parameters.RequestPerf
 	return mostSimilar
 }
 
-func AISuggest(ctx context.Context, params parameters.RequestPerfume) ([]models.PerfumeWithScore, error) {
+func AISuggest(ctx context.Context, params parameters.RequestPerfume) ([]perfume.WithScore, error) {
 	r, _ := http.NewRequestWithContext(ctx, "GET", aiSuggestUrl, nil)
 	updateQuery(r, params)
 
@@ -64,9 +64,9 @@ func AISuggest(ctx context.Context, params parameters.RequestPerfume) ([]models.
 	if err != nil {
 		return nil, err
 	}
-	var suggestionsWithScore []models.PerfumeWithScore
+	var suggestionsWithScore []perfume.WithScore
 	for _, suggestion := range suggestions.Perfumes {
-		suggestionsWithScore = append(suggestionsWithScore, models.PerfumeWithScore{
+		suggestionsWithScore = append(suggestionsWithScore, perfume.WithScore{
 			Perfume: suggestion,
 		})
 	}

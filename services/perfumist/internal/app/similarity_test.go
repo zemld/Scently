@@ -4,14 +4,14 @@ import (
 	"math"
 	"testing"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
 )
 
 func TestGetPerfumeSimilarityScore_EmptyProperties(t *testing.T) {
 	t.Parallel()
 
-	a := models.PerfumeProperties{}
-	b := models.PerfumeProperties{}
+	a := perfume.Properties{}
+	b := perfume.Properties{}
 	// Empty properties: families=0, notes=0, type=1 (empty strings are equal)
 	// Score = 0*0.4 + 0*0.55 + 1*0.05 = 0.05
 	got := GetPerfumeSimilarityScore(a, b)
@@ -23,7 +23,7 @@ func TestGetPerfumeSimilarityScore_EmptyProperties(t *testing.T) {
 func TestGetPerfumeSimilarityScore_FullMatch(t *testing.T) {
 	t.Parallel()
 
-	a := models.PerfumeProperties{
+	a := perfume.Properties{
 		Type:       "edt",
 		Family:     []string{"woody", "spicy"},
 		UpperNotes: []string{"bergamot"},
@@ -40,8 +40,8 @@ func TestGetPerfumeSimilarityScore_FullMatch(t *testing.T) {
 func TestGetPerfumeSimilarityScore_EmptyLists(t *testing.T) {
 	t.Parallel()
 
-	a := models.PerfumeProperties{Type: "edt"}
-	b := models.PerfumeProperties{Type: "edt"}
+	a := perfume.Properties{Type: "edt"}
+	b := perfume.Properties{Type: "edt"}
 	// No notes/families -> list similarities 0; type equal -> 1
 	// Score = 0*0.4 + 0*0.55 + 1*0.05 = 0.05
 	got := GetPerfumeSimilarityScore(a, b)
@@ -53,14 +53,14 @@ func TestGetPerfumeSimilarityScore_EmptyLists(t *testing.T) {
 func TestGetPerfumeSimilarityScore_PartialNotes(t *testing.T) {
 	t.Parallel()
 
-	a := models.PerfumeProperties{
+	a := perfume.Properties{
 		Type:       "edt",
 		Family:     []string{"woody", "spicy"},
 		UpperNotes: []string{"bergamot", "lemon"},
 		CoreNotes:  []string{"lavender"},
 		BaseNotes:  []string{"cedar", "musk"},
 	}
-	b := models.PerfumeProperties{
+	b := perfume.Properties{
 		Type:       "edp",
 		Family:     []string{"woody", "amber"},
 		UpperNotes: []string{"bergamot"},
@@ -109,9 +109,9 @@ func TestGetListSimilarityScore(t *testing.T) {
 func TestUpdateMostSimilarIfNeeded(t *testing.T) {
 	t.Parallel()
 
-	arr := make([]models.PerfumeWithScore, 0, 4)
+	arr := make([]perfume.WithScore, 0, 4)
 	for _, s := range []float64{0.1, 0.2, 0.3, 0.4} {
-		arr = updateMostSimilarIfNeeded(arr, models.Perfume{Name: "n"}, s)
+		arr = updateMostSimilarIfNeeded(arr, perfume.Perfume{Name: "n"}, s)
 	}
 	if len(arr) != 4 {
 		t.Fatalf("expected 4 items, got %d", len(arr))
@@ -121,7 +121,7 @@ func TestUpdateMostSimilarIfNeeded(t *testing.T) {
 			t.Fatalf("position %d expected score %v, got %v", i, expectedScore, arr[i].Score)
 		}
 	}
-	arr = updateMostSimilarIfNeeded(arr, models.Perfume{Name: "m"}, 0.25)
+	arr = updateMostSimilarIfNeeded(arr, perfume.Perfume{Name: "m"}, 0.25)
 	if !(arr[1].Score >= 0.25 && arr[2].Score >= 0.25) {
 		t.Fatalf("middle insertion not reflected: %+v", arr)
 	}

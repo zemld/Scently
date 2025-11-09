@@ -3,13 +3,13 @@ package app
 import (
 	"context"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
 )
 
 const suggestsCount = 4
 
-func GetComparisionSuggestions(ctx context.Context, params parameters.RequestPerfume) []models.PerfumeWithScore {
+func GetComparisionSuggestions(ctx context.Context, params parameters.RequestPerfume) []perfume.WithScore {
 	favouritePerfumes, ok := FetchPerfumes(ctx, []parameters.RequestPerfume{params})
 	if !ok || favouritePerfumes == nil || len(favouritePerfumes) == 0 {
 		return nil

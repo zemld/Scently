@@ -1,15 +1,15 @@
-package models
+package perfume
 
 type Perfume struct {
-	Brand      string            `json:"brand"`
-	Name       string            `json:"name"`
-	Sex        string            `json:"sex"`
-	ImageUrl   string            `json:"image_url"`
-	Properties PerfumeProperties `json:"properties"`
-	Shops      []ShopInfo        `json:"shops"`
+	Brand      string     `json:"brand"`
+	Name       string     `json:"name"`
+	Sex        string     `json:"sex"`
+	ImageUrl   string     `json:"image_url"`
+	Properties Properties `json:"properties"`
+	Shops      []ShopInfo `json:"shops"`
 }
 
-type PerfumeProperties struct {
+type Properties struct {
 	Type       string   `json:"perfume_type"`
 	Family     []string `json:"family"`
 	UpperNotes []string `json:"upper_notes"`
@@ -18,12 +18,12 @@ type PerfumeProperties struct {
 }
 
 type ShopInfo struct {
-	ShopName string           `json:"shop_name"`
-	Domain   string           `json:"domain"`
-	Variants []PerfumeVariant `json:"variants"`
+	ShopName string    `json:"shop_name"`
+	Domain   string    `json:"domain"`
+	Variants []Variant `json:"variants"`
 }
 
-type PerfumeVariant struct {
+type Variant struct {
 	Volume int    `json:"volume"`
 	Link   string `json:"link"`
 	Price  int    `json:"price"`
@@ -44,13 +44,13 @@ type PerfumeResponse struct {
 	State    State     `json:"state"`
 }
 
-type RankedPerfumeWithProps struct {
+type RankedWithProps struct {
 	Perfume Perfume `json:"perfume"`
 	Rank    int     `json:"rank,omitempty"`
 	Score   float64 `json:"similarity_score,omitempty"`
 }
 
-type PerfumeWithScore struct {
+type WithScore struct {
 	Perfume
 	Score float64
 }

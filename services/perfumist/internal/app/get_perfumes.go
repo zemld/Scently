@@ -10,8 +10,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
 )
 
 const (
@@ -23,7 +23,7 @@ const (
 	badServerStatus = 500
 )
 
-func FetchPerfumes(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
+func FetchPerfumes(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 	perfumesChan := make(chan perfumesFetchAndGlueResult, len(params))
 
 	wg := sync.WaitGroup{}
@@ -46,7 +46,7 @@ func FetchPerfumes(ctx context.Context, params []parameters.RequestPerfume) ([]m
 }
 
 type perfumesFetchAndGlueResult struct {
-	Perfumes []models.Perfume
+	Perfumes []perfume.Perfume
 	Status   int
 }
 
@@ -62,7 +62,7 @@ func getAndGluePerfumesAsync(ctx context.Context, params parameters.RequestPerfu
 	results <- perfumesFetchAndGlueResult{Perfumes: perfumes, Status: status}
 }
 
-func getPerfumes(ctx context.Context, p parameters.RequestPerfume) ([]models.Perfume, int) {
+func getPerfumes(ctx context.Context, p parameters.RequestPerfume) ([]perfume.Perfume, int) {
 	r, _ := http.NewRequestWithContext(ctx, "GET", getPerfumesUrl, nil)
 	updateQuery(r, p)
 
@@ -83,7 +83,7 @@ func getPerfumes(ctx context.Context, p parameters.RequestPerfume) ([]models.Per
 		return nil, http.StatusInternalServerError
 	}
 
-	var perfumes models.PerfumeResponse
+	var perfumes perfume.PerfumeResponse
 	json.Unmarshal(body, &perfumes)
 	log.Printf("Got %d perfumes", len(perfumes.Perfumes))
 	if len(perfumes.Perfumes) == 0 {
@@ -111,8 +111,8 @@ func addQueryParameter(r *http.Request, key string, value string) {
 	r.URL.RawQuery = updatedQuery.Encode()
 }
 
-func fetchPerfumeResults(ctx context.Context, perfumesChan <-chan perfumesFetchAndGlueResult) ([]models.Perfume, int) {
-	var perfumes []models.Perfume
+func fetchPerfumeResults(ctx context.Context, perfumesChan <-chan perfumesFetchAndGlueResult) ([]perfume.Perfume, int) {
+	var perfumes []perfume.Perfume
 	var status int
 
 	for {

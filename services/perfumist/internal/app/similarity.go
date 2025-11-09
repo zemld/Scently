@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/pkg/set"
 )
 
@@ -17,20 +17,20 @@ const (
 	baseNotesWeight   = 0.4
 )
 
-func FoundSimilarities(favourite models.Perfume, all []models.Perfume, suggestsCount int) []models.PerfumeWithScore {
-	mostSimilar := make([]models.PerfumeWithScore, 0, suggestsCount)
-	for _, perfume := range all {
-		if favourite.Equal(perfume) {
+func FoundSimilarities(favourite perfume.Perfume, all []perfume.Perfume, suggestsCount int) []perfume.WithScore {
+	mostSimilar := make([]perfume.WithScore, 0, suggestsCount)
+	for _, p := range all {
+		if favourite.Equal(p) {
 			continue
 		}
-		similarityScore := GetPerfumeSimilarityScore(favourite.Properties, perfume.Properties)
-		mostSimilar = updateMostSimilarIfNeeded(mostSimilar, perfume, similarityScore)
+		similarityScore := GetPerfumeSimilarityScore(favourite.Properties, p.Properties)
+		mostSimilar = updateMostSimilarIfNeeded(mostSimilar, p, similarityScore)
 	}
 	return mostSimilar
 }
 
-func updateMostSimilarIfNeeded(mostSimilar []models.PerfumeWithScore, perfume models.Perfume, similarityScore float64) []models.PerfumeWithScore {
-	current := perfume
+func updateMostSimilarIfNeeded(mostSimilar []perfume.WithScore, p perfume.Perfume, similarityScore float64) []perfume.WithScore {
+	current := p
 	for i := range mostSimilar {
 		if similarityScore > mostSimilar[i].Score {
 			tmp := mostSimilar[i]
@@ -41,7 +41,7 @@ func updateMostSimilarIfNeeded(mostSimilar []models.PerfumeWithScore, perfume mo
 		}
 	}
 	if len(mostSimilar) < cap(mostSimilar) {
-		mostSimilar = append(mostSimilar, models.PerfumeWithScore{
+		mostSimilar = append(mostSimilar, perfume.WithScore{
 			Perfume: current,
 			Score:   similarityScore,
 		})
@@ -49,7 +49,7 @@ func updateMostSimilarIfNeeded(mostSimilar []models.PerfumeWithScore, perfume mo
 	return mostSimilar
 }
 
-func GetPerfumeSimilarityScore(first models.PerfumeProperties, second models.PerfumeProperties) float64 {
+func GetPerfumeSimilarityScore(first perfume.Properties, second perfume.Properties) float64 {
 	familiesSimilarityScore := getListSimilarityScore(first.Family, second.Family)
 	notesSimilarityScore := getNotesSimilarityScore(first, second)
 	typeSimilarity := getTypeSimilarityScore(first.Type, second.Type)
@@ -68,7 +68,7 @@ func getListSimilarityScore(first []string, second []string) float64 {
 	return float64(len(intersection)) / float64(len(un))
 }
 
-func getNotesSimilarityScore(first models.PerfumeProperties, second models.PerfumeProperties) float64 {
+func getNotesSimilarityScore(first perfume.Properties, second perfume.Properties) float64 {
 	upperNotesSimilarityScore := getListSimilarityScore(first.UpperNotes, second.UpperNotes)
 	middleNotesSimilarityScore := getListSimilarityScore(first.CoreNotes, second.CoreNotes)
 	baseNotesSimilarityScore := getListSimilarityScore(first.BaseNotes, second.BaseNotes)

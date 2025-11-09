@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/app"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
 )
 
 type suggestionsContextKey string
@@ -18,7 +18,7 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 	var suggestResponse SuggestResponse
 	params := r.Context().Value(parameters.ParamsKey).(parameters.RequestPerfume)
 
-	var mostSimilar []models.PerfumeWithScore
+	var mostSimilar []perfume.WithScore
 	if params.UseAI {
 		mostSimilar = app.GetAIEnrichedSuggestions(r.Context(), params)
 	}
@@ -37,12 +37,12 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 	*r = *r.WithContext(ctxWithSuggestions)
 }
 
-func rankSuggestions(suggestions []models.PerfumeWithScore) []models.RankedPerfumeWithProps {
-	rankedSuggestions := make([]models.RankedPerfumeWithProps, 0, len(suggestions))
+func rankSuggestions(suggestions []perfume.WithScore) []perfume.RankedWithProps {
+	rankedSuggestions := make([]perfume.RankedWithProps, 0, len(suggestions))
 	for i, suggestion := range suggestions {
 		rankedSuggestions = append(
 			rankedSuggestions,
-			models.RankedPerfumeWithProps{
+			perfume.RankedWithProps{
 				Rank:    i + 1,
 				Perfume: suggestion.Perfume,
 				Score:   math.Round(suggestion.Score*100) / 100,

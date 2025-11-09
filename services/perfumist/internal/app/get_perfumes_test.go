@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
 )
 
 func TestFetchPerfumeResults_ServerErrorShortCircuit(t *testing.T) {
@@ -31,8 +31,8 @@ func TestFetchPerfumeResults_AccumulatesOKResults(t *testing.T) {
 	t.Parallel()
 
 	ch := make(chan perfumesFetchAndGlueResult, 3)
-	ch <- perfumesFetchAndGlueResult{Status: http.StatusOK, Perfumes: []models.Perfume{{Name: "A"}}}
-	ch <- perfumesFetchAndGlueResult{Status: http.StatusOK, Perfumes: []models.Perfume{{Name: "B"}, {Name: "C"}}}
+	ch <- perfumesFetchAndGlueResult{Status: http.StatusOK, Perfumes: []perfume.Perfume{{Name: "A"}}}
+	ch <- perfumesFetchAndGlueResult{Status: http.StatusOK, Perfumes: []perfume.Perfume{{Name: "B"}, {Name: "C"}}}
 	close(ch)
 
 	perfumes, status := fetchPerfumeResults(httptest.NewRequest(http.MethodGet, "/", nil).Context(), ch)
@@ -189,8 +189,8 @@ func TestGetPerfumesNoContent(t *testing.T) {
 func TestGetPerfumesSuccess(t *testing.T) {
 	origTransport := http.DefaultClient.Transport
 	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
-		resp := models.PerfumeResponse{
-			Perfumes: []models.Perfume{{Name: "Test", Brand: "Brand"}},
+		resp := perfume.PerfumeResponse{
+			Perfumes: []perfume.Perfume{{Name: "Test", Brand: "Brand"}},
 		}
 		body, err := json.Marshal(resp)
 		if err != nil {

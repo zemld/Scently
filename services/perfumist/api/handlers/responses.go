@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
 )
 
 type SuggestResponse struct {
-	Suggested []models.RankedPerfumeWithProps `json:"suggested"`
+	Suggested []perfume.RankedWithProps `json:"suggested"`
 }
 
 func WriteResponse(w http.ResponseWriter, response any, status int) {
