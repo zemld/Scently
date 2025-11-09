@@ -353,4 +353,3 @@ func TestAiAdvisor_Advise_EnrichmentParamsConstruction(t *testing.T) {
 		t.Fatalf("expected %d results, got %d", len(enrichedPerfumes), len(result))
 	}
 }
-

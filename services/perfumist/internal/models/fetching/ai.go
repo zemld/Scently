@@ -11,10 +11,6 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
 )
 
-const (
-	aiSuggestUrl = "http://ai_advisor:8000/v1/advise"
-)
-
 type aISuggestion struct {
 	Perfumes []perfume.Perfume `json:"perfumes"`
 }
