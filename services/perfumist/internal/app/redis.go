@@ -7,14 +7,14 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/rdb"
 )
 
 const cacheTTL = 3600 * time.Second
 
-func LookupCache(ctx context.Context, requestedPerfume parameters.RequestPerfume) ([]models.RankedPerfumeWithProps, error) {
+func LookupCache(ctx context.Context, requestedPerfume parameters.RequestPerfume) ([]perfume.Ranked, error) {
 	key := getCacheKey(requestedPerfume)
 	client := rdb.GetRedisClient()
 
@@ -25,14 +25,14 @@ func LookupCache(ctx context.Context, requestedPerfume parameters.RequestPerfume
 	if err != nil {
 		return nil, err
 	}
-	var result []models.RankedPerfumeWithProps
+	var result []perfume.Ranked
 	if err := json.Unmarshal([]byte(cached), &result); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func Cache(ctx context.Context, requestedPerfume parameters.RequestPerfume, toCache []models.RankedPerfumeWithProps) error {
+func Cache(ctx context.Context, requestedPerfume parameters.RequestPerfume, toCache []perfume.Ranked) error {
 	encoded, err := json.Marshal(toCache)
 	if err != nil {
 		return err

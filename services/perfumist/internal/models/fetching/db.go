@@ -1,4 +1,4 @@
-package app
+package fetching
 
 import (
 	"context"
@@ -7,30 +7,43 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 	"sync"
+	"time"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
 )
 
 const (
-	getPerfumesUrl          = "http://perfume:8000/v1/perfumes/get"
-	perfumeInternalTokenEnv = "PERFUME_INTERNAL_TOKEN"
+	badServerStatus = http.StatusInternalServerError
 )
 
-const (
-	badServerStatus = 500
-)
+type perfumesFetchAndGlueResult struct {
+	Perfumes []perfume.Perfume
+	Status   int
+}
 
-func FetchPerfumes(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
+type DB struct {
+	url     string
+	token   string
+	timeout time.Duration
+}
+
+func NewDB(url string, token string) *DB {
+	return &DB{url: url, token: token, timeout: 2 * time.Second}
+}
+
+func (f DB) Fetch(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 	perfumesChan := make(chan perfumesFetchAndGlueResult, len(params))
 
 	wg := sync.WaitGroup{}
 	wg.Add(len(params))
 
+	ctx, cancel := context.WithTimeout(context.Background(), f.timeout)
+	defer cancel()
+
 	for _, param := range params {
-		go getAndGluePerfumesAsync(ctx, param, perfumesChan, &wg)
+		go f.getPerfumesAsync(ctx, param, perfumesChan, &wg)
 	}
 
 	go func() {
@@ -38,23 +51,18 @@ func FetchPerfumes(ctx context.Context, params []parameters.RequestPerfume) ([]m
 		close(perfumesChan)
 	}()
 
-	all, AllStatus := fetchPerfumeResults(ctx, perfumesChan)
+	all, AllStatus := f.fetchPerfumeResults(ctx, perfumesChan)
 	if AllStatus >= badServerStatus || len(all) == 0 {
 		return nil, false
 	}
 	return all, true
 }
 
-type perfumesFetchAndGlueResult struct {
-	Perfumes []models.Perfume
-	Status   int
-}
-
-func getAndGluePerfumesAsync(ctx context.Context, params parameters.RequestPerfume, results chan<- perfumesFetchAndGlueResult, wg *sync.WaitGroup) {
+func (f DB) getPerfumesAsync(ctx context.Context, params parameters.RequestPerfume, results chan<- perfumesFetchAndGlueResult, wg *sync.WaitGroup) {
 	if wg != nil {
 		defer wg.Done()
 	}
-	perfumes, status := getPerfumes(ctx, params)
+	perfumes, status := f.getPerfumes(ctx, params)
 	if status != http.StatusOK {
 		results <- perfumesFetchAndGlueResult{Perfumes: nil, Status: status}
 		return
@@ -62,9 +70,10 @@ func getAndGluePerfumesAsync(ctx context.Context, params parameters.RequestPerfu
 	results <- perfumesFetchAndGlueResult{Perfumes: perfumes, Status: status}
 }
 
-func getPerfumes(ctx context.Context, p parameters.RequestPerfume) ([]models.Perfume, int) {
-	r, _ := http.NewRequestWithContext(ctx, "GET", getPerfumesUrl, nil)
-	updateQuery(r, p)
+func (f DB) getPerfumes(ctx context.Context, p parameters.RequestPerfume) ([]perfume.Perfume, int) {
+	r, _ := http.NewRequestWithContext(ctx, "GET", f.url, nil)
+	p.AddToQuery(r)
+	r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", f.token))
 
 	perfumeResponse, err := http.DefaultClient.Do(r)
 	if err != nil {
@@ -83,7 +92,7 @@ func getPerfumes(ctx context.Context, p parameters.RequestPerfume) ([]models.Per
 		return nil, http.StatusInternalServerError
 	}
 
-	var perfumes models.PerfumeResponse
+	var perfumes perfume.PerfumeResponse
 	json.Unmarshal(body, &perfumes)
 	log.Printf("Got %d perfumes", len(perfumes.Perfumes))
 	if len(perfumes.Perfumes) == 0 {
@@ -92,27 +101,8 @@ func getPerfumes(ctx context.Context, p parameters.RequestPerfume) ([]models.Per
 	return perfumes.Perfumes, http.StatusOK
 }
 
-func updateQuery(r *http.Request, p parameters.RequestPerfume) {
-	addQueryParameter(r, "brand", p.Brand)
-	addQueryParameter(r, "name", p.Name)
-	if p.Sex == "male" || p.Sex == "female" {
-		addQueryParameter(r, "sex", p.Sex)
-	}
-	log.Printf("Perfume internal token: %s", os.Getenv(perfumeInternalTokenEnv))
-	r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv(perfumeInternalTokenEnv)))
-}
-
-func addQueryParameter(r *http.Request, key string, value string) {
-	if value == "" {
-		return
-	}
-	updatedQuery := r.URL.Query()
-	updatedQuery.Set(key, value)
-	r.URL.RawQuery = updatedQuery.Encode()
-}
-
-func fetchPerfumeResults(ctx context.Context, perfumesChan <-chan perfumesFetchAndGlueResult) ([]models.Perfume, int) {
-	var perfumes []models.Perfume
+func (f DB) fetchPerfumeResults(ctx context.Context, perfumesChan <-chan perfumesFetchAndGlueResult) ([]perfume.Perfume, int) {
+	var perfumes []perfume.Perfume
 	var status int
 
 	for {

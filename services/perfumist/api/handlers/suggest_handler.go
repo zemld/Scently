@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"context"
-	"math"
 	"net/http"
+	"os"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/app"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/advising"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/fetching"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/matching"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 )
 
@@ -14,39 +14,61 @@ type suggestionsContextKey string
 
 const SuggestionsContextKey suggestionsContextKey = "suggestions"
 
+const aiSuggestUrl = "http://ai_advisor:8000/v1/advise"
+
+const (
+	getPerfumesUrl          = "http://perfume:8000/v1/perfumes/get"
+	perfumeInternalTokenEnv = "PERFUME_INTERNAL_TOKEN"
+)
+
+const (
+	familyWeight = 0.4
+	notesWeight  = 0.55
+	typeWeight   = 0.05
+)
+
+const (
+	upperNotesWeight  = 0.15
+	middleNotesWeight = 0.45
+	baseNotesWeight   = 0.4
+)
+
+const (
+	threadsCount = 5
+)
+
+const (
+	suggestCount = 4
+)
+
 func Suggest(w http.ResponseWriter, r *http.Request) {
 	var suggestResponse SuggestResponse
 	params := r.Context().Value(parameters.ParamsKey).(parameters.RequestPerfume)
 
-	var mostSimilar []models.PerfumeWithScore
+	var advisor advising.Advisor
+	dbFetcher := fetching.NewDB(getPerfumesUrl, os.Getenv(perfumeInternalTokenEnv))
 	if params.UseAI {
-		mostSimilar = app.GetAIEnrichedSuggestions(r.Context(), params)
+		advisor = advising.NewAI(fetching.NewAI(aiSuggestUrl), dbFetcher)
+	} else {
+		advisor = advising.NewBase(dbFetcher, matching.NewOverlay(
+			familyWeight,
+			notesWeight,
+			typeWeight,
+			upperNotesWeight,
+			middleNotesWeight,
+			baseNotesWeight,
+			threadsCount,
+		), suggestCount)
 	}
-	if mostSimilar == nil {
-		mostSimilar = app.GetComparisionSuggestions(r.Context(), params)
+	suggested, err := advisor.Advise(params)
+	if err != nil {
+		WriteResponse(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	suggestResponse.Suggested = rankSuggestions(mostSimilar)
+	suggestResponse.Suggested = suggested
 	status := http.StatusNoContent
-	if len(mostSimilar) > 0 {
+	if len(suggested) > 0 {
 		status = http.StatusOK
 	}
 	WriteResponse(w, suggestResponse, status)
-
-	ctxWithSuggestions := context.WithValue(r.Context(), SuggestionsContextKey, suggestResponse)
-	*r = *r.WithContext(ctxWithSuggestions)
-}
-
-func rankSuggestions(suggestions []models.PerfumeWithScore) []models.RankedPerfumeWithProps {
-	rankedSuggestions := make([]models.RankedPerfumeWithProps, 0, len(suggestions))
-	for i, suggestion := range suggestions {
-		rankedSuggestions = append(
-			rankedSuggestions,
-			models.RankedPerfumeWithProps{
-				Rank:    i + 1,
-				Perfume: suggestion.Perfume,
-				Score:   math.Round(suggestion.Score*100) / 100,
-			})
-	}
-	return rankedSuggestions
 }
