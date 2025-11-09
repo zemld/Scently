@@ -8,16 +8,16 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
 )
 
-type AiAdvisor struct {
+type AI struct {
 	adviseFetcher fetching.Fetcher
 	enrichFetcher fetching.Fetcher
 }
 
-func NewAiAdvisor(adviseFetcher fetching.Fetcher, enrichFetcher fetching.Fetcher) *AiAdvisor {
-	return &AiAdvisor{adviseFetcher: adviseFetcher, enrichFetcher: enrichFetcher}
+func NewAI(adviseFetcher fetching.Fetcher, enrichFetcher fetching.Fetcher) *AI {
+	return &AI{adviseFetcher: adviseFetcher, enrichFetcher: enrichFetcher}
 }
 
-func (a AiAdvisor) Advise(params parameters.RequestPerfume) ([]perfume.Ranked, error) {
+func (a AI) Advise(params parameters.RequestPerfume) ([]perfume.Ranked, error) {
 	adviseResults, ok := a.adviseFetcher.Fetch([]parameters.RequestPerfume{params})
 	if !ok || adviseResults == nil || len(adviseResults) == 0 {
 		return nil, errors.New("failed to get AI suggestions")

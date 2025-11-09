@@ -23,17 +23,17 @@ type perfumesFetchAndGlueResult struct {
 	Status   int
 }
 
-type Db struct {
+type DB struct {
 	url     string
 	token   string
 	timeout time.Duration
 }
 
-func NewDb(url string, token string) *Db {
-	return &Db{url: url, token: token, timeout: 2 * time.Second}
+func NewDB(url string, token string) *DB {
+	return &DB{url: url, token: token, timeout: 2 * time.Second}
 }
 
-func (f Db) Fetch(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+func (f DB) Fetch(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 	perfumesChan := make(chan perfumesFetchAndGlueResult, len(params))
 
 	wg := sync.WaitGroup{}
@@ -58,7 +58,7 @@ func (f Db) Fetch(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) 
 	return all, true
 }
 
-func (f Db) getPerfumesAsync(ctx context.Context, params parameters.RequestPerfume, results chan<- perfumesFetchAndGlueResult, wg *sync.WaitGroup) {
+func (f DB) getPerfumesAsync(ctx context.Context, params parameters.RequestPerfume, results chan<- perfumesFetchAndGlueResult, wg *sync.WaitGroup) {
 	if wg != nil {
 		defer wg.Done()
 	}
@@ -70,7 +70,7 @@ func (f Db) getPerfumesAsync(ctx context.Context, params parameters.RequestPerfu
 	results <- perfumesFetchAndGlueResult{Perfumes: perfumes, Status: status}
 }
 
-func (f Db) getPerfumes(ctx context.Context, p parameters.RequestPerfume) ([]perfume.Perfume, int) {
+func (f DB) getPerfumes(ctx context.Context, p parameters.RequestPerfume) ([]perfume.Perfume, int) {
 	r, _ := http.NewRequestWithContext(ctx, "GET", f.url, nil)
 	p.AddToQuery(r)
 	r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", f.token))
@@ -101,7 +101,7 @@ func (f Db) getPerfumes(ctx context.Context, p parameters.RequestPerfume) ([]per
 	return perfumes.Perfumes, http.StatusOK
 }
 
-func (f Db) fetchPerfumeResults(ctx context.Context, perfumesChan <-chan perfumesFetchAndGlueResult) ([]perfume.Perfume, int) {
+func (f DB) fetchPerfumeResults(ctx context.Context, perfumesChan <-chan perfumesFetchAndGlueResult) ([]perfume.Perfume, int) {
 	var perfumes []perfume.Perfume
 	var status int
 

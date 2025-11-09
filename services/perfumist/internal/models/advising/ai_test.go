@@ -13,7 +13,7 @@ func TestNewAiAdvisor(t *testing.T) {
 	adviseFetcher := &MockFetcher{}
 	enrichFetcher := &MockFetcher{}
 
-	advisor := NewAiAdvisor(adviseFetcher, enrichFetcher)
+	advisor := NewAI(adviseFetcher, enrichFetcher)
 
 	if advisor == nil {
 		t.Fatal("expected non-nil advisor")
@@ -69,7 +69,7 @@ func TestAiAdvisor_Advise_Success(t *testing.T) {
 		},
 	}
 
-	advisor := NewAiAdvisor(adviseFetcher, enrichFetcher)
+	advisor := NewAI(adviseFetcher, enrichFetcher)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -106,7 +106,7 @@ func TestAiAdvisor_Advise_AdviseFetcherFails(t *testing.T) {
 	}
 
 	enrichFetcher := &MockFetcher{}
-	advisor := NewAiAdvisor(adviseFetcher, enrichFetcher)
+	advisor := NewAI(adviseFetcher, enrichFetcher)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -136,7 +136,7 @@ func TestAiAdvisor_Advise_AdviseFetcherReturnsEmpty(t *testing.T) {
 	}
 
 	enrichFetcher := &MockFetcher{}
-	advisor := NewAiAdvisor(adviseFetcher, enrichFetcher)
+	advisor := NewAI(adviseFetcher, enrichFetcher)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -176,7 +176,7 @@ func TestAiAdvisor_Advise_EnrichFetcherFails(t *testing.T) {
 		},
 	}
 
-	advisor := NewAiAdvisor(adviseFetcher, enrichFetcher)
+	advisor := NewAI(adviseFetcher, enrichFetcher)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -216,7 +216,7 @@ func TestAiAdvisor_Advise_EnrichFetcherReturnsEmpty(t *testing.T) {
 		},
 	}
 
-	advisor := NewAiAdvisor(adviseFetcher, enrichFetcher)
+	advisor := NewAI(adviseFetcher, enrichFetcher)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -263,7 +263,7 @@ func TestAiAdvisor_Advise_MultipleSuggestions(t *testing.T) {
 		},
 	}
 
-	advisor := NewAiAdvisor(adviseFetcher, enrichFetcher)
+	advisor := NewAI(adviseFetcher, enrichFetcher)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -337,7 +337,7 @@ func TestAiAdvisor_Advise_EnrichmentParamsConstruction(t *testing.T) {
 		},
 	}
 
-	advisor := NewAiAdvisor(adviseFetcher, enrichFetcher)
+	advisor := NewAI(adviseFetcher, enrichFetcher)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",

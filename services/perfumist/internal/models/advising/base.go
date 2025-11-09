@@ -9,17 +9,17 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
 )
 
-type BaseAdvisor struct {
+type Base struct {
 	fetcher     fetching.Fetcher
 	matcher     matching.Matcher
 	adviseCount int
 }
 
-func NewBaseAdvisor(fetcher fetching.Fetcher, matcher matching.Matcher, adviseCount int) *BaseAdvisor {
-	return &BaseAdvisor{fetcher: fetcher, matcher: matcher, adviseCount: adviseCount}
+func NewBase(fetcher fetching.Fetcher, matcher matching.Matcher, adviseCount int) *Base {
+	return &Base{fetcher: fetcher, matcher: matcher, adviseCount: adviseCount}
 }
 
-func (a *BaseAdvisor) Advise(params parameters.RequestPerfume) ([]perfume.Ranked, error) {
+func (a *Base) Advise(params parameters.RequestPerfume) ([]perfume.Ranked, error) {
 	favouritePerfumes, ok := a.fetcher.Fetch([]parameters.RequestPerfume{params})
 	if !ok || favouritePerfumes == nil || len(favouritePerfumes) == 0 {
 		return nil, errors.New("failed to get favourite perfumes")

@@ -19,7 +19,7 @@ func TestNewDbFetcher(t *testing.T) {
 
 	url := "http://test-url:8080"
 	token := "test-token"
-	fetcher := NewDb(url, token)
+	fetcher := NewDB(url, token)
 
 	if fetcher == nil {
 		t.Fatal("expected non-nil fetcher")
@@ -60,7 +60,7 @@ func TestDbFetcher_getPerfumes_Success(t *testing.T) {
 		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewDb("http://test-url:8080", "test-token")
+	fetcher := NewDB("http://test-url:8080", "test-token")
 	perfumes, status := fetcher.getPerfumes(context.Background(), parameters.RequestPerfume{})
 
 	if status != http.StatusOK {
@@ -85,7 +85,7 @@ func TestDbFetcher_getPerfumes_HTTPError(t *testing.T) {
 		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewDb("http://test-url:8080", "test-token")
+	fetcher := NewDB("http://test-url:8080", "test-token")
 	perfumes, status := fetcher.getPerfumes(context.Background(), parameters.RequestPerfume{})
 
 	if status != http.StatusInternalServerError {
@@ -111,7 +111,7 @@ func TestDbFetcher_getPerfumes_BadStatus(t *testing.T) {
 		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewDb("http://test-url:8080", "test-token")
+	fetcher := NewDB("http://test-url:8080", "test-token")
 	perfumes, status := fetcher.getPerfumes(context.Background(), parameters.RequestPerfume{})
 
 	if status != http.StatusInternalServerError {
@@ -137,7 +137,7 @@ func TestDbFetcher_getPerfumes_ReadBodyError(t *testing.T) {
 		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewDb("http://test-url:8080", "test-token")
+	fetcher := NewDB("http://test-url:8080", "test-token")
 	perfumes, status := fetcher.getPerfumes(context.Background(), parameters.RequestPerfume{})
 
 	if status != http.StatusInternalServerError {
@@ -169,7 +169,7 @@ func TestDbFetcher_getPerfumes_NoContent(t *testing.T) {
 		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewDb("http://test-url:8080", "test-token")
+	fetcher := NewDB("http://test-url:8080", "test-token")
 	perfumes, status := fetcher.getPerfumes(context.Background(), parameters.RequestPerfume{})
 
 	if status != http.StatusNoContent {
@@ -202,7 +202,7 @@ func TestDbFetcher_getPerfumes_AddsAuthHeader(t *testing.T) {
 		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewDb("http://test-url:8080", "test-token")
+	fetcher := NewDB("http://test-url:8080", "test-token")
 	fetcher.getPerfumes(context.Background(), parameters.RequestPerfume{})
 
 	if capturedRequest == nil {
@@ -237,7 +237,7 @@ func TestDbFetcher_getPerfumesAsync_Success(t *testing.T) {
 		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewDb("http://test-url:8080", "test-token")
+	fetcher := NewDB("http://test-url:8080", "test-token")
 	results := make(chan perfumesFetchAndGlueResult, 1)
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
@@ -264,7 +264,7 @@ func TestDbFetcher_getPerfumesAsync_Error(t *testing.T) {
 		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewDb("http://test-url:8080", "test-token")
+	fetcher := NewDB("http://test-url:8080", "test-token")
 	results := make(chan perfumesFetchAndGlueResult, 1)
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
@@ -300,7 +300,7 @@ func TestDbFetcher_fetchPerfumeResults_Success(t *testing.T) {
 	}
 	close(ch)
 
-	fetcher := NewDb("http://test-url:8080", "test-token")
+	fetcher := NewDB("http://test-url:8080", "test-token")
 	perfumes, status := fetcher.fetchPerfumeResults(context.Background(), ch)
 
 	if status != 0 {
@@ -318,7 +318,7 @@ func TestDbFetcher_fetchPerfumeResults_ServerError(t *testing.T) {
 	ch <- perfumesFetchAndGlueResult{Status: http.StatusInternalServerError}
 	close(ch)
 
-	fetcher := NewDb("http://test-url:8080", "test-token")
+	fetcher := NewDB("http://test-url:8080", "test-token")
 	perfumes, status := fetcher.fetchPerfumeResults(context.Background(), ch)
 
 	if status != http.StatusInternalServerError {
@@ -335,7 +335,7 @@ func TestDbFetcher_fetchPerfumeResults_ContextCancelled(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	fetcher := NewDb("http://test-url:8080", "test-token")
+	fetcher := NewDB("http://test-url:8080", "test-token")
 	perfumes, status := fetcher.fetchPerfumeResults(ctx, make(chan perfumesFetchAndGlueResult))
 
 	if status != http.StatusInternalServerError {
@@ -369,7 +369,7 @@ func TestDbFetcher_Fetch_Success(t *testing.T) {
 		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewDb("http://test-url:8080", "test-token")
+	fetcher := NewDB("http://test-url:8080", "test-token")
 	params := []parameters.RequestPerfume{
 		{Brand: "Chanel"},
 		{Brand: "Dior"},
@@ -404,7 +404,7 @@ func TestDbFetcher_Fetch_EmptyResults(t *testing.T) {
 		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewDb("http://test-url:8080", "test-token")
+	fetcher := NewDB("http://test-url:8080", "test-token")
 	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
 	perfumes, ok := fetcher.Fetch(params)
 
@@ -431,7 +431,7 @@ func TestDbFetcher_Fetch_ServerError(t *testing.T) {
 		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewDb("http://test-url:8080", "test-token")
+	fetcher := NewDB("http://test-url:8080", "test-token")
 	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
 	perfumes, ok := fetcher.Fetch(params)
 
@@ -460,7 +460,7 @@ func TestDbFetcher_Fetch_Timeout(t *testing.T) {
 		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewDb("http://test-url:8080", "test-token")
+	fetcher := NewDB("http://test-url:8080", "test-token")
 	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
 	perfumes, ok := fetcher.Fetch(params)
 

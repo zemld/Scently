@@ -38,7 +38,7 @@ func TestNewBaseAdvisor(t *testing.T) {
 	matcher := &MockMatcher{}
 	adviseCount := 5
 
-	advisor := NewBaseAdvisor(fetcher, matcher, adviseCount)
+	advisor := NewBase(fetcher, matcher, adviseCount)
 
 	if advisor == nil {
 		t.Fatal("expected non-nil advisor")
@@ -99,7 +99,7 @@ func TestBaseAdvisor_Advise_Success(t *testing.T) {
 		},
 	}
 
-	advisor := NewBaseAdvisor(fetcher, matcher, 5)
+	advisor := NewBase(fetcher, matcher, 5)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -134,7 +134,7 @@ func TestBaseAdvisor_Advise_FetcherFailsOnFavourite(t *testing.T) {
 	}
 
 	matcher := &MockMatcher{}
-	advisor := NewBaseAdvisor(fetcher, matcher, 5)
+	advisor := NewBase(fetcher, matcher, 5)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -167,7 +167,7 @@ func TestBaseAdvisor_Advise_FetcherReturnsEmptyFavourite(t *testing.T) {
 	}
 
 	matcher := &MockMatcher{}
-	advisor := NewBaseAdvisor(fetcher, matcher, 5)
+	advisor := NewBase(fetcher, matcher, 5)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -208,7 +208,7 @@ func TestBaseAdvisor_Advise_FetcherFailsOnAllPerfumes(t *testing.T) {
 	}
 
 	matcher := &MockMatcher{}
-	advisor := NewBaseAdvisor(fetcher, matcher, 5)
+	advisor := NewBase(fetcher, matcher, 5)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -249,7 +249,7 @@ func TestBaseAdvisor_Advise_FetcherReturnsEmptyAllPerfumes(t *testing.T) {
 	}
 
 	matcher := &MockMatcher{}
-	advisor := NewBaseAdvisor(fetcher, matcher, 5)
+	advisor := NewBase(fetcher, matcher, 5)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -304,7 +304,7 @@ func TestBaseAdvisor_Advise_WithSexFilter(t *testing.T) {
 		},
 	}
 
-	advisor := NewBaseAdvisor(fetcher, matcher, 5)
+	advisor := NewBase(fetcher, matcher, 5)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
