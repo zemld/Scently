@@ -182,6 +182,26 @@ export default function ScentlyLanding() {
                     {perfume.properties?.perfume_type && (
                       <p className="text-sm text-[#F8F5F0]/70">{perfume.properties.perfume_type}</p>
                     )}
+                    {perfume.similarity_score !== undefined && perfume.similarity_score !== null && perfume.similarity_score > 0 && (
+                      <div className="mt-3 space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-[#F8F5F0]/70">Схожесть</span>
+                          <span className="text-[#E3B23C] font-semibold">
+                            {perfume.similarity_score > 1
+                              ? `${Math.round(perfume.similarity_score)}%`
+                              : `${Math.round(perfume.similarity_score * 100)}%`}
+                          </span>
+                        </div>
+                        <div className="relative h-2 w-full overflow-hidden rounded-full bg-white/10">
+                          <div
+                            className="h-full bg-gradient-to-r from-[#C38E70] to-[#E3B23C] transition-all duration-500 ease-out"
+                            style={{
+                              width: `${perfume.similarity_score > 1 ? perfume.similarity_score : perfume.similarity_score * 100}%`
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
                     {perfume.sex && (
                       <div className="mt-2">
                         <span className="text-xs bg-white/10 backdrop-blur-md border border-white/20 text-[#E3B23C] px-2 py-1 rounded-full">
