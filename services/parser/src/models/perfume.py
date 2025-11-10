@@ -78,9 +78,9 @@ class PerfumeFromConcreteShop:
             def from_dict(
                 cls, data: dict[str, int | str]
             ) -> "PerfumeFromConcreteShop.ShopInfo.VolumeWithPrices":
-                volume = data["volume"]
-                cost = data["price"]
-                link = data["link"]
+                volume = data.get("volume", 0)
+                cost = data.get("price", 0)
+                link = data.get("link", "")
 
                 assert isinstance(volume, int), "volume must be int"
                 assert isinstance(cost, int), "cost must be int"
@@ -121,15 +121,15 @@ class PerfumeFromConcreteShop:
         def from_dict(
             cls, data: dict[str, str | list[dict[str, str | int]]]
         ) -> "PerfumeFromConcreteShop.ShopInfo":
-            shop_name = data["shop_name"]
-            domain = data["domain"]
-            image_url = data["image_url"]
-            variants = data["variants"]
+            shop_name = data.get("shop_name", "")
+            domain = data.get("domain", "")
+            image_url = data.get("image_url", "")
+            variants = data.get("variants", [])
 
             assert isinstance(shop_name, str), "shop_name must be str"
             assert isinstance(domain, str), "domain must be str"
             assert isinstance(image_url, str), "image_url must be str"
-            assert isinstance(variants, list), "volumes_with_prices must be list"
+            assert isinstance(variants, list), "variants must be list"
 
             return PerfumeFromConcreteShop.ShopInfo(
                 shop_name=shop_name,

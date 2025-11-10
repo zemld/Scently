@@ -1,4 +1,5 @@
 import time
+from pathlib import Path
 from typing import TypedDict
 
 import requests
@@ -12,6 +13,12 @@ from playwright.sync_api import (
 )
 from playwright.sync_api import (
     TimeoutError as PlaywrightTimeoutError,
+)
+
+from .logging import setup_logger
+
+send_request_logger = setup_logger(
+    __name__, log_file=Path.cwd() / "logs" / f"{__name__.split('.')[-1]}.log"
 )
 
 
@@ -37,7 +44,9 @@ def _get_page_with_requests(link: str) -> BeautifulSoup | None:
         r.raise_for_status()
         return BeautifulSoup(r.content, _define_bs_type_from_link(link))
     except Exception as e:
-        print(e)
+        send_request_logger.error(
+            f"Failed to get page with requests | link={link} | error={str(e)}"
+        )
         return None
 
 
@@ -102,9 +111,7 @@ def _get_page_with_playwright(link: str) -> BeautifulSoup | None:
             return BeautifulSoup(html_content, _define_bs_type_from_link(link))
 
     except Exception:
-        import traceback
-
-        traceback.print_exc()
+        send_request_logger.error(f"Failed to get page with playwright | link={link}")
         return None
 
 

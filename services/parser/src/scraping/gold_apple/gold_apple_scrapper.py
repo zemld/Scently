@@ -1,4 +1,3 @@
-import logging
 import re
 import time
 from collections.abc import Iterable, Sequence
@@ -8,8 +7,7 @@ from urllib.parse import parse_qs, urlencode, urljoin, urlparse
 from bs4 import BeautifulSoup
 
 from src.models import PerfumeFromConcreteShop, PerfumeKey
-from src.util import get_page
-from src.util.backup import BackupManager
+from src.util import BackupManager, get_page, setup_logger
 
 from ..page_parser import PageParser
 from ..scrapper import Scrapper
@@ -19,6 +17,10 @@ _DEFAULT_PRODUCT_TYPE_IDS = [245, 639, 640, 989, 1108]
 _PRODUCT_URL_RE = re.compile(
     r"^https://goldapple\.ru/(?:.*?\D)?\d{5,}(?:\D.*)?$",
     re.IGNORECASE,
+)
+
+ga_logger = setup_logger(
+    __name__, log_file=Path.cwd() / "logs" / f"{__name__.split('.')[-1]}.log"
 )
 
 
@@ -37,7 +39,7 @@ def _collect_product_links(
     if backup_manager:
         seen_links = backup_manager.load_links()
         collected_links = list(seen_links)
-        print(f"Loaded {len(seen_links)} existing links from backup.")
+        ga_logger.info(f"Loaded existing links from backup | count={len(seen_links)}")
     else:
         collected_links = []
         seen_links = set()
@@ -46,7 +48,7 @@ def _collect_product_links(
     last_page = max_pages
 
     while True:
-        print(f"Collecting product links from page {current_page}...")
+        ga_logger.info(f"Collecting product links from page | page={current_page}")
         if max_pages is not None and current_page > max_pages:
             break
 
@@ -63,8 +65,9 @@ def _collect_product_links(
             time.sleep(backoff_seconds)
             backoff_seconds *= 2
         if not page:
-            print(
-                f"Failed to load catalog page {current_page} after retries; skipping.",
+            ga_logger.warning(
+                f"Failed to load catalog page after retries; skipping. | "
+                f"page={current_page}"
             )
             current_page += 1
             continue
@@ -76,12 +79,15 @@ def _collect_product_links(
             if retry_page:
                 page_links = _extract_product_links(retry_page)
         if not page_links:
-            logging.info(
+            ga_logger.warning(
                 "No product links found on page %s; assuming end of catalog.",
                 current_page,
             )
             break
-        print(f"Found {len(page_links)} product links on page {current_page}.")
+        ga_logger.info(
+            f"Found product links on page | page={current_page} | "
+            f"count={len(page_links)}"
+        )
         new_links = 0
         new_links_list = []
         for link in page_links:
@@ -94,7 +100,7 @@ def _collect_product_links(
 
         if backup_manager and new_links_list:
             backup_manager.add_links(new_links_list)
-            print(f"Saved {new_links} new links to backup.")
+            ga_logger.info(f"Saved new links to backup | count={new_links}")
 
         if new_links == 0:
             break
@@ -225,7 +231,7 @@ class GoldAppleScrapper(Scrapper):
             max_pages=self._max_pages,
             backup_manager=self._backup_manager,
         )
-        print(f"Collected {len(self._product_links)} product links.")
+        ga_logger.info(f"Collected product links | count={len(self._product_links)}")
         if not self._product_links:
             self._product_batches = []
             self._pages = []
@@ -249,12 +255,14 @@ class GoldAppleScrapper(Scrapper):
             if link and self._is_product_link(link)
         ]
         if not batch_links:
-            print(f"No product links to process for batch {index + 1}.")
+            ga_logger.warning(
+                f"No product links to process for batch | batch={index + 1}"
+            )
             return []
 
-        print(
-            f"Scraping Gold Apple catalog batch {index + 1}/"
-            f"{len(self._product_batches)} with {len(batch_links)} products."
+        ga_logger.info(
+            f"Scraping Gold Apple catalog batch | batch={index + 1} | "
+            f"count={len(batch_links)}"
         )
 
         return self.process_page_links(batch_links, index, self._backup_manager)
@@ -262,12 +270,12 @@ class GoldAppleScrapper(Scrapper):
     def fetch_perfume(self, link: str) -> PerfumeFromConcreteShop | None:
         perfume_page = get_page(link, use_playwright=True)
         if not perfume_page:
-            print(f"Failed to load perfume page {link}")
+            ga_logger.warning(f"Failed to load perfume page | link={link}")
             return None
 
         perfume = self._page_parser.parse_perfume_from_page(perfume_page)
         if not perfume:
-            print(f"Failed to parse perfume page {link}")
+            ga_logger.warning(f"Failed to parse perfume page | link={link}")
             return None
 
         return perfume
