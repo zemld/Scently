@@ -185,14 +185,19 @@ func TestAiAdvisor_Advise_EnrichFetcherFails(t *testing.T) {
 
 	result, err := advisor.Advise(params)
 
-	if err == nil {
-		t.Fatal("expected error when enrichFetcher fails")
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
 	}
-	if err.Error() != "failed to get enrichment results" {
-		t.Fatalf("expected error 'failed to get enrichment results', got %q", err.Error())
+	if len(result) != len(aiSuggestions) {
+		t.Fatalf("expected %d results, got %d", len(aiSuggestions), len(result))
 	}
-	if result != nil {
-		t.Fatalf("expected nil result, got %v", result)
+	for i, r := range result {
+		if r.Rank != i+1 {
+			t.Fatalf("result[%d]: expected rank %d, got %d", i, i+1, r.Rank)
+		}
+		if !r.Perfume.Equal(aiSuggestions[i]) {
+			t.Fatalf("result[%d]: expected perfume %+v, got %+v", i, aiSuggestions[i], r.Perfume)
+		}
 	}
 }
 
@@ -225,14 +230,19 @@ func TestAiAdvisor_Advise_EnrichFetcherReturnsEmpty(t *testing.T) {
 
 	result, err := advisor.Advise(params)
 
-	if err == nil {
-		t.Fatal("expected error when enrichFetcher returns empty")
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
 	}
-	if err.Error() != "failed to get enrichment results" {
-		t.Fatalf("expected error 'failed to get enrichment results', got %q", err.Error())
+	if len(result) != len(aiSuggestions) {
+		t.Fatalf("expected %d results, got %d", len(aiSuggestions), len(result))
 	}
-	if result != nil {
-		t.Fatalf("expected nil result, got %v", result)
+	for i, r := range result {
+		if r.Rank != i+1 {
+			t.Fatalf("result[%d]: expected rank %d, got %d", i, i+1, r.Rank)
+		}
+		if !r.Perfume.Equal(aiSuggestions[i]) {
+			t.Fatalf("result[%d]: expected perfume %+v, got %+v", i, aiSuggestions[i], r.Perfume)
+		}
 	}
 }
 
