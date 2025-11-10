@@ -53,26 +53,26 @@ func (m Overlay) Find(favourite perfume.Perfume, all []perfume.Perfume, matchesC
 		if i == m.threadsCount-1 {
 			end = len(all)
 		}
-		go m.buildHeapAsync(&matchingHeap, &wg, favourite, all[start:end])
+		go m.processPerfumes(&matchingHeap, &wg, favourite, all[start:end], matchesCount)
 	}
 
 	wg.Wait()
 
 	matchesCount = min(matchesCount, matchingHeap.Len())
 
-	ranked := make([]perfume.Ranked, 0, matchesCount)
-	for i := range matchesCount {
+	ranked := make([]perfume.Ranked, matchesCount)
+	for i := matchesCount - 1; i >= 0; i-- {
 		mostSimilar := matchingHeap.PopSafe()
-		ranked = append(ranked, perfume.Ranked{
+		ranked[i] = perfume.Ranked{
 			Perfume: mostSimilar.Perfume,
 			Rank:    i + 1,
 			Score:   mostSimilar.Score,
-		})
+		}
 	}
 	return ranked
 }
 
-func (m Overlay) buildHeapAsync(h *PerfumeHeap, wg *sync.WaitGroup, favourite perfume.Perfume, all []perfume.Perfume) {
+func (m Overlay) processPerfumes(h *PerfumeHeap, wg *sync.WaitGroup, favourite perfume.Perfume, all []perfume.Perfume, limit int) {
 	defer wg.Done()
 
 	for _, p := range all {
@@ -81,10 +81,10 @@ func (m Overlay) buildHeapAsync(h *PerfumeHeap, wg *sync.WaitGroup, favourite pe
 		}
 		similarityScore := m.GetPerfumeSimilarityScore(favourite.Properties, p.Properties)
 
-		h.PushSafe(perfume.WithScore{
+		h.PushSafeIfNeeded(perfume.WithScore{
 			Perfume: p,
 			Score:   similarityScore,
-		})
+		}, limit)
 	}
 }
 
