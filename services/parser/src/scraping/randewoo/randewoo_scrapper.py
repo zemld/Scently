@@ -1,11 +1,14 @@
 from pathlib import Path
 
 from src.models import PerfumeFromConcreteShop
-from src.util import get_page
-from src.util.backup import BackupManager
+from src.util import BackupManager, get_page, setup_logger
 
 from ..page_parser import PageParser
 from ..scrapper import Scrapper
+
+randewoo_logger = setup_logger(
+    __name__, log_file=Path.cwd() / "logs" / f"{__name__.split('.')[-1]}.log"
+)
 
 
 class RandewooScrapper(Scrapper):
@@ -41,7 +44,7 @@ class RandewooScrapper(Scrapper):
 
         if new_links:
             self._backup_manager.add_links(new_links)
-            print(f"Saved {len(new_links)} new links to backup.")
+            randewoo_logger.info(f"Saved new links to backup | count={len(new_links)}")
 
         return self.process_page_links(perfume_links, index, self._backup_manager)
 

@@ -1,16 +1,18 @@
 import re
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 from threading import Lock
-from typing import TYPE_CHECKING
 
 from tqdm import tqdm
 
 from src.models.perfume import PerfumeFromConcreteShop
 from src.scraping.page_parser import PageParser
+from src.util import BackupManager, setup_logger
 
-if TYPE_CHECKING:
-    from src.util.backup import BackupManager
+scrapper_logger = setup_logger(
+    __name__, log_file=Path.cwd() / "logs" / f"{__name__.split('.')[-1]}.log"
+)
 
 
 class Scrapper(ABC):
@@ -40,7 +42,7 @@ class Scrapper(ABC):
         self,
         page_links: list[str],
         page_index: int,
-        backup_manager: "BackupManager | None" = None,
+        backup_manager: BackupManager | None = None,
     ) -> list[PerfumeFromConcreteShop]:
         perfumes = []
         locker = Lock()
@@ -64,7 +66,10 @@ class Scrapper(ABC):
                 if backup_manager and batch_perfumes:
                     backup_manager.add_perfumes(batch_perfumes)
 
-        print(f"Collected {len(perfumes)} perfumes from page {page_index + 1}.")
+        scrapper_logger.info(
+            f"Collected perfumes from page | page_index={page_index} | "
+            f"count={len(perfumes)}"
+        )
         return perfumes
 
     @abstractmethod

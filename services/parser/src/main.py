@@ -13,6 +13,11 @@ from src.scraping.gold_apple import GoldApplePageParser, GoldAppleScrapper
 from src.scraping.letu import LetuPageParser, LetuScrapper
 from src.scraping.randewoo import RandewooPageParser, RandewooScrapper
 from src.scraping.scrapper import Scrapper
+from src.util import setup_logger
+
+logger = setup_logger(
+    __name__, log_file=Path.cwd() / "logs" / f"{__name__.split('.')[-1]}.log"
+)
 
 UPLOAD_PERFUME_INFO = "http://perfume:8000/v1/perfumes/update"
 
@@ -20,36 +25,6 @@ TYPE_CANONIZER = Canonizer(Path.cwd() / "data/types")
 SEX_CANONIZER = Canonizer(Path.cwd() / "data/sex")
 FAMILY_CANONIZER = Canonizer(Path.cwd() / "data/families")
 NOTES_CANONIZER = NoteCanonizer(Path.cwd() / "data/notes")
-
-
-SCRAPPERS = {
-    "goldapple": GoldAppleScrapper(
-        page_parser=GoldApplePageParser(
-            type_canonizer=TYPE_CANONIZER,
-            sex_canonizer=SEX_CANONIZER,
-            family_canonizer=FAMILY_CANONIZER,
-            notes_canonizer=NOTES_CANONIZER,
-        ),
-    ),
-    "randewoo": RandewooScrapper(
-        "https://randewoo.ru",
-        page_parser=RandewooPageParser(
-            type_canonizer=TYPE_CANONIZER,
-            sex_canonizer=SEX_CANONIZER,
-            family_canonizer=FAMILY_CANONIZER,
-            notes_canonizer=NOTES_CANONIZER,
-        ),
-    ),
-    "letu": LetuScrapper(
-        "https://www.letu.ru",
-        page_parser=LetuPageParser(
-            type_canonizer=TYPE_CANONIZER,
-            sex_canonizer=SEX_CANONIZER,
-            family_canonizer=FAMILY_CANONIZER,
-            notes_canonizer=NOTES_CANONIZER,
-        ),
-    ),
-}
 
 
 def collect_and_store_perfumes(shop_name: str, scrapper: Scrapper) -> None:
@@ -61,12 +36,42 @@ def collect_and_store_perfumes(shop_name: str, scrapper: Scrapper) -> None:
             indent=4,
             ensure_ascii=False,
         )
+    logger.info(
+        f"Collected and stored perfumes | shop_name={shop_name} | count={len(perfumes)}"
+    )
 
 
 def collect_and_store_all_perfumes() -> None:
-    for shop_name, scrapper in SCRAPPERS.items():
+    scrappers = {
+        "goldapple": GoldAppleScrapper(
+            page_parser=GoldApplePageParser(
+                type_canonizer=TYPE_CANONIZER,
+                sex_canonizer=SEX_CANONIZER,
+                family_canonizer=FAMILY_CANONIZER,
+                notes_canonizer=NOTES_CANONIZER,
+            ),
+        ),
+        "randewoo": RandewooScrapper(
+            "https://randewoo.ru",
+            page_parser=RandewooPageParser(
+                type_canonizer=TYPE_CANONIZER,
+                sex_canonizer=SEX_CANONIZER,
+                family_canonizer=FAMILY_CANONIZER,
+                notes_canonizer=NOTES_CANONIZER,
+            ),
+        ),
+        "letu": LetuScrapper(
+            "https://www.letu.ru",
+            page_parser=LetuPageParser(
+                type_canonizer=TYPE_CANONIZER,
+                sex_canonizer=SEX_CANONIZER,
+                family_canonizer=FAMILY_CANONIZER,
+                notes_canonizer=NOTES_CANONIZER,
+            ),
+        ),
+    }
+    for shop_name, scrapper in scrappers.items():
         collect_and_store_perfumes(shop_name, scrapper)
-        print(f"Collected and stored perfumes for {shop_name}")
 
 
 def try_to_upload_perfumes_to_database(
@@ -94,21 +99,31 @@ def try_to_upload_perfumes_to_database(
             )
 
 
-def update_perfumes_in_database() -> None:
-    collect_and_store_all_perfumes()
+def update_perfumes_in_database(collect: bool = True) -> None:
+    if collect:
+        collect_and_store_all_perfumes()
     perfumes = unite_perfumes(get_all_perfumes(Path.cwd() / "data/collected_perfumes"))
     if try_to_upload_perfumes_to_database(perfumes):
-        print("Perfumes uploaded to database successfully")
+        logger.info("Perfumes uploaded to database successfully")
     else:
-        print("Failed to upload perfumes to database")
+        logger.error("Failed to upload perfumes to database")
 
 
 if __name__ == "__main__":
+    logger.info("Starting scheduler")
     scheduler = BackgroundScheduler()
-    scheduler.add_job(update_perfumes_in_database, "interval", days=5)
+    scheduler.add_job(
+        update_perfumes_in_database,
+        "interval",
+        days=5,
+        kwargs={"collect": False},
+        replace_existing=True,
+    )
     scheduler.start()
+    update_perfumes_in_database(collect=False)
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
         scheduler.shutdown()
+        logger.info("Scheduler shutdown")
