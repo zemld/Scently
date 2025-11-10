@@ -35,14 +35,12 @@ func TestPerfumeHeap_Less(t *testing.T) {
 		},
 	}
 
-	// Max-heap: Less(i, j) returns true if i.Score > j.Score
-	// So Less(0, 1) should be false (0.5 > 0.7 is false)
-	if h.Less(0, 1) {
-		t.Fatal("expected 0.5 > 0.7 to be false (max-heap)")
+	if !h.Less(0, 1) {
+		t.Fatal("expected 0.5 < 0.7 to be true (min-heap)")
 	}
-	// Less(1, 0) should be true (0.7 > 0.5 is true)
-	if !h.Less(1, 0) {
-		t.Fatal("expected 0.7 > 0.5 to be true (max-heap)")
+	// Less(1, 0) should be false (0.7 < 0.5 is false)
+	if h.Less(1, 0) {
+		t.Fatal("expected 0.7 < 0.5 to be false (min-heap)")
 	}
 }
 
@@ -127,8 +125,7 @@ func TestPerfumeHeap_HeapOperations(t *testing.T) {
 		t.Fatalf("expected length %d, got %d", len(items), h.Len())
 	}
 
-	// Pop items and verify they come out in descending order (max heap)
-	expectedOrder := []float64{0.9, 0.7, 0.5, 0.3, 0.1}
+	expectedOrder := []float64{0.1, 0.3, 0.5, 0.7, 0.9}
 	for i, expectedScore := range expectedOrder {
 		if h.Len() == 0 {
 			t.Fatalf("heap is empty at index %d", i)
@@ -149,7 +146,7 @@ func TestPerfumeHeap_PushSafe(t *testing.T) {
 		Score:   0.5,
 	}
 
-	h.PushSafe(item)
+	h.PushSafeIfNeeded(item, 1)
 
 	if h.Len() != 1 {
 		t.Fatalf("expected length 1, got %d", h.Len())
@@ -195,14 +192,14 @@ func TestPerfumeHeap_ConcurrentPushSafe(t *testing.T) {
 					Perfume: perfume.Perfume{Name: "Test"},
 					Score:   float64(id*itemsPerGoroutine + j),
 				}
-				h.PushSafe(item)
+				h.PushSafeIfNeeded(item, 1)
 			}
 		}(i)
 	}
 
 	wg.Wait()
 
-	expectedLen := goroutines * itemsPerGoroutine
+	expectedLen := 1
 	if h.Len() != expectedLen {
 		t.Fatalf("expected length %d after concurrent pushes, got %d", expectedLen, h.Len())
 	}
@@ -227,14 +224,14 @@ func TestPerfumeHeap_ConcurrentOperations(t *testing.T) {
 					Perfume: perfume.Perfume{Name: "Test"},
 					Score:   float64(id*itemsPerGoroutine + j),
 				}
-				h.PushSafe(item)
+				h.PushSafeIfNeeded(item, 1)
 			}
 		}(i)
 	}
 
 	wg.Wait()
 
-	expectedLen := goroutines * itemsPerGoroutine
+	expectedLen := 1
 	if h.Len() != expectedLen {
 		t.Fatalf("expected length %d, got %d", expectedLen, h.Len())
 	}

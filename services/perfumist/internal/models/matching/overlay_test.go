@@ -269,7 +269,7 @@ func TestOverlay_buildHeapAsync_SkipsEqual(t *testing.T) {
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 
-	matcher.buildHeapAsync(h, wg, favourite, all)
+	matcher.processPerfumes(h, wg, favourite, all, 2)
 	wg.Wait()
 
 	// Should have 2 items (favourite is skipped)

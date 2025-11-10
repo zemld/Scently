@@ -28,18 +28,11 @@ func (h *PerfumeHeap) Len() int {
 }
 
 func (h *PerfumeHeap) Less(i, j int) bool {
-	return h.perfumes[i].Score > h.perfumes[j].Score
+	return h.perfumes[i].Score < h.perfumes[j].Score
 }
 
 func (h *PerfumeHeap) Swap(i, j int) {
 	h.perfumes[i], h.perfumes[j] = h.perfumes[j], h.perfumes[i]
-}
-
-func (h *PerfumeHeap) PushSafe(x perfume.WithScore) {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-
-	heap.Push(h, x)
 }
 
 func (h *PerfumeHeap) PopSafe() perfume.WithScore {
@@ -47,4 +40,24 @@ func (h *PerfumeHeap) PopSafe() perfume.WithScore {
 	defer h.mu.Unlock()
 
 	return heap.Pop(h).(perfume.WithScore)
+}
+
+func (h *PerfumeHeap) PushSafeIfNeeded(p perfume.WithScore, limit int) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	if limit <= 0 {
+		return
+	}
+
+	if h.Len() < limit {
+		heap.Push(h, p)
+		return
+	}
+
+	if len(h.perfumes) == 0 || p.Score <= h.perfumes[0].Score {
+		return
+	}
+	heap.Pop(h)
+	heap.Push(h, p)
 }
