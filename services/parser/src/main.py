@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import time
@@ -18,6 +19,8 @@ from src.util import setup_logger
 logger = setup_logger(
     __name__, log_file=Path.cwd() / "logs" / f"{__name__.split('.')[-1]}.log"
 )
+
+BATCH_SIZE = 100
 
 UPLOAD_PERFUME_INFO = "http://perfume:8000/v1/perfumes/update"
 
@@ -74,13 +77,22 @@ def collect_and_store_all_perfumes() -> None:
         collect_and_store_perfumes(shop_name, scrapper)
 
 
-def try_to_upload_perfumes_to_database(
-    perfumes: list[PerfumeWithUnitedShops], try_number: int = 0, max_retries: int = 3
+async def try_to_upload_perfumes_to_database(
+    perfumes: list[PerfumeWithUnitedShops],
+    sem: asyncio.Semaphore,
+    try_number: int = 0,
+    max_retries: int = 3,
+    client: httpx.AsyncClient | None = None,
 ) -> bool:
-    with httpx.Client() as client:
-        body = {"perfumes": [perfume.to_dict() for perfume in perfumes]}
-        try:
-            response = client.post(
+    if client is None:
+        client = httpx.AsyncClient()
+        return await try_to_upload_perfumes_to_database(
+            perfumes, sem, try_number, max_retries, client
+        )
+    body = {"perfumes": [perfume.to_dict() for perfume in perfumes]}
+    try:
+        async with sem:
+            response = await client.post(
                 UPLOAD_PERFUME_INFO,
                 json=body,
                 timeout=30,
@@ -90,37 +102,52 @@ def try_to_upload_perfumes_to_database(
             )
             response.raise_for_status()
             return True
-        except (httpx.HTTPStatusError, httpx.RequestError) as e:
-            if try_number == max_retries - 1:
-                raise e
-            time.sleep(2**try_number)
-            return try_to_upload_perfumes_to_database(
-                perfumes, try_number + 1, max_retries
-            )
+    except (httpx.HTTPStatusError, httpx.RequestError) as e:
+        if try_number == max_retries - 1:
+            raise e
+        await asyncio.sleep(2**try_number)
+        return await try_to_upload_perfumes_to_database(
+            perfumes, sem, try_number + 1, max_retries, client
+        )
 
 
-def update_perfumes_in_database(collect: bool = True) -> None:
+async def update_perfumes_in_database(
+    collect: bool = True, batch_size: int = BATCH_SIZE
+) -> None:
     if collect:
-        collect_and_store_all_perfumes()
+        await asyncio.to_thread(collect_and_store_all_perfumes)
     perfumes = unite_perfumes(get_all_perfumes(Path.cwd() / "data/collected_perfumes"))
-    if try_to_upload_perfumes_to_database(perfumes):
-        logger.info("Perfumes uploaded to database successfully")
-    else:
-        logger.error("Failed to upload perfumes to database")
+    batches = [
+        perfumes[i : i + batch_size] for i in range(0, len(perfumes), batch_size)
+    ]
+
+    sem = asyncio.Semaphore(10)
+    async with httpx.AsyncClient() as client:
+        await asyncio.gather(
+            *(
+                try_to_upload_perfumes_to_database(batch, sem=sem, client=client)
+                for batch in batches
+            ),
+            return_exceptions=True,
+        )
 
 
 if __name__ == "__main__":
     logger.info("Starting scheduler")
     scheduler = BackgroundScheduler()
+
+    def sheduled_update_wrapper() -> None:
+        asyncio.run(update_perfumes_in_database())
+
     scheduler.add_job(
-        update_perfumes_in_database,
+        sheduled_update_wrapper,
         "interval",
         days=5,
-        kwargs={"collect": False},
         replace_existing=True,
+        max_instances=1,
     )
     scheduler.start()
-    update_perfumes_in_database(collect=False)
+    asyncio.run(update_perfumes_in_database(collect=False))
     try:
         while True:
             time.sleep(1)
