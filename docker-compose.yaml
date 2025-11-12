@@ -63,6 +63,17 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8088
 
+  api_gateway:
+    build:
+      context: services/api_gateway
+    ports:
+      - "8080:8000"
+    env_file:
+      - ./secrets/redis.env
+      - ./secrets/perfumist.env
+    depends_on:
+      - perfumist
+
 volumes:
   perfume_volume:
   redis_data:
