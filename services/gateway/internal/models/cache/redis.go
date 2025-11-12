@@ -21,6 +21,12 @@ type RedisCacher struct {
 	cacheTTL time.Duration
 }
 
+type SuggestionsContextKey string
+
+const (
+	SuggestionsKey SuggestionsContextKey = "suggestions"
+)
+
 func GetOrCreateRedisCacher(host string, port string, password string, cacheTTL time.Duration) *RedisCacher {
 	once.Do(func() {
 		client := redis.NewClient(&redis.Options{
@@ -56,7 +62,7 @@ func (c *RedisCacher) Load(ctx context.Context, key string) (any, error) {
 		return nil, err
 	}
 
-	var result []perfume.Ranked
+	var result perfume.Suggestions
 	if err := json.Unmarshal([]byte(encoded), &result); err != nil {
 		return nil, err
 	}

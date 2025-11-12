@@ -1,8 +1,7 @@
 package perfume
 
-type PerfumeResponse struct {
-	Perfumes []Ranked `json:"perfumes"`
-	State    State    `json:"state"`
+type Suggestions struct {
+	Perfumes []Ranked `json:"suggestions"`
 }
 
 type Ranked struct {
@@ -38,10 +37,4 @@ type Variant struct {
 	Volume int    `json:"volume"`
 	Link   string `json:"link"`
 	Price  int    `json:"price"`
-}
-
-type State struct {
-	Success         bool `json:"success"`
-	SuccessfulCount int  `json:"successful_count"`
-	FailedCount     int  `json:"failed_count"`
 }
