@@ -3,14 +3,18 @@ package middleware
 import (
 	"net/http"
 	"net/url"
+	"os"
 	"slices"
+	"strings"
 
 	"github.com/zemld/PerfumeRecommendationSystem/gateway/internal/errors"
 )
 
-func Cors(next http.HandlerFunc) http.HandlerFunc {
-	allowedOrigins := []string{"http://frontend:3000", "http://localhost:3000"}
+var (
+	allowedOrigins = strings.Split(os.Getenv("ALLOWED_ORIGINS"), ",")
+)
 
+func Cors(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
 
