@@ -13,9 +13,8 @@ func main() {
 
 	router.HandleFunc("GET /perfume/suggest", middleware.Cors(middleware.Cache(handlers.Suggest)))
 
-	err := http.ListenAndServe(":8000", router)
-	if err != nil {
+	log.Printf("Starting server on port 8000")
+	if err := http.ListenAndServe(":8000", router); err != nil {
 		log.Fatalf("Error starting server: %v\n", err)
 	}
-	log.Printf("Server started on port 8000")
 }

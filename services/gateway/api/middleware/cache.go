@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -42,31 +43,24 @@ func Cache(next http.HandlerFunc) http.HandlerFunc {
 		key := getCacheKey(*r)
 		ttl := getTTL()
 
-		cacher := cache.GetOrCreateRedisCacher(redisHost, redisPort, redisPassword, ttl)
-		cached, err := cacher.Load(r.Context(), key)
-		if err == nil && cached != nil {
-			var suggestions perfume.Suggestions
-			if err := json.Unmarshal(cached, &suggestions); err == nil {
-				w.Header().Set("Content-Type", "application/json")
-				if err := json.NewEncoder(w).Encode(suggestions); err != nil {
-					log.Printf("Cannot encode cached response: %v\n", err)
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-				}
-				log.Printf("Cache hit for key: %s\n", key)
-				log.Printf("Cached response body: %s\n", string(cached))
-				return
-			}
+		cacher, err := cache.NewRedisCacher(redisHost, redisPort, redisPassword, ttl)
+		if err != nil {
+			log.Printf("Cannot create Redis cacher: %v\n", err)
+		}
+		if cacher != nil {
+			defer cacher.Close()
+		}
+
+		if cacher != nil {
+			tryLoadFromCache(r.Context(), cacher, key, w)
 		}
 
 		rw := &responseWriter{ResponseWriter: w, statusCode: http.StatusOK}
 		next(rw, r)
 
-		if rw.statusCode == http.StatusOK && len(rw.body) > 0 {
+		if rw.statusCode == http.StatusOK && len(rw.body) > 0 && cacher != nil {
 			if err := cacher.Save(r.Context(), key, rw.body); err != nil {
 				log.Printf("Cannot cache: %v\n", err)
-			} else {
-				log.Printf("Cached response for key: %s\n", key)
-				log.Printf("Cached response body: %s\n", string(rw.body))
 			}
 		}
 	}
@@ -89,4 +83,25 @@ func getTTL() time.Duration {
 		return defaultTTL
 	}
 	return ttl
+}
+
+func tryLoadFromCache(ctx context.Context, cacher cache.Loader, key string, w http.ResponseWriter) {
+	cached, err := cacher.Load(ctx, key)
+	if err != nil || cached == nil {
+		return
+	}
+	var suggestions perfume.Suggestions
+	if err := json.Unmarshal(cached, &suggestions); err != nil {
+		return
+	}
+	if len(suggestions.Perfumes) > 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(suggestions); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+
 }

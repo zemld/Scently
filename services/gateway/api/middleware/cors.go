@@ -1,10 +1,11 @@
 package middleware
 
 import (
-	"log"
 	"net/http"
 	"net/url"
 	"slices"
+
+	"github.com/zemld/PerfumeRecommendationSystem/gateway/internal/errors"
 )
 
 func Cors(next http.HandlerFunc) http.HandlerFunc {
@@ -22,11 +23,10 @@ func Cors(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		if !slices.Contains(allowedOrigins, origin) {
-			http.Error(w, "CORS not allowed", http.StatusForbidden)
-			log.Printf("CORS not allowed: %s", origin)
+			gatewayErr := errors.ErrCORSNotAllowed(origin)
+			gatewayErr.WriteHTTP(w)
 			return
 		}
-		log.Printf("CORS allowed: %s", origin)
 		w.Header().Set("Access-Control-Allow-Origin", origin)
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")

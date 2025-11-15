@@ -3,15 +3,9 @@ package cache
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/redis/go-redis/v9"
-)
-
-var (
-	once          sync.Once
-	redisInstance *RedisCacher
 )
 
 type RedisCacher struct {
@@ -25,18 +19,27 @@ const (
 	SuggestionsKey SuggestionsContextKey = "suggestions"
 )
 
-func GetOrCreateRedisCacher(host string, port string, password string, cacheTTL time.Duration) *RedisCacher {
-	once.Do(func() {
-		client := redis.NewClient(&redis.Options{
-			Addr:     fmt.Sprintf("%s:%s", host, port),
-			Password: password,
-		})
-		redisInstance = &RedisCacher{
-			client:   client,
-			cacheTTL: cacheTTL,
-		}
+func NewRedisCacher(host string, port string, password string, cacheTTL time.Duration) (*RedisCacher, error) {
+	client := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%s", host, port),
+		Password: password,
 	})
-	return redisInstance
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := client.Ping(ctx).Err(); err != nil {
+		return nil, fmt.Errorf("failed to connect to redis: %w", err)
+	}
+
+	return &RedisCacher{
+		client:   client,
+		cacheTTL: cacheTTL,
+	}, nil
+}
+
+func (c *RedisCacher) Close() error {
+	return c.client.Close()
 }
 
 func (c *RedisCacher) Save(ctx context.Context, key string, value []byte) error {

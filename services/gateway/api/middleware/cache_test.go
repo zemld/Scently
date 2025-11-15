@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zemld/PerfumeRecommendationSystem/gateway/internal/models/cache"
 	"github.com/zemld/PerfumeRecommendationSystem/gateway/internal/models/perfume"
 )
 
@@ -39,16 +38,6 @@ func (m *MockCacher) Load(ctx context.Context, key string) (interface{}, error) 
 
 func (m *MockCacher) Clear() {
 	m.store = make(map[string]interface{})
-}
-
-// Override GetOrCreateRedisCacher for testing
-var originalGetOrCreateRedisCacher func(string, string, string, time.Duration) cache.Loader
-
-func setupMockCache() *MockCacher {
-	mockCache := NewMockCacher()
-	// We'll need to modify the cache middleware to accept a cacher interface
-	// For now, we'll test the logic separately
-	return mockCache
 }
 
 func TestGetCacheKey(t *testing.T) {
