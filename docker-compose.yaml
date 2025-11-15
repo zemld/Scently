@@ -65,7 +65,7 @@ services:
 
   api_gateway:
     build:
-      context: services/api_gateway
+      context: services/gateway
     ports:
       - "8080:8000"
     env_file:
