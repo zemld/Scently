@@ -51,8 +51,11 @@ func Cache(next http.HandlerFunc) http.HandlerFunc {
 			defer cacher.Close()
 		}
 
+		log.Printf("cacher: %v", cacher)
 		if cacher != nil {
-			tryLoadFromCache(r.Context(), cacher, key, w)
+			if tryLoadFromCache(r.Context(), cacher, key, w) {
+				return
+			}
 		}
 
 		rw := &responseWriter{ResponseWriter: w, statusCode: http.StatusOK}
@@ -85,23 +88,22 @@ func getTTL() time.Duration {
 	return ttl
 }
 
-func tryLoadFromCache(ctx context.Context, cacher cache.Loader, key string, w http.ResponseWriter) {
+func tryLoadFromCache(ctx context.Context, cacher cache.Loader, key string, w http.ResponseWriter) bool {
 	cached, err := cacher.Load(ctx, key)
 	if err != nil || cached == nil {
-		return
+		return false
 	}
 	var suggestions perfume.Suggestions
 	if err := json.Unmarshal(cached, &suggestions); err != nil {
-		return
+		return false
 	}
-	if len(suggestions.Perfumes) > 0 {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(suggestions); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		return
+	if len(suggestions.Perfumes) == 0 {
+		return false
 	}
-
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(suggestions); err != nil {
+		return false
+	}
+	return true
 }

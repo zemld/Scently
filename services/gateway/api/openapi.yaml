@@ -35,7 +35,8 @@ paths:
         - name: sex
           in: query
           description: Пол (male/female/unisex)
-          required: true
+          required: false
+          default: "unisex"
           schema:
             type: string
             enum: [male, female, unisex]
@@ -88,6 +89,15 @@ paths:
                   message:
                     type: string
                     example: "No recommendations available"
+        "400":
+          description: Не передан бренд или название парфюма
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Bad request"
+                message: "Wrong request parameters"
         "403":
           description: CORS не разрешен
           content:

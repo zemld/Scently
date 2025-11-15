@@ -53,3 +53,12 @@ func ErrCORSNotAllowed(origin string) *GatewayError {
 		Err:        fmt.Errorf("origin not allowed: %s", origin),
 	}
 }
+
+func ErrBadRequest(err error) *GatewayError {
+	return &GatewayError{
+		Type:       "BAD_REQUEST",
+		StatusCode: http.StatusBadRequest,
+		Message:    "Wrong request parameters",
+		Err:        err,
+	}
+}

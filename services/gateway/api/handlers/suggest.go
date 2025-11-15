@@ -30,6 +30,10 @@ var (
 )
 
 func Suggest(w http.ResponseWriter, r *http.Request) {
+	if gatewayErr := validateParameters(*r); gatewayErr != nil {
+		gatewayErr.WriteHTTP(w)
+		return
+	}
 	ctx, cancel := context.WithTimeout(r.Context(), getTimeoutFromRequest(*r))
 	defer cancel()
 
@@ -123,4 +127,14 @@ func writeNoContentResponse(w http.ResponseWriter) {
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		log.Printf("Error encoding no content response: %v\n", err)
 	}
+}
+
+func validateParameters(r http.Request) *errors.GatewayError {
+	if r.URL.Query().Get("brand") == "" {
+		return errors.ErrBadRequest(fmt.Errorf("brand is required"))
+	}
+	if r.URL.Query().Get("name") == "" {
+		return errors.ErrBadRequest(fmt.Errorf("name is required"))
+	}
+	return nil
 }
