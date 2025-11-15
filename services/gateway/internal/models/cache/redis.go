@@ -26,13 +26,6 @@ func NewRedisCacher(host string, port string, password string, cacheTTL time.Dur
 		MaxRetries: 1,
 	})
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	if err := client.Ping(ctx).Err(); err != nil {
-		return nil, fmt.Errorf("failed to connect to redis: %w", err)
-	}
-
 	return &RedisCacher{
 		client:   client,
 		cacheTTL: cacheTTL,
