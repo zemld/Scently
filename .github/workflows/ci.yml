@@ -12,6 +12,7 @@ jobs:
                 service:
                     - perfume
                     - perfumist
+                    - gateway
         uses: ./.github/workflows/go-template.yml
         with:
             service: ${{ matrix.service }}
