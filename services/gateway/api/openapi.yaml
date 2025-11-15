@@ -1,0 +1,252 @@
+openapi: 3.1.3
+info:
+  title: Perfume Recommendation Gateway API
+  description: API для получения рекомендаций по парфюмерии
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Локальный сервер разработки
+  - url: http://gateway:8000
+    description: Сервер в Docker
+
+paths:
+  /perfume/suggest:
+    get:
+      summary: Получить рекомендации по парфюмерии
+      description: Возвращает список рекомендованных парфюмов на основе переданных параметров
+      operationId: suggestPerfume
+      tags:
+        - Perfume
+      parameters:
+        - name: brand
+          in: query
+          description: Бренд парфюма
+          required: true
+          schema:
+            type: string
+            example: "Chanel"
+        - name: name
+          in: query
+          description: Название парфюма
+          required: true
+          schema:
+            type: string
+            example: "No. 5"
+        - name: sex
+          in: query
+          description: Пол (male/female/unisex)
+          required: true
+          schema:
+            type: string
+            enum: [male, female, unisex]
+            example: "female"
+        - name: use_ai
+          in: query
+          description: Использовать AI для рекомендаций
+          required: false
+          schema:
+            type: string
+            enum: [true, false]
+            default: "false"
+            example: "false"
+      responses:
+        "200":
+          description: Успешный ответ с рекомендациями
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Suggestions"
+              example:
+                suggested:
+                  - perfume:
+                      brand: "Chanel"
+                      name: "No. 5"
+                      sex: "female"
+                      image_url: "https://example.com/image.jpg"
+                      properties:
+                        perfume_type: "Eau de Parfum"
+                        family: ["Floral", "Aldehydic"]
+                        upper_notes: ["Aldehydes", "Ylang-Ylang"]
+                        core_notes: ["Jasmine", "Rose"]
+                        base_notes: ["Vanilla", "Amber"]
+                      shops:
+                        - shop_name: "Shop1"
+                          domain: "shop1.com"
+                          variants:
+                            - volume: 50
+                              link: "https://shop1.com/product"
+                              price: 5000
+                    rank: 1
+                    similarity_score: 0.95
+        "204":
+          description: Не удалось дать рекомендации (пустой список или нет данных)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "No recommendations available"
+        "403":
+          description: CORS не разрешен
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "CORS not allowed"
+                message: "CORS not allowed"
+        "500":
+          description: Ошибка запроса к внутреннему сервису
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Internal server error"
+                message: "Failed to execute request"
+
+components:
+  schemas:
+    Suggestions:
+      type: object
+      required:
+        - suggested
+      properties:
+        suggested:
+          type: array
+          items:
+            $ref: "#/components/schemas/Ranked"
+
+    Ranked:
+      type: object
+      required:
+        - perfume
+      properties:
+        perfume:
+          $ref: "#/components/schemas/Perfume"
+        rank:
+          type: integer
+          description: Ранг рекомендации
+          example: 1
+        similarity_score:
+          type: number
+          format: float
+          description: Оценка схожести
+          example: 0.95
+
+    Perfume:
+      type: object
+      required:
+        - brand
+        - name
+        - sex
+        - image_url
+        - properties
+        - shops
+      properties:
+        brand:
+          type: string
+          example: "Chanel"
+        name:
+          type: string
+          example: "No. 5"
+        sex:
+          type: string
+          enum: [male, female, unisex]
+          example: "female"
+        image_url:
+          type: string
+          format: uri
+          example: "https://example.com/image.jpg"
+        properties:
+          $ref: "#/components/schemas/Properties"
+        shops:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShopInfo"
+
+    Properties:
+      type: object
+      required:
+        - perfume_type
+        - family
+        - upper_notes
+        - core_notes
+        - base_notes
+      properties:
+        perfume_type:
+          type: string
+          example: "Eau de Parfum"
+        family:
+          type: array
+          items:
+            type: string
+          example: ["Floral", "Aldehydic"]
+        upper_notes:
+          type: array
+          items:
+            type: string
+          example: ["Aldehydes", "Ylang-Ylang"]
+        core_notes:
+          type: array
+          items:
+            type: string
+          example: ["Jasmine", "Rose"]
+        base_notes:
+          type: array
+          items:
+            type: string
+          example: ["Vanilla", "Amber"]
+
+    ShopInfo:
+      type: object
+      required:
+        - shop_name
+        - domain
+        - variants
+      properties:
+        shop_name:
+          type: string
+          example: "Shop1"
+        domain:
+          type: string
+          example: "shop1.com"
+        variants:
+          type: array
+          items:
+            $ref: "#/components/schemas/Variant"
+
+    Variant:
+      type: object
+      required:
+        - volume
+        - link
+        - price
+      properties:
+        volume:
+          type: integer
+          description: Объем в мл
+          example: 50
+        link:
+          type: string
+          format: uri
+          example: "https://shop1.com/product"
+        price:
+          type: integer
+          description: Цена в рублях
+          example: 5000
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Тип ошибки
+        message:
+          type: string
+          description: Сообщение об ошибке
