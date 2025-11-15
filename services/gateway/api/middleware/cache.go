@@ -2,13 +2,13 @@ package middleware
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/zemld/PerfumeRecommendationSystem/gateway/internal/models/cache"
+	"github.com/zemld/PerfumeRecommendationSystem/gateway/internal/models/canonization"
 	"github.com/zemld/PerfumeRecommendationSystem/gateway/internal/models/perfume"
 )
 
@@ -51,9 +51,9 @@ func Cache(next http.HandlerFunc) http.HandlerFunc {
 				if err := json.NewEncoder(w).Encode(suggestions); err != nil {
 					log.Printf("Cannot encode cached response: %v\n", err)
 					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
 				}
 				log.Printf("Cache hit for key: %s\n", key)
+				log.Printf("Cached response body: %s\n", string(cached))
 				return
 			}
 		}
@@ -66,21 +66,25 @@ func Cache(next http.HandlerFunc) http.HandlerFunc {
 				log.Printf("Cannot cache: %v\n", err)
 			} else {
 				log.Printf("Cached response for key: %s\n", key)
+				log.Printf("Cached response body: %s\n", string(rw.body))
 			}
 		}
 	}
 }
 
 func getCacheKey(r http.Request) string {
-	brand := r.URL.Query().Get("brand")
-	name := r.URL.Query().Get("name")
-	sex := r.URL.Query().Get("sex")
-	useAI := r.URL.Query().Get("use_ai")
-	return fmt.Sprintf("%s:%s:%s:%s", brand, name, sex, useAI)
+	canonizer := canonization.DefaultCanonizer{}
+	keys := []string{
+		r.URL.Query().Get("brand"),
+		r.URL.Query().Get("name"),
+		r.URL.Query().Get("sex"),
+		r.URL.Query().Get("use_ai"),
+	}
+	return canonizer.Canonize(keys)
 }
 
 func getTTL() time.Duration {
-	ttl, err := time.ParseDuration(ttlEnv)
+	ttl, err := time.ParseDuration(os.Getenv(ttlEnv))
 	if err != nil {
 		return defaultTTL
 	}

@@ -1,7 +1,7 @@
 package perfume
 
 type Suggestions struct {
-	Perfumes []Ranked `json:"suggestions"`
+	Perfumes []Ranked `json:"suggested"`
 }
 
 type Ranked struct {
