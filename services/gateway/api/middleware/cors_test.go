@@ -3,10 +3,19 @@ package middleware
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"strings"
 	"testing"
 )
 
 func TestCors_AllowedOrigin(t *testing.T) {
+	t.Setenv("ALLOWED_ORIGINS", "http://frontend:3000,http://localhost:3000")
+	originalOrigins := allowedOrigins
+	allowedOrigins = strings.Split(os.Getenv("ALLOWED_ORIGINS"), ",")
+	defer func() {
+		allowedOrigins = originalOrigins
+	}()
+
 	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("success"))
@@ -78,7 +87,8 @@ func TestCors_DisallowedOrigin_ReturnsErrorMessage(t *testing.T) {
 	rr := httptest.NewRecorder()
 	handler(rr, req)
 
-	expectedBody := "CORS not allowed\n"
+	// Теперь ответ в формате JSON
+	expectedBody := `{"error":"CORS_NOT_ALLOWED","message":"CORS not allowed"}` + "\n"
 	if body := rr.Body.String(); body != expectedBody {
 		t.Errorf("expected body '%s', got '%s'", expectedBody, body)
 	}
