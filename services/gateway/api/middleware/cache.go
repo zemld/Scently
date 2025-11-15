@@ -21,6 +21,22 @@ var (
 
 const defaultTTL = 1 * time.Hour
 
+type responseWriter struct {
+	http.ResponseWriter
+	body       []byte
+	statusCode int
+}
+
+func (rw *responseWriter) Write(b []byte) (int, error) {
+	rw.body = append(rw.body, b...)
+	return rw.ResponseWriter.Write(b)
+}
+
+func (rw *responseWriter) WriteHeader(statusCode int) {
+	rw.statusCode = statusCode
+	rw.ResponseWriter.WriteHeader(statusCode)
+}
+
 func Cache(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		key := getCacheKey(*r)
@@ -29,23 +45,27 @@ func Cache(next http.HandlerFunc) http.HandlerFunc {
 		cacher := cache.GetOrCreateRedisCacher(redisHost, redisPort, redisPassword, ttl)
 		cached, err := cacher.Load(r.Context(), key)
 		if err == nil && cached != nil {
-			suggestions, ok := cached.(perfume.Suggestions)
-			if ok {
+			var suggestions perfume.Suggestions
+			if err := json.Unmarshal(cached, &suggestions); err == nil {
 				w.Header().Set("Content-Type", "application/json")
 				if err := json.NewEncoder(w).Encode(suggestions); err != nil {
 					log.Printf("Cannot encode cached response: %v\n", err)
 					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
 				}
+				log.Printf("Cache hit for key: %s\n", key)
 				return
 			}
 		}
 
-		next(w, r)
+		rw := &responseWriter{ResponseWriter: w, statusCode: http.StatusOK}
+		next(rw, r)
 
-		suggestionsValue, ok := r.Context().Value(cache.SuggestionsKey).(perfume.Suggestions)
-		if ok {
-			if err := cacher.Save(r.Context(), key, suggestionsValue); err != nil {
+		if rw.statusCode == http.StatusOK && len(rw.body) > 0 {
+			if err := cacher.Save(r.Context(), key, rw.body); err != nil {
 				log.Printf("Cannot cache: %v\n", err)
+			} else {
+				log.Printf("Cached response for key: %s\n", key)
 			}
 		}
 	}

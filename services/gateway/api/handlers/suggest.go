@@ -53,18 +53,17 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Response status: %s\n", resp.Status)
 	w.WriteHeader(resp.StatusCode)
 	_, _ = io.Copy(w, resp.Body)
-	log.Printf("Response body: %s\n", resp.Body)
 }
 
 func getTimeoutFromRequest(r http.Request) time.Duration {
 	if r.URL.Query().Get("use_ai") == "true" {
-		timeout, err := time.ParseDuration(aITimeout)
+		timeout, err := time.ParseDuration(os.Getenv(aITimeout))
 		if err != nil {
 			return defaultAITimeout
 		}
 		return timeout
 	}
-	timeout, err := time.ParseDuration(nonAITimeout)
+	timeout, err := time.ParseDuration(os.Getenv(nonAITimeout))
 	if err != nil {
 		return defaultNonAITimeout
 	}
