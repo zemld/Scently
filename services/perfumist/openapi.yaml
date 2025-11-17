@@ -175,23 +175,29 @@ components:
 
     Properties:
       type: object
+      required:
+        - perfume_type
+        - family
+        - upper_notes
+        - core_notes
+        - base_notes
       properties:
         perfume_type:
           type: string
-          description: Тип духов (EDT, EDP, etc.)
-          example: "EDP"
+          description: Тип духов (Eau de Parfum, Eau de Toilette, etc.)
+          example: "Eau de Parfum"
         family:
           type: array
           items:
             type: string
           description: Семейство аромата
-          example: ["Floral", "Oriental"]
+          example: ["Floral", "Aldehydic"]
         upper_notes:
           type: array
           items:
             type: string
           description: Верхние ноты
-          example: ["Bergamot", "Lemon"]
+          example: ["Aldehydes", "Ylang-Ylang"]
         core_notes:
           type: array
           items:
@@ -203,20 +209,28 @@ components:
           items:
             type: string
           description: Базовые ноты
-          example: ["Vanilla", "Musk"]
+          example: ["Vanilla", "Sandalwood"]
 
     ShopInfo:
       type: object
+      required:
+        - shop_name
+        - domain
+        - variants
       properties:
         shop_name:
           type: string
           description: Название магазина
-          example: "Perfume Shop"
+          example: "Gold Apple"
         domain:
           type: string
-          format: uri
           description: Домен магазина
-          example: "https://perfumeshop.com"
+          example: "goldapple.ru"
+        image_url:
+          type: string
+          format: uri
+          description: URL изображения из магазина
+          example: "https://example.com/shop-image.jpg"
         variants:
           type: array
           items:
@@ -224,20 +238,24 @@ components:
 
     Variant:
       type: object
+      required:
+        - volume
+        - price
+        - link
       properties:
         volume:
           type: integer
-          description: Объем в мл
-          example: 100
+          description: Объем в миллилитрах
+          example: 50
+        price:
+          type: integer
+          description: Цена в рублях
+          example: 5000
         link:
           type: string
           format: uri
-          description: Ссылка на товар
-          example: "https://perfumeshop.com/product/123"
-        price:
-          type: integer
-          description: Цена в копейках
-          example: 500000
+          description: Ссылка на товар в магазине
+          example: "https://goldapple.ru/perfume/123"
 
     ErrorResponse:
       type: object
