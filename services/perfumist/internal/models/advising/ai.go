@@ -1,6 +1,8 @@
 package advising
 
 import (
+	"context"
+
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/errors"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/fetching"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
@@ -16,8 +18,8 @@ func NewAI(adviseFetcher fetching.Fetcher, enrichFetcher fetching.Fetcher) *AI {
 	return &AI{adviseFetcher: adviseFetcher, enrichFetcher: enrichFetcher}
 }
 
-func (a AI) Advise(params parameters.RequestPerfume) ([]perfume.Ranked, error) {
-	adviseResults, ok := a.adviseFetcher.Fetch([]parameters.RequestPerfume{params})
+func (a AI) Advise(ctx context.Context, params parameters.RequestPerfume) ([]perfume.Ranked, error) {
+	adviseResults, ok := a.adviseFetcher.Fetch(ctx, []parameters.RequestPerfume{params})
 	if !ok {
 		return nil, errors.NewServiceError("failed to interact with AI advisor service", nil)
 	}
@@ -29,7 +31,7 @@ func (a AI) Advise(params parameters.RequestPerfume) ([]perfume.Ranked, error) {
 	for i, suggestion := range adviseResults {
 		enrichmentParams[i] = *parameters.NewGet().WithBrand(suggestion.Brand).WithName(suggestion.Name).WithSex(params.Sex)
 	}
-	enrichmentResults, ok := a.enrichFetcher.Fetch(enrichmentParams)
+	enrichmentResults, ok := a.enrichFetcher.Fetch(ctx, enrichmentParams)
 
 	rankedMap := make(map[string]perfume.Perfume)
 	if ok && enrichmentResults != nil && len(enrichmentResults) > 0 {

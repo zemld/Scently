@@ -1,6 +1,7 @@
 package advising
 
 import (
+	"context"
 	"testing"
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
@@ -40,7 +41,7 @@ func TestAiAdvisor_Advise_Success(t *testing.T) {
 	}
 
 	adviseFetcher := &MockFetcher{
-		FetchFunc: func(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 			if len(params) == 1 && params[0].Brand == "Chanel" {
 				return aiSuggestions, true
 			}
@@ -49,7 +50,7 @@ func TestAiAdvisor_Advise_Success(t *testing.T) {
 	}
 
 	enrichFetcher := &MockFetcher{
-		FetchFunc: func(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 			// Verify enrichment params are constructed correctly
 			if len(params) != len(aiSuggestions) {
 				t.Fatalf("expected %d enrichment params, got %d", len(aiSuggestions), len(params))
@@ -76,7 +77,7 @@ func TestAiAdvisor_Advise_Success(t *testing.T) {
 		Sex:   "female",
 	}
 
-	result, err := advisor.Advise(params)
+	result, err := advisor.Advise(context.Background(), params)
 
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -100,7 +101,7 @@ func TestAiAdvisor_Advise_AdviseFetcherFails(t *testing.T) {
 	t.Parallel()
 
 	adviseFetcher := &MockFetcher{
-		FetchFunc: func(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 			return nil, false
 		},
 	}
@@ -113,7 +114,7 @@ func TestAiAdvisor_Advise_AdviseFetcherFails(t *testing.T) {
 		Sex:   "female",
 	}
 
-	result, err := advisor.Advise(params)
+	result, err := advisor.Advise(context.Background(), params)
 
 	if err == nil {
 		t.Fatal("expected error when adviseFetcher fails")
@@ -130,7 +131,7 @@ func TestAiAdvisor_Advise_AdviseFetcherReturnsEmpty(t *testing.T) {
 	t.Parallel()
 
 	adviseFetcher := &MockFetcher{
-		FetchFunc: func(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 			return []perfume.Perfume{}, true
 		},
 	}
@@ -143,7 +144,7 @@ func TestAiAdvisor_Advise_AdviseFetcherReturnsEmpty(t *testing.T) {
 		Sex:   "female",
 	}
 
-	result, err := advisor.Advise(params)
+	result, err := advisor.Advise(context.Background(), params)
 
 	if err == nil {
 		t.Fatal("expected error when adviseFetcher returns empty")
@@ -165,13 +166,13 @@ func TestAiAdvisor_Advise_EnrichFetcherFails(t *testing.T) {
 	}
 
 	adviseFetcher := &MockFetcher{
-		FetchFunc: func(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 			return aiSuggestions, true
 		},
 	}
 
 	enrichFetcher := &MockFetcher{
-		FetchFunc: func(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 			return nil, false
 		},
 	}
@@ -183,7 +184,7 @@ func TestAiAdvisor_Advise_EnrichFetcherFails(t *testing.T) {
 		Sex:   "female",
 	}
 
-	result, err := advisor.Advise(params)
+	result, err := advisor.Advise(context.Background(), params)
 
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -210,13 +211,13 @@ func TestAiAdvisor_Advise_EnrichFetcherReturnsEmpty(t *testing.T) {
 	}
 
 	adviseFetcher := &MockFetcher{
-		FetchFunc: func(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 			return aiSuggestions, true
 		},
 	}
 
 	enrichFetcher := &MockFetcher{
-		FetchFunc: func(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 			return []perfume.Perfume{}, true
 		},
 	}
@@ -228,7 +229,7 @@ func TestAiAdvisor_Advise_EnrichFetcherReturnsEmpty(t *testing.T) {
 		Sex:   "female",
 	}
 
-	result, err := advisor.Advise(params)
+	result, err := advisor.Advise(context.Background(), params)
 
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -262,13 +263,13 @@ func TestAiAdvisor_Advise_MultipleSuggestions(t *testing.T) {
 	}
 
 	adviseFetcher := &MockFetcher{
-		FetchFunc: func(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 			return aiSuggestions, true
 		},
 	}
 
 	enrichFetcher := &MockFetcher{
-		FetchFunc: func(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 			return enrichedPerfumes, true
 		},
 	}
@@ -280,7 +281,7 @@ func TestAiAdvisor_Advise_MultipleSuggestions(t *testing.T) {
 		Sex:   "female",
 	}
 
-	result, err := advisor.Advise(params)
+	result, err := advisor.Advise(context.Background(), params)
 
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -311,13 +312,13 @@ func TestAiAdvisor_Advise_EnrichmentParamsConstruction(t *testing.T) {
 	}
 
 	adviseFetcher := &MockFetcher{
-		FetchFunc: func(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 			return aiSuggestions, true
 		},
 	}
 
 	enrichFetcher := &MockFetcher{
-		FetchFunc: func(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 			// Verify that enrichment params preserve brand and name from suggestions
 			// but use sex from original params
 			if len(params) != 2 {
@@ -354,7 +355,7 @@ func TestAiAdvisor_Advise_EnrichmentParamsConstruction(t *testing.T) {
 		Sex:   "female", // Will be used in enrichment params
 	}
 
-	result, err := advisor.Advise(params)
+	result, err := advisor.Advise(context.Background(), params)
 
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)

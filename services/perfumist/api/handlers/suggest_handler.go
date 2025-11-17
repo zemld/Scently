@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/advising"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/errors"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/fetching"
@@ -12,34 +13,8 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 )
 
-const aiSuggestUrl = "http://ai_advisor:8000/v1/advise"
-
-const (
-	getPerfumesUrl          = "http://perfume:8000/v1/perfumes/get"
-	perfumeInternalTokenEnv = "PERFUME_INTERNAL_TOKEN"
-)
-
-const (
-	familyWeight = 0.4
-	notesWeight  = 0.55
-	typeWeight   = 0.05
-)
-
-const (
-	upperNotesWeight  = 0.15
-	middleNotesWeight = 0.45
-	baseNotesWeight   = 0.4
-)
-
-const (
-	threadsCount = 5
-)
-
-const (
-	suggestCount = 4
-)
-
 func Suggest(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	params := parseQueryParams(r)
 
 	if err := params.Validate(); err != nil {
@@ -49,7 +24,7 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 
 	advisor := createAdvisor(params)
 
-	suggested, err := advisor.Advise(params)
+	suggested, err := advisor.Advise(ctx, params)
 	if err != nil {
 		handleError(w, err)
 		return
@@ -66,18 +41,16 @@ func parseQueryParams(r *http.Request) parameters.RequestPerfume {
 	sex := query.Get(parameters.SexParamKey)
 	useAIStr := query.Get(parameters.UseAIParamKey)
 
-	useAI, _ := strconv.ParseBool(useAIStr)
+	useAI, err := strconv.ParseBool(useAIStr)
+	if err != nil {
+		useAI = false
+	}
 
 	if sex != parameters.SexMale && sex != parameters.SexFemale {
 		sex = parameters.SexUnisex
 	}
 
-	return parameters.RequestPerfume{
-		Brand: brand,
-		Name:  name,
-		Sex:   sex,
-		UseAI: useAI,
-	}
+	return *parameters.NewGet().WithBrand(brand).WithName(name).WithSex(sex).WithUseAI(useAI)
 }
 
 func handleError(w http.ResponseWriter, err error) {
@@ -102,23 +75,33 @@ func handleError(w http.ResponseWriter, err error) {
 	WriteResponse(w, ErrorResponse{Error: errorMsg}, status)
 }
 func createAdvisor(params parameters.RequestPerfume) advising.Advisor {
-	dbFetcher := fetching.NewDB(getPerfumesUrl, os.Getenv(perfumeInternalTokenEnv))
+	getPerfumesURL := os.Getenv(config.GetPerfumesURLEnv)
+	if getPerfumesURL == "" {
+		getPerfumesURL = config.DefaultGetPerfumesURL
+	}
+
+	aiSuggestURL := os.Getenv(config.AISuggestURLEnv)
+	if aiSuggestURL == "" {
+		aiSuggestURL = config.DefaultAISuggestURL
+	}
+
+	dbFetcher := fetching.NewDB(getPerfumesURL, os.Getenv(config.PerfumeInternalTokenEnv))
 
 	if params.UseAI {
-		return advising.NewAI(fetching.NewAI(aiSuggestUrl), dbFetcher)
+		return advising.NewAI(fetching.NewAI(aiSuggestURL), dbFetcher)
 	}
 
 	return advising.NewBase(
 		dbFetcher,
 		matching.NewOverlay(
-			familyWeight,
-			notesWeight,
-			typeWeight,
-			upperNotesWeight,
-			middleNotesWeight,
-			baseNotesWeight,
-			threadsCount,
+			config.FamilyWeight,
+			config.NotesWeight,
+			config.TypeWeight,
+			config.UpperNotesWeight,
+			config.MiddleNotesWeight,
+			config.BaseNotesWeight,
+			config.ThreadsCount,
 		),
-		suggestCount,
+		config.SuggestCount,
 	)
 }

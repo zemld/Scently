@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
 )
@@ -27,19 +28,25 @@ type DB struct {
 	url     string
 	token   string
 	timeout time.Duration
+	client  *http.Client
 }
 
 func NewDB(url string, token string) *DB {
-	return &DB{url: url, token: token, timeout: 2 * time.Second}
+	return &DB{
+		url:     url,
+		token:   token,
+		timeout: config.DBFetcherTimeout,
+		client:  config.HTTPClient,
+	}
 }
 
-func (f DB) Fetch(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+func (f DB) Fetch(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 	perfumesChan := make(chan perfumesFetchAndGlueResult, len(params))
 
 	wg := sync.WaitGroup{}
 	wg.Add(len(params))
 
-	ctx, cancel := context.WithTimeout(context.Background(), f.timeout)
+	ctx, cancel := context.WithTimeout(ctx, f.timeout)
 	defer cancel()
 
 	for _, param := range params {
@@ -71,11 +78,15 @@ func (f DB) getPerfumesAsync(ctx context.Context, params parameters.RequestPerfu
 }
 
 func (f DB) getPerfumes(ctx context.Context, p parameters.RequestPerfume) ([]perfume.Perfume, int) {
-	r, _ := http.NewRequestWithContext(ctx, "GET", f.url, nil)
+	r, err := http.NewRequestWithContext(ctx, "GET", f.url, nil)
+	if err != nil {
+		log.Printf("Can't create request: %v", err)
+		return nil, http.StatusInternalServerError
+	}
 	p.AddToQuery(r)
 	r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", f.token))
 
-	perfumeResponse, err := http.DefaultClient.Do(r)
+	perfumeResponse, err := f.client.Do(r)
 	if err != nil {
 		log.Printf("Can't get perfumes: %v", err)
 		return nil, http.StatusInternalServerError
@@ -93,7 +104,10 @@ func (f DB) getPerfumes(ctx context.Context, p parameters.RequestPerfume) ([]per
 	}
 
 	var perfumes perfume.PerfumeResponse
-	json.Unmarshal(body, &perfumes)
+	if err := json.Unmarshal(body, &perfumes); err != nil {
+		log.Printf("Can't unmarshal response: %v", err)
+		return nil, http.StatusInternalServerError
+	}
 	log.Printf("Got %d perfumes", len(perfumes.Perfumes))
 	if len(perfumes.Perfumes) == 0 {
 		return perfumes.Perfumes, http.StatusNoContent

@@ -374,7 +374,7 @@ func TestDbFetcher_Fetch_Success(t *testing.T) {
 		{Brand: "Chanel"},
 		{Brand: "Dior"},
 	}
-	perfumes, ok := fetcher.Fetch(params)
+	perfumes, ok := fetcher.Fetch(context.Background(), params)
 
 	if !ok {
 		t.Fatal("expected true on success")
@@ -406,7 +406,7 @@ func TestDbFetcher_Fetch_EmptyResults(t *testing.T) {
 
 	fetcher := NewDB("http://test-url:8080", "test-token")
 	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
-	perfumes, ok := fetcher.Fetch(params)
+	perfumes, ok := fetcher.Fetch(context.Background(), params)
 
 	if ok {
 		t.Fatal("expected false on empty results")
@@ -433,7 +433,7 @@ func TestDbFetcher_Fetch_ServerError(t *testing.T) {
 
 	fetcher := NewDB("http://test-url:8080", "test-token")
 	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
-	perfumes, ok := fetcher.Fetch(params)
+	perfumes, ok := fetcher.Fetch(context.Background(), params)
 
 	if ok {
 		t.Fatal("expected false on server error")
@@ -462,7 +462,7 @@ func TestDbFetcher_Fetch_Timeout(t *testing.T) {
 
 	fetcher := NewDB("http://test-url:8080", "test-token")
 	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
-	perfumes, ok := fetcher.Fetch(params)
+	perfumes, ok := fetcher.Fetch(context.Background(), params)
 
 	if ok {
 		t.Fatal("expected false on timeout")

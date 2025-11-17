@@ -1,6 +1,7 @@
 package advising
 
 import (
+	"context"
 	"testing"
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
@@ -9,12 +10,12 @@ import (
 
 // MockFetcher is a mock implementation of fetching.Fetcher
 type MockFetcher struct {
-	FetchFunc func([]parameters.RequestPerfume) ([]perfume.Perfume, bool)
+	FetchFunc func(context.Context, []parameters.RequestPerfume) ([]perfume.Perfume, bool)
 }
 
-func (m *MockFetcher) Fetch(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+func (m *MockFetcher) Fetch(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 	if m.FetchFunc != nil {
-		return m.FetchFunc(params)
+		return m.FetchFunc(ctx, params)
 	}
 	return nil, false
 }
@@ -74,7 +75,7 @@ func TestBaseAdvisor_Advise_Success(t *testing.T) {
 	}
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 			if len(params) == 1 && params[0].Brand == "Chanel" && params[0].Name == "No5" {
 				// First call: fetch favourite
 				return []perfume.Perfume{favouritePerfume}, true
@@ -106,7 +107,7 @@ func TestBaseAdvisor_Advise_Success(t *testing.T) {
 		Sex:   "female",
 	}
 
-	result, err := advisor.Advise(params)
+	result, err := advisor.Advise(context.Background(), params)
 
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -128,7 +129,7 @@ func TestBaseAdvisor_Advise_FetcherFailsOnFavourite(t *testing.T) {
 	t.Parallel()
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 			return nil, false
 		},
 	}
@@ -141,7 +142,7 @@ func TestBaseAdvisor_Advise_FetcherFailsOnFavourite(t *testing.T) {
 		Sex:   "female",
 	}
 
-	result, err := advisor.Advise(params)
+	result, err := advisor.Advise(context.Background(), params)
 
 	if err == nil {
 		t.Fatal("expected error when fetcher fails")
@@ -158,7 +159,7 @@ func TestBaseAdvisor_Advise_FetcherReturnsEmptyFavourite(t *testing.T) {
 	t.Parallel()
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 			if len(params) == 1 && params[0].Brand == "Chanel" {
 				return []perfume.Perfume{}, true
 			}
@@ -174,7 +175,7 @@ func TestBaseAdvisor_Advise_FetcherReturnsEmptyFavourite(t *testing.T) {
 		Sex:   "female",
 	}
 
-	result, err := advisor.Advise(params)
+	result, err := advisor.Advise(context.Background(), params)
 
 	if err == nil {
 		t.Fatal("expected error when favourite is empty")
@@ -197,7 +198,7 @@ func TestBaseAdvisor_Advise_FetcherFailsOnAllPerfumes(t *testing.T) {
 	}
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 			if len(params) == 1 && params[0].Brand == "Chanel" && params[0].Name == "No5" {
 				// First call: fetch favourite - succeeds
 				return []perfume.Perfume{favouritePerfume}, true
@@ -215,13 +216,13 @@ func TestBaseAdvisor_Advise_FetcherFailsOnAllPerfumes(t *testing.T) {
 		Sex:   "female",
 	}
 
-	result, err := advisor.Advise(params)
+	result, err := advisor.Advise(context.Background(), params)
 
 	if err == nil {
 		t.Fatal("expected error when fetcher fails on all perfumes")
 	}
-	if err.Error() != "failed to get all perfumes" {
-		t.Fatalf("expected error 'failed to get all perfumes', got %q", err.Error())
+	if err.Error() != "failed to interact with perfume service" {
+		t.Fatalf("expected error 'failed to interact with perfume service', got %q", err.Error())
 	}
 	if result != nil {
 		t.Fatalf("expected nil result, got %v", result)
@@ -238,7 +239,7 @@ func TestBaseAdvisor_Advise_FetcherReturnsEmptyAllPerfumes(t *testing.T) {
 	}
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 			if len(params) == 1 && params[0].Brand == "Chanel" && params[0].Name == "No5" {
 				// First call: fetch favourite - succeeds
 				return []perfume.Perfume{favouritePerfume}, true
@@ -256,13 +257,13 @@ func TestBaseAdvisor_Advise_FetcherReturnsEmptyAllPerfumes(t *testing.T) {
 		Sex:   "female",
 	}
 
-	result, err := advisor.Advise(params)
+	result, err := advisor.Advise(context.Background(), params)
 
 	if err == nil {
 		t.Fatal("expected error when all perfumes is empty")
 	}
-	if err.Error() != "failed to get all perfumes" {
-		t.Fatalf("expected error 'failed to get all perfumes', got %q", err.Error())
+	if err.Error() != "failed to interact with perfume service" {
+		t.Fatalf("expected error 'failed to interact with perfume service', got %q", err.Error())
 	}
 	if result != nil {
 		t.Fatalf("expected nil result, got %v", result)
@@ -284,7 +285,7 @@ func TestBaseAdvisor_Advise_WithSexFilter(t *testing.T) {
 	}
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 			if len(params) == 1 && params[0].Brand == "Chanel" {
 				return []perfume.Perfume{favouritePerfume}, true
 			}
@@ -311,7 +312,7 @@ func TestBaseAdvisor_Advise_WithSexFilter(t *testing.T) {
 		Sex:   "female",
 	}
 
-	result, err := advisor.Advise(params)
+	result, err := advisor.Advise(context.Background(), params)
 
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)

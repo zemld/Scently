@@ -1,6 +1,7 @@
 package fetching
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -29,7 +30,7 @@ func TestAIFetcher_Fetch_EmptyParams(t *testing.T) {
 	t.Parallel()
 
 	fetcher := NewAI("http://test-url:8000/v1/advise")
-	perfumes, ok := fetcher.Fetch([]parameters.RequestPerfume{})
+	perfumes, ok := fetcher.Fetch(context.Background(), []parameters.RequestPerfume{})
 
 	if ok {
 		t.Fatal("expected false on empty params")
@@ -50,7 +51,7 @@ func TestAIFetcher_Fetch_HTTPError(t *testing.T) {
 
 	fetcher := NewAI("http://test-url:8000/v1/advise")
 	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
-	perfumes, ok := fetcher.Fetch(params)
+	perfumes, ok := fetcher.Fetch(context.Background(), params)
 
 	if ok {
 		t.Fatal("expected false on HTTP error")
@@ -77,7 +78,7 @@ func TestAIFetcher_Fetch_Non200Status(t *testing.T) {
 
 	fetcher := NewAI("http://test-url:8000/v1/advise")
 	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
-	perfumes, ok := fetcher.Fetch(params)
+	perfumes, ok := fetcher.Fetch(context.Background(), params)
 
 	if ok {
 		t.Fatal("expected false on non-200 status")
@@ -104,7 +105,7 @@ func TestAIFetcher_Fetch_EmptyBody(t *testing.T) {
 
 	fetcher := NewAI("http://test-url:8000/v1/advise")
 	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
-	perfumes, ok := fetcher.Fetch(params)
+	perfumes, ok := fetcher.Fetch(context.Background(), params)
 
 	if ok {
 		t.Fatal("expected false on empty body")
@@ -131,7 +132,7 @@ func TestAIFetcher_Fetch_InvalidJSON(t *testing.T) {
 
 	fetcher := NewAI("http://test-url:8000/v1/advise")
 	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
-	perfumes, ok := fetcher.Fetch(params)
+	perfumes, ok := fetcher.Fetch(context.Background(), params)
 
 	if ok {
 		t.Fatal("expected false on invalid JSON")
@@ -168,7 +169,7 @@ func TestAIFetcher_Fetch_Success(t *testing.T) {
 
 	fetcher := NewAI("http://test-url:8000/v1/advise")
 	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
-	perfumes, ok := fetcher.Fetch(params)
+	perfumes, ok := fetcher.Fetch(context.Background(), params)
 
 	if !ok {
 		t.Fatal("expected true on success")
@@ -206,7 +207,7 @@ func TestAIFetcher_Fetch_AddsQueryParams(t *testing.T) {
 	params := []parameters.RequestPerfume{
 		{Brand: "Chanel", Name: "No5", Sex: parameters.SexFemale},
 	}
-	fetcher.Fetch(params)
+	fetcher.Fetch(context.Background(), params)
 
 	if capturedRequest == nil {
 		t.Fatal("expected request to be captured")
