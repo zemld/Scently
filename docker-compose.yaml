@@ -4,8 +4,8 @@ services:
       context: services/parser
     env_file:
       - ./secrets/perfume.env
-    ports:
-      - "8090:8090"
+    networks:
+      - backend
 
   perfume:
     build:
@@ -13,56 +13,63 @@ services:
     env_file:
       - ./secrets/db.env
       - ./secrets/perfume.env
-    ports:
-      - "8089:8000"
+    expose:
+      - "8000"
     depends_on:
       - perfume-db
+    networks:
+      - backend
 
   perfume-db:
     image: postgres:latest
     env_file:
       - ./secrets/db.env
-    ports:
-      - "5432:5432"
+    expose:
+      - "5432"
     volumes:
       - perfume_volume:/var/lib/postgresql
-
+    networks:
+      - backend
   perfumist:
     build:
       context: services/perfumist
-    ports:
-      - "8088:8000"
     env_file:
       - ./secrets/perfume.env
-      - ./secrets/redis.env
+      - ./secrets/ai_advisor.env
+    expose:
+      - "8000"
     depends_on:
       - perfume
-
+    networks:
+      - backend
   redis_cache:
     image: redis:latest
-    ports:
-      - "6379:6379"
+    expose:
+      - "6379"
     env_file:
       - ./secrets/redis.env
     volumes:
       - redis_data:/data
-
+    networks:
+      - backend
   ai_advisor:
     build:
       context: services/ai_advisor
     env_file:
       - ./secrets/ai_advisor.env
-    ports:
-      - "8087:8000"
-
+    expose:
+      - "8000"
+    networks:
+      - backend
   frontend:
     build:
       context: services/frontend
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8088
-
+      NEXT_PUBLIC_API_URL: /api
+    networks:
+      - frontend
   api_gateway:
     build:
       context: services/gateway
@@ -74,7 +81,15 @@ services:
       - ./secrets/origins.env
     depends_on:
       - perfumist
-
+    networks:
+      - frontend
+      - backend
 volumes:
   perfume_volume:
   redis_data:
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    internal: true
