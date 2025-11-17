@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"time"
 
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
 )
@@ -16,25 +16,32 @@ type aISuggestion struct {
 }
 
 type AI struct {
-	url string
+	url    string
+	client *http.Client
 }
 
 func NewAI(url string) *AI {
-	return &AI{url: url}
+	return &AI{
+		url:    url,
+		client: config.HTTPClient,
+	}
 }
 
-func (f *AI) Fetch(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+func (f *AI) Fetch(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+	ctx, cancel := context.WithTimeout(ctx, config.AIFetcherTimeout)
 	defer cancel()
-
-	r, _ := http.NewRequestWithContext(ctx, "GET", f.url, nil)
 
 	if len(params) == 0 {
 		return nil, false
 	}
+
+	r, err := http.NewRequestWithContext(ctx, "GET", f.url, nil)
+	if err != nil {
+		return nil, false
+	}
 	params[0].AddToQuery(r)
 
-	response, err := http.DefaultClient.Do(r)
+	response, err := f.client.Do(r)
 	if err != nil {
 		return nil, false
 	}
@@ -49,8 +56,7 @@ func (f *AI) Fetch(params []parameters.RequestPerfume) ([]perfume.Perfume, bool)
 		return nil, false
 	}
 	var suggestions aISuggestion
-	err = json.Unmarshal(body, &suggestions)
-	if err != nil {
+	if err := json.Unmarshal(body, &suggestions); err != nil {
 		return nil, false
 	}
 	return suggestions.Perfumes, true

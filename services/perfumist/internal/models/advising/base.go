@@ -1,8 +1,9 @@
 package advising
 
 import (
-	"errors"
+	"context"
 
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/errors"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/fetching"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/matching"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
@@ -19,14 +20,20 @@ func NewBase(fetcher fetching.Fetcher, matcher matching.Matcher, adviseCount int
 	return &Base{fetcher: fetcher, matcher: matcher, adviseCount: adviseCount}
 }
 
-func (a *Base) Advise(params parameters.RequestPerfume) ([]perfume.Ranked, error) {
-	favouritePerfumes, ok := a.fetcher.Fetch([]parameters.RequestPerfume{params})
-	if !ok || favouritePerfumes == nil || len(favouritePerfumes) == 0 {
-		return nil, errors.New("failed to get favourite perfumes")
+func (a *Base) Advise(ctx context.Context, params parameters.RequestPerfume) ([]perfume.Ranked, error) {
+	favouritePerfumes, ok := a.fetcher.Fetch(ctx, []parameters.RequestPerfume{params})
+	if !ok {
+		return nil, errors.NewServiceError("failed to interact with perfume service", nil)
 	}
-	allPerfumes, ok := a.fetcher.Fetch([]parameters.RequestPerfume{*parameters.NewGet().WithSex(params.Sex)})
-	if !ok || allPerfumes == nil || len(allPerfumes) == 0 {
-		return nil, errors.New("failed to get all perfumes")
+	if len(favouritePerfumes) == 0 {
+		return nil, errors.NewNotFoundError("perfume not found")
+	}
+	allPerfumes, ok := a.fetcher.Fetch(ctx, []parameters.RequestPerfume{*parameters.NewGet().WithSex(params.Sex)})
+	if !ok {
+		return nil, errors.NewServiceError("failed to interact with perfume service", nil)
+	}
+	if len(allPerfumes) == 0 {
+		return nil, errors.NewServiceError("no perfumes available in database", nil)
 	}
 	similarities := a.matcher.Find(favouritePerfumes[0], allPerfumes, a.adviseCount)
 	return similarities, nil

@@ -10,12 +10,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
-)
-
-const (
-	badServerStatus = http.StatusInternalServerError
 )
 
 type perfumesFetchAndGlueResult struct {
@@ -27,19 +24,25 @@ type DB struct {
 	url     string
 	token   string
 	timeout time.Duration
+	client  *http.Client
 }
 
 func NewDB(url string, token string) *DB {
-	return &DB{url: url, token: token, timeout: 2 * time.Second}
+	return &DB{
+		url:     url,
+		token:   token,
+		timeout: config.DBFetcherTimeout,
+		client:  config.HTTPClient,
+	}
 }
 
-func (f DB) Fetch(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+func (f DB) Fetch(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
 	perfumesChan := make(chan perfumesFetchAndGlueResult, len(params))
 
 	wg := sync.WaitGroup{}
 	wg.Add(len(params))
 
-	ctx, cancel := context.WithTimeout(context.Background(), f.timeout)
+	ctx, cancel := context.WithTimeout(ctx, f.timeout)
 	defer cancel()
 
 	for _, param := range params {
@@ -52,7 +55,10 @@ func (f DB) Fetch(params []parameters.RequestPerfume) ([]perfume.Perfume, bool) 
 	}()
 
 	all, AllStatus := f.fetchPerfumeResults(ctx, perfumesChan)
-	if AllStatus >= badServerStatus || len(all) == 0 {
+	if AllStatus == http.StatusForbidden || AllStatus >= http.StatusInternalServerError {
+		return nil, false
+	}
+	if len(all) == 0 {
 		return nil, false
 	}
 	return all, true
@@ -63,42 +69,71 @@ func (f DB) getPerfumesAsync(ctx context.Context, params parameters.RequestPerfu
 		defer wg.Done()
 	}
 	perfumes, status := f.getPerfumes(ctx, params)
-	if status != http.StatusOK {
-		results <- perfumesFetchAndGlueResult{Perfumes: nil, Status: status}
+	if status == http.StatusOK || status == http.StatusNotFound {
+		results <- perfumesFetchAndGlueResult{Perfumes: perfumes, Status: status}
 		return
 	}
-	results <- perfumesFetchAndGlueResult{Perfumes: perfumes, Status: status}
+	results <- perfumesFetchAndGlueResult{Perfumes: nil, Status: status}
 }
 
 func (f DB) getPerfumes(ctx context.Context, p parameters.RequestPerfume) ([]perfume.Perfume, int) {
-	r, _ := http.NewRequestWithContext(ctx, "GET", f.url, nil)
+	r, err := http.NewRequestWithContext(ctx, "GET", f.url, nil)
+	if err != nil {
+		log.Printf("Can't create request: %v", err)
+		return nil, http.StatusInternalServerError
+	}
 	p.AddToQuery(r)
 	r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", f.token))
 
-	perfumeResponse, err := http.DefaultClient.Do(r)
+	perfumeResponse, err := f.client.Do(r)
 	if err != nil {
 		log.Printf("Can't get perfumes: %v", err)
 		return nil, http.StatusInternalServerError
 	}
 	defer perfumeResponse.Body.Close()
 
-	if perfumeResponse.StatusCode >= badServerStatus {
-		log.Printf("Bad response status: %v", perfumeResponse.Status)
-		return nil, perfumeResponse.StatusCode
-	}
 	body, err := io.ReadAll(perfumeResponse.Body)
 	if err != nil {
 		log.Printf("Can't read response body: %v", err)
 		return nil, http.StatusInternalServerError
 	}
 
-	var perfumes perfume.PerfumeResponse
-	json.Unmarshal(body, &perfumes)
-	log.Printf("Got %d perfumes", len(perfumes.Perfumes))
-	if len(perfumes.Perfumes) == 0 {
-		return perfumes.Perfumes, http.StatusNoContent
+	if perfumeResponse.StatusCode == http.StatusForbidden {
+		log.Printf("Forbidden response: %s", string(body))
+		return nil, http.StatusForbidden
 	}
-	return perfumes.Perfumes, http.StatusOK
+
+	if perfumeResponse.StatusCode == http.StatusNotFound {
+		var perfumes perfume.PerfumeResponse
+		if err := json.Unmarshal(body, &perfumes); err != nil {
+			log.Printf("Can't unmarshal response: %v", err)
+			return nil, http.StatusInternalServerError
+		}
+		log.Printf("Got %d perfumes (status: 404)", len(perfumes.Perfumes))
+		return perfumes.Perfumes, http.StatusNotFound
+	}
+
+	if perfumeResponse.StatusCode == http.StatusInternalServerError {
+		var perfumes perfume.PerfumeResponse
+		if err := json.Unmarshal(body, &perfumes); err != nil {
+			log.Printf("Can't unmarshal response: %v", err)
+			return nil, http.StatusInternalServerError
+		}
+		log.Printf("Got %d perfumes (status: 500 - database error)", len(perfumes.Perfumes))
+		return nil, http.StatusInternalServerError
+	}
+
+	if perfumeResponse.StatusCode == http.StatusOK {
+		var perfumes perfume.PerfumeResponse
+		if err := json.Unmarshal(body, &perfumes); err != nil {
+			log.Printf("Can't unmarshal response: %v", err)
+			return nil, http.StatusInternalServerError
+		}
+		log.Printf("Got %d perfumes", len(perfumes.Perfumes))
+		return perfumes.Perfumes, http.StatusOK
+	}
+
+	return nil, http.StatusInternalServerError
 }
 
 func (f DB) fetchPerfumeResults(ctx context.Context, perfumesChan <-chan perfumesFetchAndGlueResult) ([]perfume.Perfume, int) {
@@ -111,11 +146,14 @@ func (f DB) fetchPerfumeResults(ctx context.Context, perfumesChan <-chan perfume
 			if !ok {
 				return perfumes, status
 			}
-			if result.Status >= badServerStatus {
+			if result.Status == http.StatusForbidden || result.Status == http.StatusInternalServerError {
 				return perfumes, result.Status
 			}
-			if result.Status == http.StatusOK {
+			if result.Status == http.StatusOK || result.Status == http.StatusNotFound {
 				perfumes = append(perfumes, result.Perfumes...)
+				if status == 0 || (status == http.StatusNotFound && result.Status == http.StatusOK) {
+					status = result.Status
+				}
 			}
 		case <-ctx.Done():
 			return nil, http.StatusInternalServerError
