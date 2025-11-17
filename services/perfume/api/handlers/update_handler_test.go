@@ -16,7 +16,7 @@ func TestUpdate_EmptyBody(t *testing.T) {
 	// Мы не можем легко мокировать core.Update, но можем проверить валидацию
 	// Проверяем, что пустое тело обрабатывается правильно
 	content := []byte{}
-	
+
 	if len(content) == 0 {
 		validationErr := errors.NewValidationError("request body is empty")
 		handleError(w, validationErr)
@@ -47,7 +47,7 @@ func TestUpdate_EmptyPerfumesArray(t *testing.T) {
 
 	params := models.NewUpdateParameters()
 	json.Unmarshal([]byte(`{"perfumes":[]}`), params)
-	
+
 	if len(params.Perfumes) == 0 {
 		validationErr := errors.NewValidationError("perfumes array is empty")
 		handleError(w, validationErr)
@@ -150,7 +150,7 @@ func TestUpdate_RequestBodyParsing(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			params := models.NewUpdateParameters()
-			
+
 			if tt.body == "" {
 				// Проверяем пустое тело
 				validationErr := errors.NewValidationError("request body is empty")
@@ -185,4 +185,3 @@ func TestUpdate_RequestBodyParsing(t *testing.T) {
 		})
 	}
 }
-

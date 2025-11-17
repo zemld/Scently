@@ -1,0 +1,343 @@
+openapi: 3.1.3
+info:
+  title: Perfume Service API
+  description: API для работы с базой данных парфюмов
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Локальный сервер разработки
+
+paths:
+  /v1/perfumes/get:
+    get:
+      summary: Получить список парфюмов
+      description: Возвращает список парфюмов с возможностью фильтрации по бренду, названию и полу
+      operationId: getPerfumes
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: brand
+          in: query
+          description: Фильтр по бренду парфюма
+          required: false
+          schema:
+            type: string
+            example: "Chanel"
+        - name: name
+          in: query
+          description: Фильтр по названию парфюма
+          required: false
+          schema:
+            type: string
+            example: "No. 5"
+        - name: sex
+          in: query
+          description: Фильтр по полу (male, female, или unisex)
+          required: false
+          schema:
+            type: string
+            enum: [male, female, unisex]
+            example: "female"
+      responses:
+        "200":
+          description: Успешно получены парфюмы
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PerfumeResponse"
+              example:
+                perfumes:
+                  - brand: "Chanel"
+                    name: "No. 5"
+                    sex: "female"
+                    image_url: "https://example.com/image.jpg"
+                    properties:
+                      perfume_type: "Eau de Parfum"
+                      family: ["Floral", "Aldehydic"]
+                      upper_notes: ["Aldehydes", "Ylang-Ylang"]
+                      core_notes: ["Rose", "Jasmine"]
+                      base_notes: ["Vanilla", "Sandalwood"]
+                    shops:
+                      - shop_name: "Gold Apple"
+                        domain: "goldapple.ru"
+                        image_url: "https://example.com/shop-image.jpg"
+                        variants:
+                          - volume: 50
+                            price: 5000
+                            link: "https://goldapple.ru/perfume/123"
+                state:
+                  success: true
+                  successful_count: 1
+                  failed_count: 0
+        "403":
+          description: Не удалось авторизоваться
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Forbidden"
+        "404":
+          description: Парфюмы не найдены
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PerfumeResponse"
+              example:
+                perfumes: []
+                state:
+                  success: true
+                  successful_count: 0
+                  failed_count: 0
+        "500":
+          description: Ошибка подключения к базе данных
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessedState"
+              example:
+                success: false
+                successful_count: 0
+                failed_count: 0
+
+  /v1/perfumes/update:
+    post:
+      summary: Обновить базу данных парфюмов
+      description: Добавляет или обновляет парфюмы в базе данных
+      operationId: updatePerfumes
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRequest"
+            example:
+              perfumes:
+                - brand: "Chanel"
+                  name: "No. 5"
+                  sex: "female"
+                  image_url: "https://example.com/image.jpg"
+                  properties:
+                    perfume_type: "Eau de Parfum"
+                    family: ["Floral", "Aldehydic"]
+                    upper_notes: ["Aldehydes", "Ylang-Ylang"]
+                    core_notes: ["Rose", "Jasmine"]
+                    base_notes: ["Vanilla", "Sandalwood"]
+                  shops:
+                    - shop_name: "Gold Apple"
+                      domain: "goldapple.ru"
+                      image_url: "https://example.com/shop-image.jpg"
+                      variants:
+                        - volume: 50
+                          price: 5000
+                          link: "https://goldapple.ru/perfume/123"
+      responses:
+        "200":
+          description: Успешно обновлена база данных
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessedState"
+              example:
+                success: true
+                successful_count: 1
+                failed_count: 0
+        "400":
+          description: Некорректное тело запроса
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessedState"
+              example:
+                success: true
+                successful_count: 0
+                failed_count: 0
+        "403":
+          description: Не удалось авторизоваться
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Forbidden"
+        "500":
+          description: Ошибка подключения к базе данных
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessedState"
+              example:
+                success: false
+                successful_count: 0
+                failed_count: 0
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Bearer токен для авторизации (передается через переменную окружения PERFUME_INTERNAL_TOKEN)
+
+  schemas:
+    PerfumeResponse:
+      type: object
+      required:
+        - perfumes
+        - state
+      properties:
+        perfumes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Perfume"
+        state:
+          $ref: "#/components/schemas/ProcessedState"
+
+    UpdateRequest:
+      type: object
+      required:
+        - perfumes
+      properties:
+        perfumes:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/Perfume"
+
+    Perfume:
+      type: object
+      required:
+        - brand
+        - name
+        - sex
+        - properties
+        - shops
+      properties:
+        brand:
+          type: string
+          description: Бренд парфюма
+          example: "Chanel"
+        name:
+          type: string
+          description: Название парфюма
+          example: "No. 5"
+        sex:
+          type: string
+          description: Пол (male, female, unisex)
+          enum: [male, female, unisex]
+          example: "female"
+        image_url:
+          type: string
+          format: uri
+          description: URL изображения парфюма
+          example: "https://example.com/image.jpg"
+        properties:
+          $ref: "#/components/schemas/PerfumeProperties"
+        shops:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShopInfo"
+
+    PerfumeProperties:
+      type: object
+      required:
+        - perfume_type
+        - family
+        - upper_notes
+        - core_notes
+        - base_notes
+      properties:
+        perfume_type:
+          type: string
+          description: Тип парфюма (например, Eau de Parfum, Eau de Toilette)
+          example: "Eau de Parfum"
+        family:
+          type: array
+          items:
+            type: string
+          description: Семейство парфюма
+          example: ["Floral", "Aldehydic"]
+        upper_notes:
+          type: array
+          items:
+            type: string
+          description: Верхние ноты
+          example: ["Aldehydes", "Ylang-Ylang"]
+        core_notes:
+          type: array
+          items:
+            type: string
+          description: Средние ноты
+          example: ["Rose", "Jasmine"]
+        base_notes:
+          type: array
+          items:
+            type: string
+          description: Базовые ноты
+          example: ["Vanilla", "Sandalwood"]
+
+    ShopInfo:
+      type: object
+      required:
+        - shop_name
+        - domain
+        - variants
+      properties:
+        shop_name:
+          type: string
+          description: Название магазина
+          example: "Gold Apple"
+        domain:
+          type: string
+          description: Домен магазина
+          example: "goldapple.ru"
+        image_url:
+          type: string
+          format: uri
+          description: URL изображения из магазина
+          example: "https://example.com/shop-image.jpg"
+        variants:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerfumeVariant"
+
+    PerfumeVariant:
+      type: object
+      required:
+        - volume
+        - price
+        - link
+      properties:
+        volume:
+          type: integer
+          description: Объем в миллилитрах
+          example: 50
+        price:
+          type: integer
+          description: Цена в рублях
+          example: 5000
+        link:
+          type: string
+          format: uri
+          description: Ссылка на товар в магазине
+          example: "https://goldapple.ru/perfume/123"
+
+    ProcessedState:
+      type: object
+      required:
+        - success
+        - successful_count
+        - failed_count
+      properties:
+        success:
+          type: boolean
+          description: Успешность операции
+          example: true
+        successful_count:
+          type: integer
+          description: Количество успешно обработанных записей
+          example: 1
+        failed_count:
+          type: integer
+          description: Количество неудачно обработанных записей
+          example: 0
