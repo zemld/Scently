@@ -1,4 +1,3 @@
-// API configuration - use Next.js proxy to avoid CORS issues
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api'
 
 // Types
@@ -48,13 +47,6 @@ export interface SuggestionRequest {
 }
 
 export interface SuggestionResponse {
-    input: {
-        brand: string
-        name: string
-        ok: boolean
-        advise_type: string
-        sex: string
-    }
     suggested: Array<{
         perfume: {
             brand: string
@@ -67,7 +59,11 @@ export interface SuggestionResponse {
         rank: number
         similarity_score: number
     }>
-    success: boolean
+}
+
+interface ErrorResponse {
+    error: string
+    message: string
 }
 
 // API Client class
@@ -84,14 +80,23 @@ class APIClient {
             ...options,
         })
 
+        if (response.status === 204) {
+            return { suggested: [] } as T
+        }
+
         if (!response.ok) {
-            throw new Error(`API request failed: ${response.status} ${response.statusText}`)
+            let errorMessage = `API request failed: ${response.status} ${response.statusText}`
+            try {
+                const errorData: ErrorResponse = await response.json()
+                errorMessage = errorData.message || errorData.error || errorMessage
+            } catch {
+            }
+            throw new Error(errorMessage)
         }
 
         return response.json()
     }
 
-    // Get perfume suggestions from perfumist service
     async getSuggestions(request: SuggestionRequest): Promise<SuggestionResponse> {
         const params = new URLSearchParams({
             brand: request.brand,
@@ -106,19 +111,8 @@ class APIClient {
             params.append('sex', request.sex)
         }
 
-        const url = `${API_BASE_URL}/v1/suggest/perfume?${params.toString()}`
-        const origin =
-            typeof window !== "undefined" && window.location && window.location.origin
-                ? window.location.origin
-                : (typeof location !== "undefined" ? location.origin : "");
-
-        const optionsWithOrigin: RequestInit = {
-            headers: {
-                Origin: origin,
-            }
-        };
-
-        return this.request<SuggestionResponse>(url, optionsWithOrigin);
+        const url = `${API_BASE_URL}/perfume/suggest?${params.toString()}`
+        return this.request<SuggestionResponse>(url)
     }
 }
 

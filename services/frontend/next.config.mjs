@@ -11,7 +11,7 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://perfumist:8000/:path*',
+        destination: 'http://api_gateway:8000/:path*',
       },
     ]
   },
