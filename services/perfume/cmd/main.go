@@ -12,8 +12,8 @@ func main() {
 	core.Initiate()
 	r := http.NewServeMux()
 
-	r.Handle("/v1/perfumes/get", middleware.Auth(middleware.ParseQuery(http.HandlerFunc(handlers.Select))))
-	r.Handle("/v1/perfumes/update", middleware.Auth(middleware.ParseQuery(http.HandlerFunc(handlers.Update))))
+	r.Handle("/v1/perfumes/get", middleware.Auth(http.HandlerFunc(handlers.Select)))
+	r.Handle("/v1/perfumes/update", middleware.Auth(http.HandlerFunc(handlers.Update)))
 
 	http.ListenAndServe(":8000", r)
 }
