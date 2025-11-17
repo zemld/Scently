@@ -58,6 +58,9 @@ func (f DB) Fetch(ctx context.Context, params []parameters.RequestPerfume) ([]pe
 	if AllStatus == http.StatusForbidden || AllStatus >= http.StatusInternalServerError {
 		return nil, false
 	}
+	if len(all) == 0 {
+		return nil, false
+	}
 	return all, true
 }
 
