@@ -1,0 +1,250 @@
+openapi: 3.1.3
+info:
+  title: Perfumist API
+  description: API для получения рекомендаций по духам
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Локальный сервер разработки
+  - url: http://perfumist:8000
+    description: Production сервер
+
+paths:
+  /v1/perfume/suggest:
+    get:
+      summary: Получить рекомендации по духам
+      description: Возвращает список похожих духов на основе переданных параметров
+      operationId: suggestPerfume
+      tags:
+        - Suggestions
+      parameters:
+        - name: brand
+          in: query
+          required: true
+          description: Бренд духов
+          schema:
+            type: string
+            example: "Chanel"
+        - name: name
+          in: query
+          required: true
+          description: Название духов
+          schema:
+            type: string
+            example: "No. 5"
+        - name: sex
+          in: query
+          required: false
+          description: Пол (male, female, unisex)
+          schema:
+            type: string
+            enum: [male, female, unisex]
+            default: unisex
+            example: "female"
+        - name: use_ai
+          in: query
+          required: false
+          description: Использовать AI для рекомендаций
+          schema:
+            type: boolean
+            default: false
+            example: false
+      responses:
+        "200":
+          description: Успешно получены рекомендации
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuggestResponse"
+              example:
+                suggested:
+                  - perfume:
+                      brand: "Dior"
+                      name: "Sauvage"
+                      sex: "male"
+                      image_url: "https://example.com/image.jpg"
+                      properties:
+                        perfume_type: "EDT"
+                        family: ["Fresh", "Spicy"]
+                        upper_notes: ["Bergamot", "Pepper"]
+                        core_notes: ["Lavender", "Pink Pepper"]
+                        base_notes: ["Ambroxan", "Cedar"]
+                      shops: []
+                    rank: 1
+                    similarity_score: 0.95
+                  - perfume:
+                      brand: "Tom Ford"
+                      name: "Oud Wood"
+                      sex: "male"
+                      image_url: "https://example.com/image2.jpg"
+                      properties:
+                        perfume_type: "EDP"
+                        family: ["Woody", "Oriental"]
+                        upper_notes: ["Rosewood"]
+                        core_notes: ["Oud"]
+                        base_notes: ["Sandalwood", "Vanilla"]
+                      shops: []
+                    rank: 2
+                    similarity_score: 0.88
+        "400":
+          description: Неверные параметры запроса (отсутствует brand или name)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "Brand and name are required"
+        "404":
+          description: Духи не найдены
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "perfume not found"
+        "500":
+          description: Ошибка взаимодействия с другими сервисами
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "failed to interact with perfume service"
+
+components:
+  schemas:
+    SuggestResponse:
+      type: object
+      required:
+        - suggested
+      properties:
+        suggested:
+          type: array
+          items:
+            $ref: "#/components/schemas/RankedPerfume"
+
+    RankedPerfume:
+      type: object
+      required:
+        - perfume
+      properties:
+        perfume:
+          $ref: "#/components/schemas/Perfume"
+        rank:
+          type: integer
+          description: Ранг рекомендации
+          example: 1
+        similarity_score:
+          type: number
+          format: float
+          description: Оценка схожести (0-1)
+          example: 0.95
+
+    Perfume:
+      type: object
+      required:
+        - brand
+        - name
+        - sex
+        - properties
+      properties:
+        brand:
+          type: string
+          description: Бренд духов
+          example: "Chanel"
+        name:
+          type: string
+          description: Название духов
+          example: "No. 5"
+        sex:
+          type: string
+          enum: [male, female, unisex]
+          description: Пол
+          example: "female"
+        image_url:
+          type: string
+          format: uri
+          description: URL изображения
+          example: "https://example.com/image.jpg"
+        properties:
+          $ref: "#/components/schemas/Properties"
+        shops:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShopInfo"
+
+    Properties:
+      type: object
+      properties:
+        perfume_type:
+          type: string
+          description: Тип духов (EDT, EDP, etc.)
+          example: "EDP"
+        family:
+          type: array
+          items:
+            type: string
+          description: Семейство аромата
+          example: ["Floral", "Oriental"]
+        upper_notes:
+          type: array
+          items:
+            type: string
+          description: Верхние ноты
+          example: ["Bergamot", "Lemon"]
+        core_notes:
+          type: array
+          items:
+            type: string
+          description: Средние ноты
+          example: ["Rose", "Jasmine"]
+        base_notes:
+          type: array
+          items:
+            type: string
+          description: Базовые ноты
+          example: ["Vanilla", "Musk"]
+
+    ShopInfo:
+      type: object
+      properties:
+        shop_name:
+          type: string
+          description: Название магазина
+          example: "Perfume Shop"
+        domain:
+          type: string
+          format: uri
+          description: Домен магазина
+          example: "https://perfumeshop.com"
+        variants:
+          type: array
+          items:
+            $ref: "#/components/schemas/Variant"
+
+    Variant:
+      type: object
+      properties:
+        volume:
+          type: integer
+          description: Объем в мл
+          example: 100
+        link:
+          type: string
+          format: uri
+          description: Ссылка на товар
+          example: "https://perfumeshop.com/product/123"
+        price:
+          type: integer
+          description: Цена в копейках
+          example: 500000
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Сообщение об ошибке
+          example: "Brand and name are required"
