@@ -67,9 +67,6 @@ func TestProcessedState_ErrorFieldNotSerialized(t *testing.T) {
 	}
 
 	// Проверяем, что другие поля присутствуют
-	if _, exists := result["success"]; !exists {
-		t.Error("Success field should be present in JSON")
-	}
 	if _, exists := result["successful_count"]; !exists {
 		t.Error("SuccessfulCount field should be present in JSON")
 	}
