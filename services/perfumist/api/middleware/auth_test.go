@@ -7,9 +7,9 @@ import (
 )
 
 func TestAuthAllowsRequestWithValidToken(t *testing.T) {
-	previous := perfumeToken
-	defer func() { perfumeToken = previous }()
-	perfumeToken = "secret"
+	previous := perfumistToken
+	defer func() { perfumistToken = previous }()
+	perfumistToken = "secret"
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set("Authorization", "Bearer secret")
@@ -29,9 +29,9 @@ func TestAuthAllowsRequestWithValidToken(t *testing.T) {
 }
 
 func TestAuthRejectsRequestWithoutToken(t *testing.T) {
-	previous := perfumeToken
-	defer func() { perfumeToken = previous }()
-	perfumeToken = "secret"
+	previous := perfumistToken
+	defer func() { perfumistToken = previous }()
+	perfumistToken = "secret"
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	res := httptest.NewRecorder()

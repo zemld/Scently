@@ -8,7 +8,7 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/errors"
 )
 
-var perfumeToken = os.Getenv("PERFUMIST_INTERNAL_TOKEN")
+var perfumistToken = os.Getenv("PERFUMIST_INTERNAL_TOKEN")
 
 const prefix = "Bearer "
 
@@ -21,7 +21,7 @@ func Auth(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 		token := strings.TrimPrefix(rawToken, prefix)
-		if token != perfumeToken {
+		if token != perfumistToken {
 			authErr := errors.NewAuthError("invalid token")
 			handleAuthError(w, authErr)
 			return

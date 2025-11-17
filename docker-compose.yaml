@@ -36,6 +36,7 @@ services:
     env_file:
       - ./secrets/perfume.env
       - ./secrets/ai_advisor.env
+      - ./secrets/perfumist.env
     expose:
       - "8000"
     depends_on:
