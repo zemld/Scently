@@ -10,9 +10,6 @@ import (
 func TestNewProcessedState(t *testing.T) {
 	state := NewProcessedState()
 
-	if !state.Success {
-		t.Errorf("NewProcessedState().Success = false, want true")
-	}
 	if state.SuccessfulCount != 0 {
 		t.Errorf("NewProcessedState().SuccessfulCount = %d, want 0", state.SuccessfulCount)
 	}
@@ -39,9 +36,6 @@ func TestProcessedState_JSONSerialization(t *testing.T) {
 		t.Fatalf("Failed to unmarshal ProcessedState: %v", err)
 	}
 
-	if unmarshaled.Success != state.Success {
-		t.Errorf("Unmarshaled Success = %v, want %v", unmarshaled.Success, state.Success)
-	}
 	if unmarshaled.SuccessfulCount != state.SuccessfulCount {
 		t.Errorf("Unmarshaled SuccessfulCount = %d, want %d", unmarshaled.SuccessfulCount, state.SuccessfulCount)
 	}
@@ -52,9 +46,8 @@ func TestProcessedState_JSONSerialization(t *testing.T) {
 
 func TestProcessedState_ErrorFieldNotSerialized(t *testing.T) {
 	state := ProcessedState{
-		Success:         false,
 		SuccessfulCount: 0,
-		FailedCount:    0,
+		FailedCount:     0,
 		Error:           errors.NewDBError("test error", nil),
 	}
 
@@ -88,9 +81,8 @@ func TestProcessedState_ErrorFieldNotSerialized(t *testing.T) {
 func TestProcessedState_WithError(t *testing.T) {
 	dbErr := errors.NewDBError("connection failed", nil)
 	state := ProcessedState{
-		Success:         false,
 		SuccessfulCount: 0,
-		FailedCount:    0,
+		FailedCount:     0,
 		Error:           dbErr,
 	}
 
@@ -117,4 +109,3 @@ func TestProcessedState_WithError(t *testing.T) {
 		t.Error("Error field should not be serialized to JSON even when set")
 	}
 }
-
