@@ -45,3 +45,19 @@ func (e *ServiceError) Error() string {
 func NewServiceError(message string, err error) *ServiceError {
 	return &ServiceError{Message: message, Err: err}
 }
+
+type AuthError struct {
+	Message string
+}
+
+func (e *AuthError) Error() string {
+	return fmt.Sprintf("authentication error: %s", e.Message)
+}
+
+func NewAuthError(message string) *AuthError {
+	return &AuthError{Message: message}
+}
+
+func (e *AuthError) HTTPStatus() int {
+	return 403
+}
