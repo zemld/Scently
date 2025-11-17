@@ -17,6 +17,8 @@ paths:
       operationId: suggestPerfume
       tags:
         - Suggestions
+      security:
+        - BearerAuth: []
       parameters:
         - name: brand
           in: query
@@ -94,6 +96,13 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
                 error: "Brand and name are required"
+        "403":
+          description: Ошибка авторизации (отсутствует или неверный токен)
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: "authentication error: missing or invalid authorization header"
         "404":
           description: Духи не найдены
           content:
@@ -112,6 +121,12 @@ paths:
                 error: "failed to interact with perfume service"
 
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: token
+      description: Bearer токен для внутренней авторизации сервисов
   schemas:
     SuggestResponse:
       type: object
