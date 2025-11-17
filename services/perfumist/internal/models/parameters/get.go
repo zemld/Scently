@@ -1,6 +1,9 @@
 package parameters
 
-import "net/http"
+import (
+	"errors"
+	"net/http"
+)
 
 type contextKey string
 
@@ -68,4 +71,14 @@ func addQueryParameter(r *http.Request, key string, value string) {
 	updatedQuery := r.URL.Query()
 	updatedQuery.Set(key, value)
 	r.URL.RawQuery = updatedQuery.Encode()
+}
+
+func (p RequestPerfume) Validate() error {
+	if p.Brand == "" {
+		return errors.New("brand is required")
+	}
+	if p.Name == "" {
+		return errors.New("name is required")
+	}
+	return nil
 }

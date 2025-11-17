@@ -1,8 +1,7 @@
 package advising
 
 import (
-	"errors"
-
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/errors"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/fetching"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
@@ -19,8 +18,11 @@ func NewAI(adviseFetcher fetching.Fetcher, enrichFetcher fetching.Fetcher) *AI {
 
 func (a AI) Advise(params parameters.RequestPerfume) ([]perfume.Ranked, error) {
 	adviseResults, ok := a.adviseFetcher.Fetch([]parameters.RequestPerfume{params})
-	if !ok || adviseResults == nil || len(adviseResults) == 0 {
-		return nil, errors.New("failed to get AI suggestions")
+	if !ok {
+		return nil, errors.NewServiceError("failed to interact with AI advisor service", nil)
+	}
+	if len(adviseResults) == 0 {
+		return nil, errors.NewNotFoundError("perfume not found")
 	}
 
 	enrichmentParams := make([]parameters.RequestPerfume, len(adviseResults))
