@@ -119,8 +119,8 @@ func TestAiAdvisor_Advise_AdviseFetcherFails(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error when adviseFetcher fails")
 	}
-	if err.Error() != "failed to get AI suggestions" {
-		t.Fatalf("expected error 'failed to get AI suggestions', got %q", err.Error())
+	if err.Error() != "failed to interact with AI advisor service" {
+		t.Fatalf("expected error 'failed to interact with AI advisor service', got %q", err.Error())
 	}
 	if result != nil {
 		t.Fatalf("expected nil result, got %v", result)
@@ -149,8 +149,8 @@ func TestAiAdvisor_Advise_AdviseFetcherReturnsEmpty(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error when adviseFetcher returns empty")
 	}
-	if err.Error() != "failed to get AI suggestions" {
-		t.Fatalf("expected error 'failed to get AI suggestions', got %q", err.Error())
+	if err.Error() != "perfume not found" {
+		t.Fatalf("expected error 'perfume not found', got %q", err.Error())
 	}
 	if result != nil {
 		t.Fatalf("expected nil result, got %v", result)

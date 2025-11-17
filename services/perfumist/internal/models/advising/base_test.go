@@ -147,8 +147,8 @@ func TestBaseAdvisor_Advise_FetcherFailsOnFavourite(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error when fetcher fails")
 	}
-	if err.Error() != "failed to get favourite perfumes" {
-		t.Fatalf("expected error 'failed to get favourite perfumes', got %q", err.Error())
+	if err.Error() != "failed to interact with perfume service" {
+		t.Fatalf("expected error 'failed to interact with perfume service', got %q", err.Error())
 	}
 	if result != nil {
 		t.Fatalf("expected nil result, got %v", result)
@@ -180,8 +180,8 @@ func TestBaseAdvisor_Advise_FetcherReturnsEmptyFavourite(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error when favourite is empty")
 	}
-	if err.Error() != "failed to get favourite perfumes" {
-		t.Fatalf("expected error 'failed to get favourite perfumes', got %q", err.Error())
+	if err.Error() != "perfume not found" {
+		t.Fatalf("expected error 'perfume not found', got %q", err.Error())
 	}
 	if result != nil {
 		t.Fatalf("expected nil result, got %v", result)
@@ -262,8 +262,8 @@ func TestBaseAdvisor_Advise_FetcherReturnsEmptyAllPerfumes(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error when all perfumes is empty")
 	}
-	if err.Error() != "failed to interact with perfume service" {
-		t.Fatalf("expected error 'failed to interact with perfume service', got %q", err.Error())
+	if err.Error() != "no perfumes available in database" {
+		t.Fatalf("expected error 'no perfumes available in database', got %q", err.Error())
 	}
 	if result != nil {
 		t.Fatalf("expected nil result, got %v", result)

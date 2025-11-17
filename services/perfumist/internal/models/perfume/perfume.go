@@ -20,6 +20,7 @@ type Properties struct {
 type ShopInfo struct {
 	ShopName string    `json:"shop_name"`
 	Domain   string    `json:"domain"`
+	ImageUrl string    `json:"image_url,omitempty"`
 	Variants []Variant `json:"variants"`
 }
 
@@ -34,9 +35,8 @@ func (p Perfume) Equal(other Perfume) bool {
 }
 
 type State struct {
-	Success         bool `json:"success"`
-	SuccessfulCount int  `json:"successful_count"`
-	FailedCount     int  `json:"failed_count"`
+	SuccessfulCount int `json:"successful_count"`
+	FailedCount     int `json:"failed_count"`
 }
 
 type PerfumeResponse struct {

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
 )
@@ -41,12 +42,12 @@ func TestAIFetcher_Fetch_EmptyParams(t *testing.T) {
 }
 
 func TestAIFetcher_Fetch_HTTPError(t *testing.T) {
-	origTransport := http.DefaultClient.Transport
-	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := config.HTTPClient.Transport
+	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		return nil, io.ErrUnexpectedEOF
 	})
 	t.Cleanup(func() {
-		http.DefaultClient.Transport = origTransport
+		config.HTTPClient.Transport = origTransport
 	})
 
 	fetcher := NewAI("http://test-url:8000/v1/advise")
@@ -62,8 +63,8 @@ func TestAIFetcher_Fetch_HTTPError(t *testing.T) {
 }
 
 func TestAIFetcher_Fetch_Non200Status(t *testing.T) {
-	origTransport := http.DefaultClient.Transport
-	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := config.HTTPClient.Transport
+	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: http.StatusInternalServerError,
 			Status:     http.StatusText(http.StatusInternalServerError),
@@ -73,7 +74,7 @@ func TestAIFetcher_Fetch_Non200Status(t *testing.T) {
 		}, nil
 	})
 	t.Cleanup(func() {
-		http.DefaultClient.Transport = origTransport
+		config.HTTPClient.Transport = origTransport
 	})
 
 	fetcher := NewAI("http://test-url:8000/v1/advise")
@@ -89,8 +90,8 @@ func TestAIFetcher_Fetch_Non200Status(t *testing.T) {
 }
 
 func TestAIFetcher_Fetch_EmptyBody(t *testing.T) {
-	origTransport := http.DefaultClient.Transport
-	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := config.HTTPClient.Transport
+	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: http.StatusOK,
 			Status:     http.StatusText(http.StatusOK),
@@ -100,7 +101,7 @@ func TestAIFetcher_Fetch_EmptyBody(t *testing.T) {
 		}, nil
 	})
 	t.Cleanup(func() {
-		http.DefaultClient.Transport = origTransport
+		config.HTTPClient.Transport = origTransport
 	})
 
 	fetcher := NewAI("http://test-url:8000/v1/advise")
@@ -116,8 +117,8 @@ func TestAIFetcher_Fetch_EmptyBody(t *testing.T) {
 }
 
 func TestAIFetcher_Fetch_InvalidJSON(t *testing.T) {
-	origTransport := http.DefaultClient.Transport
-	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := config.HTTPClient.Transport
+	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: http.StatusOK,
 			Status:     http.StatusText(http.StatusOK),
@@ -127,7 +128,7 @@ func TestAIFetcher_Fetch_InvalidJSON(t *testing.T) {
 		}, nil
 	})
 	t.Cleanup(func() {
-		http.DefaultClient.Transport = origTransport
+		config.HTTPClient.Transport = origTransport
 	})
 
 	fetcher := NewAI("http://test-url:8000/v1/advise")
@@ -153,8 +154,8 @@ func TestAIFetcher_Fetch_Success(t *testing.T) {
 		t.Fatalf("failed to marshal test data: %v", err)
 	}
 
-	origTransport := http.DefaultClient.Transport
-	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := config.HTTPClient.Transport
+	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: http.StatusOK,
 			Status:     http.StatusText(http.StatusOK),
@@ -164,7 +165,7 @@ func TestAIFetcher_Fetch_Success(t *testing.T) {
 		}, nil
 	})
 	t.Cleanup(func() {
-		http.DefaultClient.Transport = origTransport
+		config.HTTPClient.Transport = origTransport
 	})
 
 	fetcher := NewAI("http://test-url:8000/v1/advise")
@@ -186,8 +187,8 @@ func TestAIFetcher_Fetch_Success(t *testing.T) {
 
 func TestAIFetcher_Fetch_AddsQueryParams(t *testing.T) {
 	var capturedRequest *http.Request
-	origTransport := http.DefaultClient.Transport
-	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := config.HTTPClient.Transport
+	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		capturedRequest = r
 		suggestion := aISuggestion{Perfumes: []perfume.Perfume{}}
 		body, _ := json.Marshal(suggestion)
@@ -200,7 +201,7 @@ func TestAIFetcher_Fetch_AddsQueryParams(t *testing.T) {
 		}, nil
 	})
 	t.Cleanup(func() {
-		http.DefaultClient.Transport = origTransport
+		config.HTTPClient.Transport = origTransport
 	})
 
 	fetcher := NewAI("http://test-url:8000/v1/advise")
