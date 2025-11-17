@@ -44,7 +44,7 @@ func TestAuthRejectsRequestWithoutToken(t *testing.T) {
 	if nextCalled {
 		t.Fatalf("next handler should not be called")
 	}
-	if res.Result().StatusCode != http.StatusUnauthorized {
-		t.Fatalf("status = %d, want %d", res.Result().StatusCode, http.StatusUnauthorized)
+	if res.Result().StatusCode != http.StatusForbidden {
+		t.Fatalf("status = %d, want %d", res.Result().StatusCode, http.StatusForbidden)
 	}
 }

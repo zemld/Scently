@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/config"
 	queries "github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/query"
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/errors"
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
 )
 
@@ -25,11 +26,15 @@ func Update(ctx context.Context, params *models.UpdateParameters) models.Process
 	conn, err := pgx.Connect(ctx, config.GetConnectionString())
 	if err != nil {
 		log.Printf("Unable to connect to database: %v\n", err)
-		return models.ProcessedState{Success: false}
+		return models.ProcessedState{Error: errors.NewDBError("unable to connect to database", err)}
 	}
 	defer conn.Close(ctx)
 
-	tx, _ := conn.Begin(ctx)
+	tx, err := conn.Begin(ctx)
+	if err != nil {
+		log.Printf("Unable to begin transaction: %v\n", err)
+		return models.ProcessedState{Error: errors.NewDBError("unable to begin transaction", err)}
+	}
 	defer tx.Rollback(ctx)
 
 	if !deleteOldPerfumes(ctx, tx) {
@@ -38,7 +43,10 @@ func Update(ctx context.Context, params *models.UpdateParameters) models.Process
 
 	updateStatus := upsert(ctx, tx, params.Perfumes)
 
-	tx.Commit(ctx)
+	if err := tx.Commit(ctx); err != nil {
+		log.Printf("Unable to commit transaction: %v\n", err)
+		return models.ProcessedState{Error: errors.NewDBError("unable to commit transaction", err)}
+	}
 	return updateStatus
 }
 
