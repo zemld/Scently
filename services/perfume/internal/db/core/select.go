@@ -6,6 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/config"
+	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/errors"
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
 )
 
@@ -15,14 +16,14 @@ func Select(ctx context.Context, params *models.SelectParameters) ([]models.Perf
 	conn, err := pgx.Connect(ctx, config.GetConnectionString())
 	if err != nil {
 		log.Printf("Unable to connect to database: %v\n", err)
-		return nil, models.ProcessedState{Success: false}
+		return nil, models.ProcessedState{Error: errors.NewDBError("unable to connect to database", err)}
 	}
 	defer conn.Close(ctx)
 
 	rows, err := conn.Query(ctx, params.GetQuery(), params.Unpack()...)
 	if err != nil {
 		log.Printf("Error executing query: %v\n", err)
-		return nil, models.ProcessedState{Success: false}
+		return nil, models.ProcessedState{Error: errors.NewDBError("error executing query", err)}
 	}
 	defer rows.Close()
 

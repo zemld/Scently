@@ -102,10 +102,7 @@ func TestNewUpdateStatus(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			status := models.ProcessedState{Success: tt.success}
-			if status.Success != tt.success {
-				t.Fatalf("ProcessedState(%v).Success = %v, want %v", tt.success, status.Success, tt.success)
-			}
+			status := models.NewProcessedState()
 			if status.SuccessfulCount != 0 {
 				t.Fatalf("ProcessedState().SuccessfulCount = %d, want 0", status.SuccessfulCount)
 			}
@@ -145,9 +142,6 @@ func TestUpsertSuccess(t *testing.T) {
 
 	status := upsert(ctx, tx, []models.Perfume{perfume})
 
-	if !status.Success {
-		t.Fatalf("upsert status success = %v, want %v", status.Success, true)
-	}
 	if status.SuccessfulCount != 1 {
 		t.Fatalf("upsert successful count = %d, want %d", status.SuccessfulCount, 1)
 	}
