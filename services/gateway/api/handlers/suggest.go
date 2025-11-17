@@ -55,12 +55,6 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		gatewayErr := errors.NewInternalError(fmt.Errorf("internal service returned status: %d", resp.StatusCode))
-		gatewayErr.WriteHTTP(w)
-		return
-	}
-
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		gatewayErr := errors.NewInternalError(err)
@@ -68,24 +62,55 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var suggestions perfume.Suggestions
-	if err := json.Unmarshal(body, &suggestions); err != nil {
-		gatewayErr := errors.NewInternalError(err)
-		gatewayErr.WriteHTTP(w)
-		return
-	}
+	switch resp.StatusCode {
+	case http.StatusOK:
+		var suggestions perfume.Suggestions
+		if err := json.Unmarshal(body, &suggestions); err != nil {
+			gatewayErr := errors.NewInternalError(err)
+			gatewayErr.WriteHTTP(w)
+			return
+		}
 
-	if len(suggestions.Perfumes) == 0 {
+		if len(suggestions.Perfumes) == 0 {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusNoContent)
+			writeNoContentResponse(w)
+			return
+		}
+
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusNoContent)
-		writeNoContentResponse(w)
-		return
-	}
+		w.WriteHeader(http.StatusOK)
+		if _, err := w.Write(body); err != nil {
+			log.Printf("Error writing response: %v\n", err)
+		}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if _, err := w.Write(body); err != nil {
-		log.Printf("Error writing response: %v\n", err)
+	case http.StatusBadRequest, http.StatusNotFound:
+		var errorResponse struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(body, &errorResponse); err != nil {
+			gatewayErr := errors.ErrBadRequest(fmt.Errorf("perfumist service error"))
+			gatewayErr.WriteHTTP(w)
+			return
+		}
+		gatewayErr := errors.ErrBadRequest(fmt.Errorf("%s", errorResponse.Error))
+		gatewayErr.WriteHTTP(w)
+
+	case http.StatusInternalServerError:
+		var errorResponse struct {
+			Error string `json:"error"`
+		}
+		if err := json.Unmarshal(body, &errorResponse); err != nil {
+			gatewayErr := errors.NewInternalError(fmt.Errorf("perfumist service returned 500"))
+			gatewayErr.WriteHTTP(w)
+			return
+		}
+		gatewayErr := errors.NewInternalError(fmt.Errorf("perfumist service error: %s", errorResponse.Error))
+		gatewayErr.WriteHTTP(w)
+
+	default:
+		gatewayErr := errors.NewInternalError(fmt.Errorf("internal service returned status: %d", resp.StatusCode))
+		gatewayErr.WriteHTTP(w)
 	}
 }
 
@@ -103,6 +128,7 @@ func getTimeoutFromRequest(r http.Request) time.Duration {
 	}
 	return timeout
 }
+
 func getHTTPClient(timeout time.Duration) *http.Client {
 	responseHeaderTimeout := max(timeout-1*time.Second, 1*time.Second)
 

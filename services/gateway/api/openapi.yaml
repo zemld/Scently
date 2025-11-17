@@ -46,10 +46,9 @@ paths:
           description: Использовать AI для рекомендаций
           required: false
           schema:
-            type: string
-            enum: [true, false]
-            default: "false"
-            example: "false"
+            type: boolean
+            default: false
+            example: false
       responses:
         "200":
           description: Успешный ответ с рекомендациями
@@ -89,15 +88,24 @@ paths:
                   message:
                     type: string
                     example: "No recommendations available"
-        "400":
-          description: Не передан бренд или название парфюма
+        "404":
+          description: Духи не найдены
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
-                error: "Bad request"
-                message: "Wrong request parameters"
+                error: "BAD_REQUEST"
+                message: "perfume not found"
+        "400":
+          description: Неверные параметры запроса (отсутствует brand или name)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "BAD_REQUEST"
+                message: "Brand and name are required"
         "403":
           description: CORS не разрешен
           content:
@@ -108,14 +116,14 @@ paths:
                 error: "CORS not allowed"
                 message: "CORS not allowed"
         "500":
-          description: Ошибка запроса к внутреннему сервису
+          description: Ошибка взаимодействия с другими сервисами
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
-                error: "Internal server error"
-                message: "Failed to execute request"
+                error: "INTERNAL_ERROR"
+                message: "failed to interact with perfume service"
 
 components:
   schemas:
@@ -152,23 +160,25 @@ components:
         - brand
         - name
         - sex
-        - image_url
         - properties
-        - shops
       properties:
         brand:
           type: string
+          description: Бренд духов
           example: "Chanel"
         name:
           type: string
+          description: Название духов
           example: "No. 5"
         sex:
           type: string
           enum: [male, female, unisex]
+          description: Пол
           example: "female"
         image_url:
           type: string
           format: uri
+          description: URL изображения
           example: "https://example.com/image.jpg"
         properties:
           $ref: "#/components/schemas/Properties"
@@ -219,10 +229,17 @@ components:
       properties:
         shop_name:
           type: string
-          example: "Shop1"
+          description: Название магазина
+          example: "Gold Apple"
         domain:
           type: string
-          example: "shop1.com"
+          description: Домен магазина
+          example: "goldapple.ru"
+        image_url:
+          type: string
+          format: uri
+          description: URL изображения из магазина
+          example: "https://example.com/shop-image.jpg"
         variants:
           type: array
           items:
@@ -232,21 +249,22 @@ components:
       type: object
       required:
         - volume
-        - link
         - price
+        - link
       properties:
         volume:
           type: integer
-          description: Объем в мл
+          description: Объем в миллилитрах
           example: 50
-        link:
-          type: string
-          format: uri
-          example: "https://shop1.com/product"
         price:
           type: integer
           description: Цена в рублях
           example: 5000
+        link:
+          type: string
+          format: uri
+          description: Ссылка на товар в магазине
+          example: "https://goldapple.ru/perfume/123"
 
     Error:
       type: object
