@@ -8,7 +8,7 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/errors"
 )
 
-var perfumeToken = os.Getenv("PERFUME_INTERNAL_TOKEN")
+var perfumeToken = os.Getenv("PERFUMIST_INTERNAL_TOKEN")
 
 const prefix = "Bearer "
 
