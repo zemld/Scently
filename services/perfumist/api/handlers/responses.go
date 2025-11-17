@@ -11,8 +11,12 @@ type SuggestResponse struct {
 	Suggested []perfume.Ranked `json:"suggested"`
 }
 
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
+
 func WriteResponse(w http.ResponseWriter, response any, status int) {
-	w.WriteHeader(status)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(response)
 }
