@@ -1,9 +1,22 @@
-FROM golang:1.25-alpine
+FROM golang:1.25-alpine AS builder
 
-WORKDIR /perfumist
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
 
 COPY . .
 
-RUN go mod tidy
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o perfumist ./cmd/main.go
 
-CMD ["go", "run", "cmd/main.go"]
+FROM alpine:latest
+
+RUN apk --no-cache add ca-certificates
+
+WORKDIR /root/
+
+COPY --from=builder /app/perfumist .
+
+EXPOSE 8000
+
+CMD ["./perfumist"]
