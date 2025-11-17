@@ -1,8 +1,9 @@
 package parameters
 
 import (
-	"errors"
 	"net/http"
+
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/errors"
 )
 
 type contextKey string
@@ -75,10 +76,10 @@ func addQueryParameter(r *http.Request, key string, value string) {
 
 func (p RequestPerfume) Validate() error {
 	if p.Brand == "" {
-		return errors.New("brand is required")
+		return errors.NewValidationError("brand", "is required")
 	}
 	if p.Name == "" {
-		return errors.New("name is required")
+		return errors.NewValidationError("name", "is required")
 	}
 	return nil
 }
