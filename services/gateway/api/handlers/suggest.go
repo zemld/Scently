@@ -44,6 +44,7 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	req.URL.RawQuery = r.URL.Query().Encode()
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("PERFUMIST_INTERNAL_TOKEN")))
 
 	timeout := getTimeoutFromRequest(*r)
 	client := getHTTPClient(timeout)
