@@ -10,6 +10,8 @@ import (
 
 func main() {
 	core.Initiate()
+	defer core.Close()
+
 	r := http.NewServeMux()
 
 	r.Handle("/v1/perfumes/get", middleware.Auth(http.HandlerFunc(handlers.Select)))

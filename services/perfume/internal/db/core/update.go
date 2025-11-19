@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/config"
 	queries "github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/query"
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/errors"
 	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
@@ -21,16 +20,7 @@ var (
 )
 
 func Update(ctx context.Context, params *models.UpdateParameters) models.ProcessedState {
-	config := config.NewConfig()
-
-	conn, err := pgx.Connect(ctx, config.GetConnectionString())
-	if err != nil {
-		log.Printf("Unable to connect to database: %v\n", err)
-		return models.ProcessedState{Error: errors.NewDBError("unable to connect to database", err)}
-	}
-	defer conn.Close(ctx)
-
-	tx, err := conn.Begin(ctx)
+	tx, err := Pool.Begin(ctx)
 	if err != nil {
 		log.Printf("Unable to begin transaction: %v\n", err)
 		return models.ProcessedState{Error: errors.NewDBError("unable to begin transaction", err)}
