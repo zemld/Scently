@@ -47,15 +47,9 @@ func Cache(next http.HandlerFunc) http.HandlerFunc {
 		if err != nil {
 			log.Printf("Cannot create Redis cacher: %v\n", err)
 		}
-		if cacher != nil {
-			defer cacher.Close()
-		}
 
-		log.Printf("cacher: %v", cacher)
-		if cacher != nil {
-			if tryLoadFromCache(r.Context(), cacher, key, w) {
-				return
-			}
+		if tryLoadFromCache(r.Context(), cacher, key, w) {
+			return
 		}
 
 		rw := &responseWriter{ResponseWriter: w, statusCode: http.StatusOK}
