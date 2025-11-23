@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"reflect"
 	"strconv"
 
 	"github.com/zemld/PerfumeRecommendationSystem/algorithms/internal/domain/models"
@@ -29,7 +30,7 @@ func ReadPerfumes(path string) []models.Perfume {
 	return perfumes
 }
 
-func ReadTags(path string, notes map[string]models.EnrichedNote) {
+func ReadNotesInfo[Number int | float64](path string) map[string]map[string]Number {
 	header := make(map[int]string)
 
 	csv := CsvIterator(path)
@@ -43,21 +44,16 @@ func ReadTags(path string, notes map[string]models.EnrichedNote) {
 		header[i] = headerLine[i]
 	}
 
-	for noteLine := range csv {
-		notes[noteLine[0]] = models.EnrichedNote{
-			Name: noteLine[0],
-			Tags: make(map[string]int),
-		}
+	notes := make(map[string]map[string]Number)
 
+	for noteLine := range csv {
+		notes[noteLine[0]] = make(map[string]Number)
 		for i := 1; i < len(noteLine); i++ {
-			count, err := strconv.Atoi(noteLine[i])
-			if err != nil {
-				log.Panicf("cannot convert %s to int: %s", noteLine[i], err)
-				notes[noteLine[0]].Tags[header[i]] = 0
-			}
-			notes[noteLine[0]].Tags[header[i]] = count
+			notes[noteLine[0]][header[i]] = parseNumber[Number](noteLine[i])
 		}
 	}
+
+	return notes
 }
 
 func CsvIterator(path string) <-chan []string {
@@ -85,4 +81,21 @@ func CsvIterator(path string) <-chan []string {
 	}()
 
 	return ch
+}
+
+func parseNumber[Number int | float64](value string) Number {
+	var zeroValue Number
+	isInt := reflect.TypeOf(zeroValue).Kind() == reflect.Int
+	if isInt {
+		intVal, err := strconv.Atoi(value)
+		if err != nil {
+			log.Printf("cannot parse int: %s", err)
+		}
+		return Number(intVal)
+	}
+	floatVal, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		log.Printf("cannot parse float: %s", err)
+	}
+	return Number(floatVal)
 }
