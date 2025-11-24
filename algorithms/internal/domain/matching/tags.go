@@ -38,7 +38,9 @@ func (m Tags) normalizeTags(tags map[string]int) map[string]float64 {
 	}
 
 	for tag, raw := range normalized {
-		normalized[tag] = raw / float64(tagsSum)
+		if tagsSum != 0 {
+			normalized[tag] = raw / float64(tagsSum)	
+		}
 	}
 	return normalized
 }

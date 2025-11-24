@@ -50,6 +50,9 @@ func (m TagsOverlay) getNotesSimilarityScore(first map[string]int, second map[st
 	for _, secondCount := range second {
 		maxMatches += secondCount
 	}
-
+	
+	if maxMatches == 0 {
+		return 0
+	}
 	return float64(matches) / float64(maxMatches)
 }

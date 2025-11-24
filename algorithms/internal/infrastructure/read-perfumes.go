@@ -89,13 +89,13 @@ func parseNumber[Number int | float64](value string) Number {
 	if isInt {
 		intVal, err := strconv.Atoi(value)
 		if err != nil {
-			log.Printf("cannot parse int: %s", err)
+			log.Printf(readCsvMsg, err)
 		}
 		return Number(intVal)
 	}
 	floatVal, err := strconv.ParseFloat(value, 64)
 	if err != nil {
-		log.Printf("cannot parse float: %s", err)
+		log.Printf(readCsvMsg, err)
 	}
 	return Number(floatVal)
 }
