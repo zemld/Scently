@@ -88,7 +88,7 @@ func (p *Properties) normalizeTags(raw map[string]int) map[string]float64 {
 		tagsSum += count
 	}
 
-	for tag, _ := range normalized {
+	for tag := range normalized {
 		normalized[tag] /= float64(tagsSum)
 	}
 	return normalized
