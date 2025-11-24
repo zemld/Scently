@@ -28,9 +28,9 @@ func (m TagsOverlay) GetPerfumeSimilarityScore(first models.Properties, second m
 		models.UniteTags(second.EnrichedBaseNotes),
 	)
 
-	return (upperNotesScore*m.upperNotesWeight +
-		coreNotesScore*m.coreNotesWeight +
-		baseNotesScore*m.baseNotesWeight)
+	return (upperNotesScore*m.UpperNotesWeight +
+		coreNotesScore*m.CoreNotesWeight +
+		baseNotesScore*m.BaseNotesWeight)
 }
 
 func (m TagsOverlay) getNotesSimilarityScore(first map[string]int, second map[string]int) float64 {
@@ -50,7 +50,7 @@ func (m TagsOverlay) getNotesSimilarityScore(first map[string]int, second map[st
 	for _, secondCount := range second {
 		maxMatches += secondCount
 	}
-	
+
 	if maxMatches == 0 {
 		return 0
 	}

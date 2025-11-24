@@ -17,7 +17,7 @@ func (m Overlay) GetPerfumeSimilarityScore(first models.Properties, second model
 	familiesSimilarityScore := m.getListSimilarityScore(first.Family, second.Family)
 	notesSimilarityScore := m.getNotesSimilarityScore(first, second)
 	typeSimilarity := m.getTypeSimilarityScore(first.Type, second.Type)
-	return familiesSimilarityScore*m.familyWeight + notesSimilarityScore*m.notesWeight + typeSimilarity*m.typeWeight
+	return familiesSimilarityScore*m.FamilyWeight + notesSimilarityScore*m.NotesWeight + typeSimilarity*m.TypeWeight
 }
 
 func (m Overlay) getListSimilarityScore(first []string, second []string) float64 {
@@ -37,7 +37,7 @@ func (m Overlay) getNotesSimilarityScore(first models.Properties, second models.
 	middleNotesSimilarityScore := m.getListSimilarityScore(first.CoreNotes, second.CoreNotes)
 	baseNotesSimilarityScore := m.getListSimilarityScore(first.BaseNotes, second.BaseNotes)
 
-	return upperNotesSimilarityScore*m.upperNotesWeight + middleNotesSimilarityScore*m.coreNotesWeight + baseNotesSimilarityScore*m.baseNotesWeight
+	return upperNotesSimilarityScore*m.UpperNotesWeight + middleNotesSimilarityScore*m.CoreNotesWeight + baseNotesSimilarityScore*m.BaseNotesWeight
 }
 
 func (m Overlay) getTypeSimilarityScore(first string, second string) float64 {

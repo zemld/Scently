@@ -23,9 +23,9 @@ func (m Tags) GetPerfumeSimilarityScore(first models.Properties, second models.P
 	coreNotesScore := multiplyMaps(firstCoreNotesTags, secondCoreNotesTags)
 	baseNotesScore := multiplyMaps(firstBaseNotesTags, secondBaseNotesTags)
 
-	return (upperNotesScore*m.upperNotesWeight +
-		coreNotesScore*m.coreNotesWeight +
-		baseNotesScore*m.baseNotesWeight)
+	return (upperNotesScore*m.UpperNotesWeight +
+		coreNotesScore*m.CoreNotesWeight +
+		baseNotesScore*m.BaseNotesWeight)
 }
 
 func (m Tags) normalizeTags(tags map[string]int) map[string]float64 {
@@ -39,7 +39,7 @@ func (m Tags) normalizeTags(tags map[string]int) map[string]float64 {
 
 	for tag, raw := range normalized {
 		if tagsSum != 0 {
-			normalized[tag] = raw / float64(tagsSum)	
+			normalized[tag] = raw / float64(tagsSum)
 		}
 	}
 	return normalized

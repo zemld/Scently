@@ -14,6 +14,6 @@ func (m Smart) GetPerfumeSimilarityScore(first models.Properties, second models.
 	cm := NewCharacteristicsMatcher(m.Weights)
 	tm := NewTags(m.Weights)
 
-	return (m.characteristicsWeight*cm.GetPerfumeSimilarityScore(first, second) +
-		m.tagsWeight*tm.GetPerfumeSimilarityScore(first, second))
+	return (m.CharacteristicsWeight*cm.GetPerfumeSimilarityScore(first, second) +
+		m.TagsWeight*tm.GetPerfumeSimilarityScore(first, second))
 }

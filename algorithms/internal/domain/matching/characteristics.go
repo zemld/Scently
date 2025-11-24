@@ -14,13 +14,13 @@ func (m CharacteristicsMatcher) GetPerfumeSimilarityScore(first models.Propertie
 	return multiplyMaps(
 		models.UniteCharacteristics(first.EnrichedUpperNotes),
 		models.UniteCharacteristics(second.EnrichedUpperNotes),
-	)*m.upperNotesWeight +
+	)*m.UpperNotesWeight +
 		multiplyMaps(
 			models.UniteCharacteristics(first.EnrichedCoreNotes),
 			models.UniteCharacteristics(second.EnrichedCoreNotes),
-		)*m.coreNotesWeight +
+		)*m.CoreNotesWeight +
 		multiplyMaps(
 			models.UniteCharacteristics(first.EnrichedBaseNotes),
 			models.UniteCharacteristics(second.EnrichedBaseNotes),
-		)*m.baseNotesWeight
+		)*m.BaseNotesWeight
 }
