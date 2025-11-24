@@ -18,16 +18,20 @@ const (
 	readCsvMsg   = "cannot read record: %s"
 )
 
+type SourcePerfumes struct {
+	Perfumes []models.Perfume `json:"perfumes"`
+}
+
 func ReadPerfumes(path string) []models.Perfume {
 	contents, err := os.ReadFile(path)
 	if err != nil {
 		log.Fatalf(readFileMsg, path, err)
 	}
-	var perfumes []models.Perfume
+	var perfumes SourcePerfumes
 	if err := json.Unmarshal(contents, &perfumes); err != nil {
 		log.Fatalf(unmarshalMsg, err)
 	}
-	return perfumes
+	return perfumes.Perfumes
 }
 
 func ReadNotesInfo[Number int | float64](path string) map[string]map[string]Number {

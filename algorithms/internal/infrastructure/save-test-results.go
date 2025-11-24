@@ -5,23 +5,33 @@ import (
 	"log"
 	"os"
 
+	"github.com/zemld/PerfumeRecommendationSystem/algorithms/internal/domain/matching"
 	"github.com/zemld/PerfumeRecommendationSystem/algorithms/internal/domain/models"
 )
 
-type TestResult struct {
+type testResultsWithWeights struct {
+	matching.Weights `json:"weights"`
+	Runs             []testResult `json:"runs"`
+}
+
+type testResult struct {
 	Input       models.Perfume  `json:"input"`
 	Suggestions []models.Ranked `json:"suggestions"`
 }
 
-func SaveTestResults(outputPath string, inputs []models.Perfume, suggestions [][]models.Ranked) {
-	testResults := make([]TestResult, 0, len(inputs))
+func SaveTestResults(outputPath string, inputs []models.Perfume, suggestions [][]models.Ranked, weights matching.Weights) {
+	testResults := make([]testResult, 0, len(inputs))
 	for i := range inputs {
-		testResults = append(testResults, TestResult{
+		testResults = append(testResults, testResult{
 			Input:       inputs[i],
 			Suggestions: suggestions[i],
 		})
 	}
-	encoded, err := json.Marshal(testResults)
+	t := testResultsWithWeights{
+		Weights: weights,
+		Runs:    testResults,
+	}
+	encoded, err := json.Marshal(t)
 	if err != nil {
 		log.Fatalf("cannot marshal test results: %s", err)
 	}
