@@ -21,11 +21,11 @@ type Properties struct {
 	EnrichedCoreNotes  []EnrichedNote `json:"-"`
 	EnrichedBaseNotes  []EnrichedNote `json:"-"`
 
-	UpperTags map[string]int `json:"upper_tags,omitempty"`
-	CoreTags  map[string]int `json:"core_tags,omitempty"`
-	BaseTags  map[string]int `json:"base_tags,omitempty"`
+	UpperTags []string `json:"upper_tags,omitempty"`
+	CoreTags  []string `json:"core_tags,omitempty"`
+	BaseTags  []string `json:"base_tags,omitempty"`
 
-	Tags map[string]int `json:"tags,omitempty"`
+	Tags []string `json:"tags,omitempty"`
 
 	UpperCharacteristics map[string]float64 `json:"upper_characteristics,omitempty"`
 	CoreCharacteristics  map[string]float64 `json:"core_characteristics,omitempty"`
@@ -55,6 +55,47 @@ type Variant struct {
 
 func (p Perfume) Equal(other Perfume) bool {
 	return p.Brand == other.Brand && p.Name == other.Name && p.Sex == other.Sex
+}
+
+func (p *Properties) CalculateLeveledTags(threshold float64) {
+	p.UpperTags = p.CalculateOneLevelTags(p.EnrichedUpperNotes, threshold)
+	p.CoreTags = p.CalculateOneLevelTags(p.EnrichedCoreNotes, threshold)
+	p.BaseTags = p.CalculateOneLevelTags(p.EnrichedBaseNotes, threshold)
+}
+
+func (p *Properties) CalculateOneLevelTags(levelNotes []EnrichedNote, threshold float64) []string {
+	unitedTags := UniteTags(levelNotes)
+	normalized := p.normalizeTags(unitedTags)
+
+	tags := make([]string, 0, len(normalized))
+	for tag, value := range normalized {
+		if value >= threshold {
+			tags = append(tags, tag)
+		}
+	}
+	return tags
+}
+
+func (p *Properties) normalizeTags(raw map[string]int) map[string]float64 {
+	normalized := make(map[string]float64, len(raw))
+	tagsSum := 0
+
+	for tag, count := range raw {
+		if count == 0 {
+			continue
+		}
+		normalized[tag] = float64(count)
+		tagsSum += count
+	}
+
+	for tag, _ := range normalized {
+		normalized[tag] /= float64(tagsSum)
+	}
+	return normalized
+}
+
+func (p *Properties) CalculateTags(threshold float64) {
+
 }
 
 func UniteTags(notes []EnrichedNote) map[string]int {
