@@ -25,8 +25,10 @@ func SaveTestResults(outputPath string, inputs []models.Perfume, suggestions [][
 	testResults := make([]testResult, 0, len(inputs))
 	for i := range inputs {
 		inputs[i].Properties.CalculateLeveledTags(threshold)
+		inputs[i].Properties.CalculateLeveledCharacteristics()
 		for j := range suggestions[i] {
 			suggestions[i][j].Perfume.Properties.CalculateLeveledTags(threshold)
+			suggestions[i][j].Perfume.Properties.CalculateLeveledCharacteristics()
 		}
 		testResults = append(testResults, testResult{
 			Input:       inputs[i],

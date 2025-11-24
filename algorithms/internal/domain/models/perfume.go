@@ -110,6 +110,12 @@ func UniteTags(notes []EnrichedNote) map[string]int {
 	return united
 }
 
+func (p *Properties) CalculateLeveledCharacteristics() {
+	p.UpperCharacteristics = UniteCharacteristics(p.EnrichedUpperNotes)
+	p.CoreCharacteristics = UniteCharacteristics(p.EnrichedCoreNotes)
+	p.BaseCharacteristics = UniteCharacteristics(p.EnrichedBaseNotes)
+}
+
 func UniteCharacteristics(notes []EnrichedNote) map[string]float64 {
 	united := make(map[string]float64)
 
