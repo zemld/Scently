@@ -6,7 +6,10 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/algorithms/internal/domain/matching"
 )
 
-func ParseCLIAndGetMatcher(args []string) matching.Matcher {
+func ParseCLIAndGetWeights(args []string) []matching.Weights {
+	if len(args) == 0 {
+		log.Fatal("no important arg of alg type")
+	}
 	alg := args[0]
 	weights := getWeights(matching.AlgType(alg))
 
@@ -15,7 +18,7 @@ func ParseCLIAndGetMatcher(args []string) matching.Matcher {
 		return nil
 	}
 
-	return matching.GetMatcherByAlg(matching.AlgType(alg), weights[0])
+	return weights
 }
 
 func getWeights(alg matching.AlgType) []matching.Weights {
