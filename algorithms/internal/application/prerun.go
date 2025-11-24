@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	perfumesPath        = "data/all_perfumes.json"
+	perfumesPath        = "data/all_perfumes_merged.json"
 	tagsPath            = "data/note_tags_dataset_filled.csv"
 	characteristicsPath = "data/note_characteristics_filled.csv"
 )
@@ -28,10 +28,10 @@ func ReadAndEnrichPerfumes() []models.Perfume {
 		log.Fatal("cannot read characteristics")
 	}
 
-	for _, perfume := range perfumes {
-		perfume.Properties.EnrichedUpperNotes = enrichNotes(perfume.Properties.UpperNotes, tags, characteristics)
-		perfume.Properties.EnrichedCoreNotes = enrichNotes(perfume.Properties.CoreNotes, tags, characteristics)
-		perfume.Properties.EnrichedBaseNotes = enrichNotes(perfume.Properties.BaseNotes, tags, characteristics)
+	for i := range perfumes {
+		perfumes[i].Properties.EnrichedUpperNotes = enrichNotes(perfumes[i].Properties.UpperNotes, tags, characteristics)
+		perfumes[i].Properties.EnrichedCoreNotes = enrichNotes(perfumes[i].Properties.CoreNotes, tags, characteristics)
+		perfumes[i].Properties.EnrichedBaseNotes = enrichNotes(perfumes[i].Properties.BaseNotes, tags, characteristics)
 	}
 	return perfumes
 }
@@ -45,8 +45,12 @@ func enrichNotes(notes []string, tags map[string]map[string]int, characteristics
 			Characteristics: make(map[string]float64),
 		}
 
-		maps.Copy(enrichedNote.Tags, tags[note])
-		maps.Copy(enrichedNote.Characteristics, characteristics[note])
+		if noteTags, ok := tags[note]; ok && noteTags != nil {
+			maps.Copy(enrichedNote.Tags, noteTags)
+		}
+		if noteCharacteristics, ok := characteristics[note]; ok && noteCharacteristics != nil {
+			maps.Copy(enrichedNote.Characteristics, noteCharacteristics)
+		}
 
 		enrichedNotes = append(enrichedNotes, enrichedNote)
 	}
