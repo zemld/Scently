@@ -17,21 +17,21 @@ type Properties struct {
 	CoreNotes  []string `json:"core_notes"`
 	BaseNotes  []string `json:"base_notes"`
 
-	EnrichedUpperNotes []EnrichedNote
-	EnrichedCoreNotes  []EnrichedNote
-	EnrichedBaseNotes  []EnrichedNote
+	EnrichedUpperNotes []EnrichedNote `json:"-"`
+	EnrichedCoreNotes  []EnrichedNote `json:"-"`
+	EnrichedBaseNotes  []EnrichedNote `json:"-"`
 
-	UpperTags map[string]int
-	CoreTags  map[string]int
-	BaseTags  map[string]int
+	UpperTags map[string]int `json:"upper_tags,omitempty"`
+	CoreTags  map[string]int `json:"core_tags,omitempty"`
+	BaseTags  map[string]int `json:"base_tags,omitempty"`
 
-	Tags map[string]int
+	Tags map[string]int `json:"tags,omitempty"`
 
-	UpperCharacteristics map[string]float64
-	CoreCharacteristics  map[string]float64
-	BaseCharacteristics  map[string]float64
+	UpperCharacteristics map[string]float64 `json:"upper_characteristics,omitempty"`
+	CoreCharacteristics  map[string]float64 `json:"core_characteristics,omitempty"`
+	BaseCharacteristics  map[string]float64 `json:"base_characteristics,omitempty"`
 
-	Characteristics map[string]float64
+	Characteristics map[string]float64 `json:"characteristics,omitempty"`
 }
 
 type EnrichedNote struct {

@@ -1,16 +1,16 @@
 package matching
 
 type Weights struct {
-	upperNotesWeight float64
-	coreNotesWeight  float64
-	baseNotesWeight  float64
+	UpperNotesWeight float64 `json:"upper_notes_weight,omitzero"`
+	CoreNotesWeight  float64 `json:"core_notes_weight,omitzero"`
+	BaseNotesWeight  float64 `json:"base_notes_weight,omitzero"`
 
-	familyWeight float64
-	notesWeight  float64
-	typeWeight   float64
+	FamilyWeight float64 `json:"family_weight,omitzero"`
+	NotesWeight  float64 `json:"notes_weight,omitzero"`
+	TypeWeight   float64 `json:"type_weight,omitzero"`
 
-	characteristicsWeight float64
-	tagsWeight            float64
+	CharacteristicsWeight float64 `json:"characteristics_weight,omitzero"`
+	TagsWeight            float64 `json:"tags_weight,omitzero"`
 }
 
 func NewBaseWeights(
@@ -19,9 +19,9 @@ func NewBaseWeights(
 	baseNotesWeight float64,
 ) *Weights {
 	return &Weights{
-		upperNotesWeight: upperNotesWeight,
-		coreNotesWeight:  coreNotesWeight,
-		baseNotesWeight:  baseNotesWeight,
+		UpperNotesWeight: upperNotesWeight,
+		CoreNotesWeight:  coreNotesWeight,
+		BaseNotesWeight:  baseNotesWeight,
 	}
 }
 
@@ -34,9 +34,9 @@ func NewOverlayWeights(
 	typeWeight float64,
 ) *Weights {
 	w := NewBaseWeights(upperNotesWeight, coreNotesWeight, baseNotesWeight)
-	w.familyWeight = familyWeight
-	w.notesWeight = notesWeight
-	w.typeWeight = typeWeight
+	w.FamilyWeight = familyWeight
+	w.NotesWeight = notesWeight
+	w.TypeWeight = typeWeight
 	return w
 }
 
@@ -48,7 +48,7 @@ func NewSmartWeights(
 	tagsWeight float64,
 ) *Weights {
 	w := NewBaseWeights(upperNotesWeight, coreNotesWeight, baseNotesWeight)
-	w.characteristicsWeight = characteristicsWeight
-	w.tagsWeight = tagsWeight
+	w.CharacteristicsWeight = characteristicsWeight
+	w.TagsWeight = tagsWeight
 	return w
 }
