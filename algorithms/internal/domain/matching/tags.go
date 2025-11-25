@@ -1,6 +1,8 @@
 package matching
 
-import "github.com/zemld/PerfumeRecommendationSystem/algorithms/internal/domain/models"
+import (
+	"github.com/zemld/PerfumeRecommendationSystem/algorithms/internal/domain/models"
+)
 
 type Tags struct {
 	Weights
@@ -19,9 +21,9 @@ func (m Tags) GetPerfumeSimilarityScore(first models.Properties, second models.P
 	secondCoreNotesTags := m.normalizeTags(models.UniteTags(second.EnrichedCoreNotes))
 	secondBaseNotesTags := m.normalizeTags(models.UniteTags(second.EnrichedBaseNotes))
 
-	upperNotesScore := multiplyMaps(firstUpperNotesTags, secondUpperNotesTags)
-	coreNotesScore := multiplyMaps(firstCoreNotesTags, secondCoreNotesTags)
-	baseNotesScore := multiplyMaps(firstBaseNotesTags, secondBaseNotesTags)
+	upperNotesScore := cosineSimilarity(firstUpperNotesTags, secondUpperNotesTags)
+	coreNotesScore := cosineSimilarity(firstCoreNotesTags, secondCoreNotesTags)
+	baseNotesScore := cosineSimilarity(firstBaseNotesTags, secondBaseNotesTags)
 
 	return (upperNotesScore*m.UpperNotesWeight +
 		coreNotesScore*m.CoreNotesWeight +

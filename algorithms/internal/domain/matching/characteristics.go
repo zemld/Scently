@@ -1,6 +1,8 @@
 package matching
 
-import "github.com/zemld/PerfumeRecommendationSystem/algorithms/internal/domain/models"
+import (
+	"github.com/zemld/PerfumeRecommendationSystem/algorithms/internal/domain/models"
+)
 
 type CharacteristicsMatcher struct {
 	Weights
@@ -11,16 +13,18 @@ func NewCharacteristicsMatcher(weights Weights) *CharacteristicsMatcher {
 }
 
 func (m CharacteristicsMatcher) GetPerfumeSimilarityScore(first models.Properties, second models.Properties) float64 {
-	return multiplyMaps(
-		models.UniteCharacteristics(first.EnrichedUpperNotes),
-		models.UniteCharacteristics(second.EnrichedUpperNotes),
-	)*m.UpperNotesWeight +
-		multiplyMaps(
-			models.UniteCharacteristics(first.EnrichedCoreNotes),
-			models.UniteCharacteristics(second.EnrichedCoreNotes),
-		)*m.CoreNotesWeight +
-		multiplyMaps(
-			models.UniteCharacteristics(first.EnrichedBaseNotes),
-			models.UniteCharacteristics(second.EnrichedBaseNotes),
-		)*m.BaseNotesWeight
+	firstUpperNotesCharacteristics := models.UniteCharacteristics(first.EnrichedUpperNotes)
+	secondUpperNotesCharacteristics := models.UniteCharacteristics(second.EnrichedUpperNotes)
+	firstCoreNotesCharacteristics := models.UniteCharacteristics(first.EnrichedCoreNotes)
+	secondCoreNotesCharacteristics := models.UniteCharacteristics(second.EnrichedCoreNotes)
+	firstBaseNotesCharacteristics := models.UniteCharacteristics(first.EnrichedBaseNotes)
+	secondBaseNotesCharacteristics := models.UniteCharacteristics(second.EnrichedBaseNotes)
+
+	upperNotesScore := cosineSimilarity(firstUpperNotesCharacteristics, secondUpperNotesCharacteristics)
+	coreNotesScore := cosineSimilarity(firstCoreNotesCharacteristics, secondCoreNotesCharacteristics)
+	baseNotesScore := cosineSimilarity(firstBaseNotesCharacteristics, secondBaseNotesCharacteristics)
+
+	return (upperNotesScore*m.UpperNotesWeight +
+		coreNotesScore*m.CoreNotesWeight +
+		baseNotesScore*m.BaseNotesWeight)
 }

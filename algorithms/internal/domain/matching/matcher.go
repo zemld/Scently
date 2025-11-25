@@ -2,6 +2,7 @@ package matching
 
 import (
 	"container/heap"
+	"math"
 	"sync"
 
 	"github.com/zemld/PerfumeRecommendationSystem/algorithms/internal/domain/models"
@@ -120,4 +121,16 @@ func multiplyMaps(first map[string]float64, second map[string]float64) float64 {
 		}
 	}
 	return score
+}
+
+func cosineSimilarity(first map[string]float64, second map[string]float64) float64 {
+	dotProduct := multiplyMaps(first, second)
+	firstNorm := math.Sqrt(multiplyMaps(first, first))
+	secondNorm := math.Sqrt(multiplyMaps(second, second))
+
+	if firstNorm == 0 || secondNorm == 0 {
+		return 0.0
+	}
+
+	return dotProduct / (firstNorm * secondNorm)
 }
