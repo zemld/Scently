@@ -11,6 +11,7 @@ type Weights struct {
 
 	CharacteristicsWeight float64 `json:"characteristics_weight,omitzero"`
 	TagsWeight            float64 `json:"tags_weight,omitzero"`
+	OverlayWeight         float64 `json:"overlay_weight,omitzero"`
 }
 
 func NewBaseWeights(
@@ -50,5 +51,18 @@ func NewSmartWeights(
 	w := NewBaseWeights(upperNotesWeight, coreNotesWeight, baseNotesWeight)
 	w.CharacteristicsWeight = characteristicsWeight
 	w.TagsWeight = tagsWeight
+	return w
+}
+
+func NewSmartEnhancedWeights(
+	upperNotesWeight float64,
+	coreNotesWeight float64,
+	baseNotesWeight float64,
+	characteristicsWeight float64,
+	tagsWeight float64,
+	overlayWeight float64,
+) *Weights {
+	w := NewSmartWeights(upperNotesWeight, coreNotesWeight, baseNotesWeight, characteristicsWeight, tagsWeight)
+	w.OverlayWeight = overlayWeight
 	return w
 }

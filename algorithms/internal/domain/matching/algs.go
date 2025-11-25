@@ -10,6 +10,7 @@ const (
 	CharacteristicsAlg AlgType = "characteristics"
 	TagsOverlayAlg     AlgType = "tags_overlay"
 	SmartAlg           AlgType = "smart"
+	SmartEnhancedAlg   AlgType = "smart_enhanced"
 )
 
 func (a AlgType) String() string {
@@ -28,6 +29,8 @@ func GetMatcherByAlg(alg AlgType, weights Weights) Matcher {
 		return NewTagsMatcher(weights)
 	case SmartAlg:
 		return NewSmart(weights)
+	case SmartEnhancedAlg:
+		return NewSmartEnhanced(weights)
 	default:
 		log.Fatalf("unknown algorithm: %s", alg)
 		return nil
