@@ -72,7 +72,13 @@ func RunTests(matcher matching.Matcher, allPerfumes []models.Perfume) ([]models.
 			continue
 		}
 		favs = append(favs, favourite)
-		suggestions := matching.Find(*matching.NewMatchData(matcher, favourite, allPerfumes, 4, 6))
+		suggestions := matching.Find(*matching.NewMatchData(
+			matcher,
+			favourite,
+			SelectPerfumesBySex(favourite.Sex, allPerfumes),
+			4,
+			6,
+		))
 		results = append(results, suggestions)
 	}
 	return favs, results
