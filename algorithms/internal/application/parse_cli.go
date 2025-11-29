@@ -28,7 +28,7 @@ func readCLI(args []string) map[string]string {
 	for _, arg := range args {
 		if isFlag {
 			if _, ok := FlagsMap[arg]; ok {
-				lastFlag = arg
+				lastFlag = FlagsMap[arg]
 			} else {
 				log.Fatalf("unknown flag: %s", arg)
 			}
@@ -40,7 +40,7 @@ func readCLI(args []string) map[string]string {
 	return flagsWithValues
 }
 
-func ParseCLI(args []string) (models.Mode, []matching.Weights) {
+func ParseCLI(args []string) (models.Mode, matching.AlgType, []matching.Weights) {
 	if len(args) == 0 {
 		log.Fatal("no important arg of alg type")
 	}
@@ -49,20 +49,20 @@ func ParseCLI(args []string) (models.Mode, []matching.Weights) {
 	mode := flags[modeFlag]
 	if mode != string(models.RunTests) && mode != string(models.GetShortenResults) {
 		log.Fatalf("unknown mode: %s", mode)
-		return "", nil
+		return "", "", nil
 	}
 	if mode == string(models.GetShortenResults) {
-		return models.GetShortenResults, nil
+		return models.GetShortenResults, "", nil
 	}
 	alg := flags[algFlag]
 	weights := getWeights(matching.AlgType(alg))
 
 	if weights == nil {
 		log.Fatalf("unknown algorithm: %s", alg)
-		return "", nil
+		return "", "", nil
 	}
 
-	return models.RunTests, weights
+	return models.RunTests, matching.AlgType(alg), weights
 }
 
 func getWeights(alg matching.AlgType) []matching.Weights {
