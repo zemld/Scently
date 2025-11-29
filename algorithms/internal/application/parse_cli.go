@@ -4,21 +4,65 @@ import (
 	"log"
 
 	"github.com/zemld/PerfumeRecommendationSystem/algorithms/internal/domain/matching"
+	"github.com/zemld/PerfumeRecommendationSystem/algorithms/internal/domain/models"
 )
 
-func ParseCLIAndGetWeights(args []string) []matching.Weights {
+const (
+	modeFlag     = "-m"
+	modeFlagLong = "--mode"
+	algFlag      = "-a"
+	algFlagLong  = "--alg"
+)
+
+var FlagsMap = map[string]string{
+	modeFlagLong: modeFlag,
+	modeFlag:     modeFlag,
+	algFlagLong:  algFlag,
+	algFlag:      algFlag,
+}
+
+func readCLI(args []string) map[string]string {
+	flagsWithValues := make(map[string]string)
+	lastFlag := ""
+	isFlag := true
+	for _, arg := range args {
+		if isFlag {
+			if _, ok := FlagsMap[arg]; ok {
+				lastFlag = arg
+			} else {
+				log.Fatalf("unknown flag: %s", arg)
+			}
+		} else {
+			flagsWithValues[lastFlag] = arg
+		}
+		isFlag = !isFlag
+	}
+	return flagsWithValues
+}
+
+func ParseCLI(args []string) (models.Mode, []matching.Weights) {
 	if len(args) == 0 {
 		log.Fatal("no important arg of alg type")
 	}
-	alg := args[0]
+	flags := readCLI(args)
+
+	mode := flags[modeFlag]
+	if mode != string(models.RunTests) && mode != string(models.GetShortenResults) {
+		log.Fatalf("unknown mode: %s", mode)
+		return "", nil
+	}
+	if mode == string(models.GetShortenResults) {
+		return models.GetShortenResults, nil
+	}
+	alg := flags[algFlag]
 	weights := getWeights(matching.AlgType(alg))
 
 	if weights == nil {
 		log.Fatalf("unknown algorithm: %s", alg)
-		return nil
+		return "", nil
 	}
 
-	return weights
+	return models.RunTests, weights
 }
 
 func getWeights(alg matching.AlgType) []matching.Weights {
