@@ -12,14 +12,14 @@ import (
 )
 
 func main() {
-	mode, weights := application.ParseCLI(os.Args[1:])
+	mode, alg, weights := application.ParseCLI(os.Args[1:])
 	switch mode {
 	case models.RunTests:
 		all := application.ReadAndEnrichPerfumes()
 		for i, weight := range weights {
-			matcher := matching.GetMatcherByAlg(matching.AlgType(os.Args[1]), weight)
+			matcher := matching.GetMatcherByAlg(alg, weight)
 			favs, results := application.RunTests(matcher, all)
-			infrastructure.SaveTestResults(fmt.Sprintf("data/runs/%s/%s_%d.json", os.Args[1], os.Args[1], i), favs, results, weight)
+			infrastructure.SaveTestResults(fmt.Sprintf("data/runs/%s/%s_%d.json", alg, alg, i), favs, results, weight)
 		}
 	case models.GetShortenResults:
 		shortenResults := application.GetShortenResults(infrastructure.ReadResultsFromAllDirs("data/runs"))
