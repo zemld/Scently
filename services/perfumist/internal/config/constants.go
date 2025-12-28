@@ -10,8 +10,9 @@ const (
 )
 
 const (
-	DBFetcherTimeout = 2 * time.Second
-	AIFetcherTimeout = 20 * time.Second
+	DBFetcherTimeout         = 2 * time.Second
+	AIFetcherTimeout         = 20 * time.Second
+	PerfumeHubFetcherTimeout = 1 * time.Second
 )
 
 const (
@@ -37,4 +38,5 @@ const (
 	PerfumeInternalTokenEnv = "PERFUME_INTERNAL_TOKEN"
 	AISuggestURLEnv         = "AI_SUGGEST_URL"
 	GetPerfumesURLEnv       = "GET_PERFUMES_URL"
+	PerfumeHubURLEnv        = "PERFUME_HUB_URL"
 )
