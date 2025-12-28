@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"time"
 
 	pb "github.com/zemld/Scently/generated/proto/perfume-hub"
 	"github.com/zemld/Scently/perfume-hub/api/grpc_handlers"
@@ -15,6 +16,7 @@ import (
 )
 
 func main() {
+	time.Sleep(5 * time.Second)
 	core.Initiate()
 	defer core.Close()
 
