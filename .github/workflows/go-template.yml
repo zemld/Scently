@@ -21,6 +21,38 @@ jobs:
           cache: true
           cache-dependency-path: services/${{ inputs.service }}/go.sum
 
+      - name: Install protoc and tools
+        if: inputs.service == 'perfume-hub' || inputs.service == 'perfumist'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+          echo "$HOME/go/bin" >> $GITHUB_PATH
+
+      - name: Prepare generated directory
+        if: inputs.service == 'perfume-hub' || inputs.service == 'perfumist'
+        run: |
+          mkdir -p generated
+          if [ ! -f "generated/go.mod" ]; then
+            cd generated
+            go mod init github.com/zemld/Scently/generated
+          fi
+        working-directory: .
+
+      - name: Generate protobuf code
+        if: inputs.service == 'perfume-hub' || inputs.service == 'perfumist'
+        run: |
+          if [ "${{ inputs.service }}" == "perfume-hub" ]; then
+            make gen-perfume-hub
+          elif [ "${{ inputs.service }}" == "perfumist" ]; then
+            make gen-perfumist
+          fi
+          cd generated
+          go mod tidy
+          go mod tidy
+        working-directory: .
+
       - name: Install dependencies
         run: go mod tidy
       - name: Build
