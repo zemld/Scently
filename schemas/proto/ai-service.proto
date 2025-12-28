@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package ai.service;
+
+import "models/requests.proto";
+
+option go_package = "github.com/zemld/Scently/ai-advisor/internal/proto";
+
+service AIService {
+  rpc GetAdvise(requests.GetAdviseRequest) returns (requests.GetAdviseResponse);
+};
