@@ -9,12 +9,14 @@ services:
 
   perfume-hub:
     build:
-      context: services/perfume-hub
+      context: .
+      dockerfile: services/perfume-hub/Dockerfile
     env_file:
       - ./secrets/db.env
       - ./secrets/perfume-hub.env
     expose:
       - "8000"
+      - "50051"
     depends_on:
       - perfume-db
     networks:
@@ -30,6 +32,7 @@ services:
       - perfume_volume:/var/lib/postgresql
     networks:
       - backend
+
   perfumist:
     build:
       context: services/perfumist
