@@ -10,7 +10,7 @@ jobs:
         strategy:
             matrix:
                 service:
-                    - perfume
+                    - perfume-hub
                     - perfumist
                     - gateway
         uses: ./.github/workflows/go-template.yml
