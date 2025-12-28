@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/config"
+	"github.com/zemld/Scently/perfume-hub/internal/db/config"
 )
 
 func CreateContext(c *config.Config) (context.Context, context.CancelFunc) {

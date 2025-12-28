@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package perfumist.service;
+
+import "models/requests.proto";
+
+option go_package = "github.com/zemld/Scently/perfumist/internal/proto";
+
+service Perfumist {
+  rpc SuggestPerfumes(requests.SuggestPerfumesRequest)
+      returns (requests.SuggestPerfumesResponse);
+};

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"unicode"
 
-	queries "github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/query"
+	queries "github.com/zemld/Scently/perfume-hub/internal/db/query"
 )
 
 type contextKey string

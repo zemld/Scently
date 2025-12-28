@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/errors"
+	"github.com/zemld/Scently/perfume-hub/internal/errors"
 )
 
 var perfumeToken = os.Getenv("PERFUME_INTERNAL_TOKEN")

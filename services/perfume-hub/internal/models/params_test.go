@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	queries "github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/query"
+	queries "github.com/zemld/Scently/perfume-hub/internal/db/query"
 )
 
 func TestCanonize(t *testing.T) {

@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package requests;
+
+import "models/perfume.proto";
+
+option go_package = "github.com/zemld/Scently/common/proto/requests";
+
+message GetPerfumesRequest {
+  string brand = 1;
+  string name = 2;
+  string sex = 3;
+};
+
+message GetPerfumesResponse { repeated models.Perfume perfumes = 1; };
+
+message UpdatePerfumesRequest { repeated models.Perfume perfumes = 1; };
+
+message UpdatePerfumesResponse {
+  int32 successful_count = 1;
+  int32 failed_count = 2;
+};
+
+message GetAdviseRequest {
+  string brand = 1;
+  string name = 2;
+  string sex = 3;
+};
+
+message GetAdviseResponse {
+  string brand = 1;
+  string name = 2;
+};
+
+message SuggestPerfumesRequest {
+  string brand = 1;
+  string name = 2;
+  string sex = 3;
+  bool use_ai = 4;
+};
+
+message SuggestPerfumesResponse {
+  message RankedPerfume {
+    models.Perfume perfume = 1;
+    int32 rank = 2;
+    float similarity_score = 3;
+  };
+
+  repeated RankedPerfume perfumes = 1;
+};

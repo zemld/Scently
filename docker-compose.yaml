@@ -3,16 +3,16 @@ services:
     build:
       context: services/parser
     env_file:
-      - ./secrets/perfume.env
+      - ./secrets/perfume-hub.env
     networks:
       - backend
 
-  perfume:
+  perfume-hub:
     build:
-      context: services/perfume
+      context: services/perfume-hub
     env_file:
       - ./secrets/db.env
-      - ./secrets/perfume.env
+      - ./secrets/perfume-hub.env
     expose:
       - "8000"
     depends_on:
@@ -34,13 +34,13 @@ services:
     build:
       context: services/perfumist
     env_file:
-      - ./secrets/perfume.env
+      - ./secrets/perfume-hub.env
       - ./secrets/ai_advisor.env
       - ./secrets/perfumist.env
     expose:
       - "8000"
     depends_on:
-      - perfume
+      - perfume-hub
     networks:
       - backend
   redis_cache:

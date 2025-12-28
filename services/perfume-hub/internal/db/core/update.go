@@ -6,9 +6,9 @@ import (
 	"log"
 
 	"github.com/jackc/pgx/v5"
-	queries "github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/query"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/errors"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
+	queries "github.com/zemld/Scently/perfume-hub/internal/db/query"
+	"github.com/zemld/Scently/perfume-hub/internal/errors"
+	"github.com/zemld/Scently/perfume-hub/internal/models"
 )
 
 var (
