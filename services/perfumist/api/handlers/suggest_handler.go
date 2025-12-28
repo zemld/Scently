@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -11,6 +12,9 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/fetching"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/matching"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
+	ph "github.com/zemld/Scently/generated/proto/perfume-hub"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func Suggest(w http.ResponseWriter, r *http.Request) {
@@ -23,6 +27,11 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	advisor := createAdvisor(params)
+
+	if advisor == nil {
+		handleError(w, errors.NewServiceError("failed to create advisor", nil))
+		return
+	}
 
 	suggested, err := advisor.Advise(ctx, params)
 	if err != nil {
@@ -74,6 +83,7 @@ func handleError(w http.ResponseWriter, err error) {
 
 	WriteResponse(w, ErrorResponse{Error: errorMsg}, status)
 }
+
 func createAdvisor(params parameters.RequestPerfume) advising.Advisor {
 	getPerfumesURL := os.Getenv(config.GetPerfumesURLEnv)
 	if getPerfumesURL == "" {
@@ -85,14 +95,26 @@ func createAdvisor(params parameters.RequestPerfume) advising.Advisor {
 		aiSuggestURL = config.DefaultAISuggestURL
 	}
 
-	dbFetcher := fetching.NewDB(getPerfumesURL, os.Getenv(config.PerfumeInternalTokenEnv))
+	var fetcher fetching.Fetcher
+
+	conn, err := grpc.NewClient(
+		os.Getenv(config.PerfumeHubURLEnv),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*10)),
+	)
+	if err != nil {
+		log.Printf("failed to connect to perfume hub: %v", err)
+		fetcher = fetching.NewDB(getPerfumesURL, os.Getenv(config.PerfumeInternalTokenEnv))
+	} else {
+		fetcher = fetching.NewPerfumeHub(ph.NewPerfumeStorageClient(conn))
+	}
 
 	if params.UseAI {
-		return advising.NewAI(fetching.NewAI(aiSuggestURL), dbFetcher)
+		return advising.NewAI(fetching.NewAI(aiSuggestURL), fetcher)
 	}
 
 	return advising.NewBase(
-		dbFetcher,
+		fetcher,
 		matching.NewOverlay(
 			config.FamilyWeight,
 			config.NotesWeight,

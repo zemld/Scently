@@ -46,10 +46,10 @@ jobs:
           if [ "${{ inputs.service }}" == "perfume-hub" ]; then
             make gen-perfume-hub
           elif [ "${{ inputs.service }}" == "perfumist" ]; then
+            make gen-perfume-hub
             make gen-perfumist
           fi
           cd generated
-          go mod tidy
           go mod tidy
         working-directory: .
 
