@@ -4,9 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/core"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/errors"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
+	"github.com/zemld/Scently/perfume-hub/internal/db/core"
+	"github.com/zemld/Scently/perfume-hub/internal/errors"
+	"github.com/zemld/Scently/perfume-hub/internal/models"
 )
 
 func Select(w http.ResponseWriter, r *http.Request) {

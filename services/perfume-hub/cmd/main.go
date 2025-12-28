@@ -3,9 +3,9 @@ package main
 import (
 	"net/http"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/api/handlers"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/api/middleware"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/core"
+	"github.com/zemld/Scently/perfume-hub/api/handlers"
+	"github.com/zemld/Scently/perfume-hub/api/middleware"
+	"github.com/zemld/Scently/perfume-hub/internal/db/core"
 )
 
 func main() {

@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/config"
-	queries "github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/query"
+	"github.com/zemld/Scently/perfume-hub/internal/db/config"
+	queries "github.com/zemld/Scently/perfume-hub/internal/db/query"
 )
 
 var Pool *pgxpool.Pool

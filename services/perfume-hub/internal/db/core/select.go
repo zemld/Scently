@@ -4,8 +4,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/errors"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
+	"github.com/zemld/Scently/perfume-hub/internal/errors"
+	"github.com/zemld/Scently/perfume-hub/internal/models"
 )
 
 func Select(ctx context.Context, params *models.SelectParameters) ([]models.Perfume, models.ProcessedState) {

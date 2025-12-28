@@ -9,8 +9,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 
-	queries "github.com/zemld/PerfumeRecommendationSystem/perfume/internal/db/query"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
+	queries "github.com/zemld/Scently/perfume-hub/internal/db/query"
+	"github.com/zemld/Scently/perfume-hub/internal/models"
 )
 
 func TestGetSavepointQuery(t *testing.T) {

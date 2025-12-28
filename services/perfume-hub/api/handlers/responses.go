@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
+	"github.com/zemld/Scently/perfume-hub/internal/models"
 )
 
 type PerfumeResponse struct {

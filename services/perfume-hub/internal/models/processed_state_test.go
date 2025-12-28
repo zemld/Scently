@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/errors"
+	"github.com/zemld/Scently/perfume-hub/internal/errors"
 )
 
 func TestNewProcessedState(t *testing.T) {

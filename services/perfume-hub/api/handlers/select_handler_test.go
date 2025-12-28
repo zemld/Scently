@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/errors"
-	"github.com/zemld/PerfumeRecommendationSystem/perfume/internal/models"
+	"github.com/zemld/Scently/perfume-hub/internal/errors"
+	"github.com/zemld/Scently/perfume-hub/internal/models"
 )
 
 // Mock для core.Select - мы не можем легко мокировать, поэтому тестируем только handleError
