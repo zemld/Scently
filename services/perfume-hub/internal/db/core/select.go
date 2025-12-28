@@ -8,6 +8,8 @@ import (
 	"github.com/zemld/Scently/perfume-hub/internal/models"
 )
 
+type SelectFunc func(ctx context.Context, params *models.SelectParameters) ([]models.Perfume, models.ProcessedState)
+
 func Select(ctx context.Context, params *models.SelectParameters) ([]models.Perfume, models.ProcessedState) {
 	rows, err := Pool.Query(ctx, params.GetQuery(), params.Unpack()...)
 	if err != nil {
