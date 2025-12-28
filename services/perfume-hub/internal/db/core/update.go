@@ -11,6 +11,8 @@ import (
 	"github.com/zemld/Scently/perfume-hub/internal/models"
 )
 
+type UpdateFunc func(ctx context.Context, params *models.UpdateParameters) models.ProcessedState
+
 var (
 	shopPriority = map[string]int{
 		"Gold Apple": 1,
