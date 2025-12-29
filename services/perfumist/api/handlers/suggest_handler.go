@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -12,9 +11,6 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/fetching"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/matching"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
-	ph "github.com/zemld/Scently/generated/proto/perfume-hub"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func Suggest(w http.ResponseWriter, r *http.Request) {
@@ -95,19 +91,7 @@ func createAdvisor(params parameters.RequestPerfume) advising.Advisor {
 		aiSuggestURL = config.DefaultAISuggestURL
 	}
 
-	var fetcher fetching.Fetcher
-
-	conn, err := grpc.NewClient(
-		os.Getenv(config.PerfumeHubURLEnv),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(1024*1024*10)),
-	)
-	if err != nil {
-		log.Printf("failed to connect to perfume hub: %v", err)
-		fetcher = fetching.NewDB(getPerfumesURL, os.Getenv(config.PerfumeInternalTokenEnv))
-	} else {
-		fetcher = fetching.NewPerfumeHub(ph.NewPerfumeStorageClient(conn))
-	}
+	fetcher := fetching.NewPerfumeHub(getPerfumesURL, os.Getenv(config.PerfumeInternalTokenEnv))
 
 	if params.UseAI {
 		return advising.NewAI(fetching.NewAI(aiSuggestURL), fetcher)

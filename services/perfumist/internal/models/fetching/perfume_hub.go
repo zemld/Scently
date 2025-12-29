@@ -2,37 +2,47 @@ package fetching
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"log"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
-	ph "github.com/zemld/Scently/generated/proto/perfume-hub"
-	protoModels "github.com/zemld/Scently/generated/proto/perfume-hub/models"
-	"github.com/zemld/Scently/generated/proto/perfume-hub/requests"
 )
 
-type PerfumeHub struct {
-	client ph.PerfumeStorageClient
+type perfumesFetchAndGlueResult struct {
+	Perfumes []perfume.Perfume
+	Status   int
 }
 
-func NewPerfumeHub(client ph.PerfumeStorageClient) *PerfumeHub {
+type PerfumeHub struct {
+	url     string
+	token   string
+	timeout time.Duration
+	client  *http.Client
+}
+
+func NewPerfumeHub(url string, token string) *PerfumeHub {
 	return &PerfumeHub{
-		client: client,
+		url:     url,
+		token:   token,
+		timeout: config.DBFetcherTimeout,
+		client:  config.HTTPClient,
 	}
 }
 
-func (f *PerfumeHub) Fetch(
-	ctx context.Context,
-	params []parameters.RequestPerfume,
-) ([]perfume.Perfume, bool) {
-	perfumesChan := make(chan *requests.GetPerfumesResponse, len(params))
+func (f PerfumeHub) Fetch(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+	perfumesChan := make(chan perfumesFetchAndGlueResult, len(params))
 
 	wg := sync.WaitGroup{}
 	wg.Add(len(params))
 
-	ctx, cancel := context.WithTimeout(ctx, config.PerfumeHubFetcherTimeout)
+	ctx, cancel := context.WithTimeout(ctx, f.timeout)
 	defer cancel()
 
 	for _, param := range params {
@@ -54,31 +64,79 @@ func (f *PerfumeHub) Fetch(
 	return all, true
 }
 
-func (f *PerfumeHub) getPerfumesAsync(
-	ctx context.Context,
-	params parameters.RequestPerfume,
-	results chan<- *requests.GetPerfumesResponse,
-	wg *sync.WaitGroup,
-) {
+func (f PerfumeHub) getPerfumesAsync(ctx context.Context, params parameters.RequestPerfume, results chan<- perfumesFetchAndGlueResult, wg *sync.WaitGroup) {
 	if wg != nil {
 		defer wg.Done()
 	}
-	response, err := f.client.GetPerfumes(ctx, &requests.GetPerfumesRequest{
-		Brand: params.Brand,
-		Name:  params.Name,
-		Sex:   params.Sex,
-	})
-	if err != nil {
-		results <- nil
+	perfumes, status := f.getPerfumes(ctx, params)
+	if status == http.StatusOK || status == http.StatusNotFound {
+		results <- perfumesFetchAndGlueResult{Perfumes: perfumes, Status: status}
 		return
 	}
-	results <- response
+	results <- perfumesFetchAndGlueResult{Perfumes: nil, Status: status}
 }
 
-func (f *PerfumeHub) fetchPerfumeResults(
-	ctx context.Context,
-	perfumesChan <-chan *requests.GetPerfumesResponse,
-) ([]perfume.Perfume, int) {
+func (f PerfumeHub) getPerfumes(ctx context.Context, p parameters.RequestPerfume) ([]perfume.Perfume, int) {
+	r, err := http.NewRequestWithContext(ctx, "GET", f.url, nil)
+	if err != nil {
+		log.Printf("Can't create request: %v", err)
+		return nil, http.StatusInternalServerError
+	}
+	p.AddToQuery(r)
+	r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", f.token))
+
+	perfumeResponse, err := f.client.Do(r)
+	if err != nil {
+		log.Printf("Can't get perfumes: %v", err)
+		return nil, http.StatusInternalServerError
+	}
+	defer perfumeResponse.Body.Close()
+
+	body, err := io.ReadAll(perfumeResponse.Body)
+	if err != nil {
+		log.Printf("Can't read response body: %v", err)
+		return nil, http.StatusInternalServerError
+	}
+
+	if perfumeResponse.StatusCode == http.StatusForbidden {
+		log.Printf("Forbidden response: %s", string(body))
+		return nil, http.StatusForbidden
+	}
+
+	if perfumeResponse.StatusCode == http.StatusNotFound {
+		var perfumes perfume.PerfumeResponse
+		if err := json.Unmarshal(body, &perfumes); err != nil {
+			log.Printf("Can't unmarshal response: %v", err)
+			return nil, http.StatusInternalServerError
+		}
+		log.Printf("Got %d perfumes (status: 404)", len(perfumes.Perfumes))
+		return perfumes.Perfumes, http.StatusNotFound
+	}
+
+	if perfumeResponse.StatusCode == http.StatusInternalServerError {
+		var perfumes perfume.PerfumeResponse
+		if err := json.Unmarshal(body, &perfumes); err != nil {
+			log.Printf("Can't unmarshal response: %v", err)
+			return nil, http.StatusInternalServerError
+		}
+		log.Printf("Got %d perfumes (status: 500 - database error)", len(perfumes.Perfumes))
+		return nil, http.StatusInternalServerError
+	}
+
+	if perfumeResponse.StatusCode == http.StatusOK {
+		var perfumes perfume.PerfumeResponse
+		if err := json.Unmarshal(body, &perfumes); err != nil {
+			log.Printf("Can't unmarshal response: %v", err)
+			return nil, http.StatusInternalServerError
+		}
+		log.Printf("Got %d perfumes", len(perfumes.Perfumes))
+		return perfumes.Perfumes, http.StatusOK
+	}
+
+	return nil, http.StatusInternalServerError
+}
+
+func (f PerfumeHub) fetchPerfumeResults(ctx context.Context, perfumesChan <-chan perfumesFetchAndGlueResult) ([]perfume.Perfume, int) {
 	var perfumes []perfume.Perfume
 	var status int
 
@@ -88,82 +146,17 @@ func (f *PerfumeHub) fetchPerfumeResults(
 			if !ok {
 				return perfumes, status
 			}
-			if result == nil {
-				continue
+			if result.Status == http.StatusForbidden || result.Status == http.StatusInternalServerError {
+				return perfumes, result.Status
 			}
-			for _, perfume := range result.Perfumes {
-				if perfume == nil {
-					continue
+			if result.Status == http.StatusOK || result.Status == http.StatusNotFound {
+				perfumes = append(perfumes, result.Perfumes...)
+				if status == 0 || (status == http.StatusNotFound && result.Status == http.StatusOK) {
+					status = result.Status
 				}
-				perfumes = append(perfumes, convertPerfumeToModel(perfume))
 			}
 		case <-ctx.Done():
 			return nil, http.StatusInternalServerError
 		}
 	}
-}
-
-func convertPerfumeToModel(p *protoModels.Perfume) perfume.Perfume {
-	if p == nil {
-		return perfume.Perfume{}
-	}
-	return perfume.Perfume{
-		Brand:      p.Brand,
-		Name:       p.Name,
-		Sex:        p.Sex,
-		ImageUrl:   tryConvertPointer(p.ImageUrl),
-		Properties: convertPropertiesToModel(p.Properties),
-		Shops:      convertShopInfoToModel(p.Shops),
-	}
-}
-
-func convertPropertiesToModel(properties *protoModels.Perfume_Properties) perfume.Properties {
-	if properties == nil {
-		return perfume.Properties{}
-	}
-	return perfume.Properties{
-		Type:       properties.PerfumeType,
-		Family:     properties.Family,
-		UpperNotes: properties.UpperNotes,
-		CoreNotes:  properties.CoreNotes,
-		BaseNotes:  properties.BaseNotes,
-	}
-}
-
-func convertShopInfoToModel(shops []*protoModels.Perfume_ShopInfo) []perfume.ShopInfo {
-	modelShops := make([]perfume.ShopInfo, len(shops))
-	for i := range shops {
-		if shops[i] == nil {
-			continue
-		}
-		modelShops[i] = perfume.ShopInfo{
-			ShopName: shops[i].ShopName,
-			Domain:   shops[i].Domain,
-			ImageUrl: tryConvertPointer(shops[i].ImageUrl),
-			Variants: convertVariantsToModel(shops[i].Variants),
-		}
-	}
-	return modelShops
-}
-
-func convertVariantsToModel(variants []*protoModels.Perfume_ShopInfo_Variant) []perfume.Variant {
-	modelVariants := make([]perfume.Variant, len(variants))
-	for i := range variants {
-		if variants[i] == nil {
-			continue
-		}
-		modelVariants[i] = perfume.Variant{
-			Volume: int(variants[i].Volume),
-			Link:   variants[i].Link,
-			Price:  int(variants[i].Price),
-		}
-	}
-	return modelVariants
-}
-
-func tryConvertPointer(value *string) string {
-	if value != nil {
-		return *value
-	}
-	return ""
 }
