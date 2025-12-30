@@ -17,7 +17,7 @@ RUN apk --no-cache add ca-certificates
 
 WORKDIR /root/
 
-COPY --from=builder /app/services/perfume-hub/perfume-hub .
+COPY --from=builder /app/perfume-hub .
 
 EXPOSE 8000
 

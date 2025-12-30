@@ -33,8 +33,7 @@ services:
 
   perfumist:
     build:
-      context: .
-      dockerfile: services/perfumist/Dockerfile
+      context: services/perfumist
     env_file:
       - ./secrets/perfume-hub.env
       - ./secrets/ai_advisor.env
@@ -48,6 +47,7 @@ services:
     networks:
       - backend
       - frontend
+
   redis_cache:
     image: redis:latest
     expose:
