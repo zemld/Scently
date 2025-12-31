@@ -19,6 +19,8 @@ WORKDIR /root/
 
 COPY --from=builder /app/perfume-hub .
 
+COPY --from=builder /app/migrations ./migrations
+
 EXPOSE 8000
 
 CMD ["./perfume-hub"]
