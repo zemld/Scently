@@ -10,3 +10,5 @@ secrets
 **/.next/
 **/node_modules/
 **/tsconfig.json
+
+**/logs/
