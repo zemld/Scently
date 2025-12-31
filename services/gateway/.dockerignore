@@ -1,0 +1,17 @@
+*_test.go
+**/*_test.go
+
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+gateway
+
+*.tmp
+*.log
+.DS_Store
+
+*.out
+coverage.html
+
