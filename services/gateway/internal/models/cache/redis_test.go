@@ -8,6 +8,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"github.com/zemld/PerfumeRecommendationSystem/gateway/internal/models/perfume"
+	"github.com/zemld/Scently/models"
 )
 
 // MockRedisClient is a simple in-memory mock for Redis
@@ -77,9 +78,9 @@ func (m *MockRedisClient) Clear() {
 func TestRedisCacher_Save(t *testing.T) {
 	// Test the JSON marshaling logic (which is what Save does)
 	suggestions := perfume.Suggestions{
-		Perfumes: []perfume.Ranked{
+		Perfumes: []models.Ranked{
 			{
-				Perfume: perfume.Perfume{
+				Perfume: models.Perfume{
 					Brand: "Chanel",
 					Name:  "No.5",
 					Sex:   "female",
@@ -114,9 +115,9 @@ func TestRedisCacher_Save(t *testing.T) {
 
 func TestRedisCacher_Load(t *testing.T) {
 	suggestions := perfume.Suggestions{
-		Perfumes: []perfume.Ranked{
+		Perfumes: []models.Ranked{
 			{
-				Perfume: perfume.Perfume{
+				Perfume: models.Perfume{
 					Brand: "Dior",
 					Name:  "Sauvage",
 					Sex:   "male",
