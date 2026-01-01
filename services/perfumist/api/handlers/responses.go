@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
+	"github.com/zemld/Scently/models"
 )
 
 type SuggestResponse struct {
-	Suggested []perfume.Ranked `json:"suggested"`
+	Suggested []models.Ranked `json:"suggested"`
 }
 
 type ErrorResponse struct {
