@@ -46,11 +46,11 @@ func NewRedisCacher(host string, port string, password string, cacheTTL time.Dur
 	})
 
 	if initErr != nil {
-		return nil, initErr
+		return &RedisCacher{client: nil, cacheTTL: cacheTTL}, initErr
 	}
 
 	if client == nil {
-		return nil, fmt.Errorf("redis client is not initialized")
+		return &RedisCacher{client: nil, cacheTTL: cacheTTL}, fmt.Errorf("redis client is not initialized")
 	}
 
 	return &RedisCacher{
