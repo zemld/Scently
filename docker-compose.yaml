@@ -44,6 +44,7 @@ services:
       - perfume-hub
     networks:
       - backend
+      - frontend
 
   redis_cache:
     image: redis:latest
@@ -55,17 +56,6 @@ services:
       - redis_data:/data
     networks:
       - backend
-
-  ai_advisor:
-    build:
-      context: services/ai_advisor
-    env_file:
-      - ./secrets/ai_advisor.env
-    expose:
-      - "8000"
-    networks:
-      - backend
-      - frontend
 
   frontend:
     build:

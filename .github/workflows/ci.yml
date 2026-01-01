@@ -20,7 +20,6 @@ jobs:
         strategy:
             matrix:
                 service:
-                    - ai_advisor
                     - parser
         uses: ./.github/workflows/python-template.yml
         with:
