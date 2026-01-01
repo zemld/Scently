@@ -72,3 +72,9 @@ func canonize(s string) string {
 	}
 	return canonized.String()
 }
+
+type Ranked struct {
+	Perfume Perfume `json:"perfume"`
+	Rank    int     `json:"rank,omitzero"`
+	Score   float64 `json:"similarity_score"`
+}
