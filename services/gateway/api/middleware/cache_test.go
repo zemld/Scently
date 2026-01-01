@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/zemld/PerfumeRecommendationSystem/gateway/internal/models/perfume"
+	"github.com/zemld/Scently/models"
 )
 
 // MockCacher is a mock implementation of cache for testing
@@ -99,9 +100,9 @@ func TestTryLoadFromCache_CacheHit(t *testing.T) {
 
 	// Pre-populate cache
 	cachedSuggestions := perfume.Suggestions{
-		Perfumes: []perfume.Ranked{
+		Perfumes: []models.Ranked{
 			{
-				Perfume: perfume.Perfume{
+				Perfume: models.Perfume{
 					Brand: "Chanel",
 					Name:  "No.5",
 					Sex:   "female",
@@ -162,7 +163,7 @@ func TestTryLoadFromCache_EmptySuggestions(t *testing.T) {
 
 	// Cache with empty suggestions
 	emptySuggestions := perfume.Suggestions{
-		Perfumes: []perfume.Ranked{},
+		Perfumes: []models.Ranked{},
 	}
 	cachedData, err := json.Marshal(emptySuggestions)
 	if err != nil {
@@ -185,9 +186,9 @@ func TestCache_SaveAndLoad(t *testing.T) {
 	mockCache := NewMockCacher()
 
 	suggestions := perfume.Suggestions{
-		Perfumes: []perfume.Ranked{
+		Perfumes: []models.Ranked{
 			{
-				Perfume: perfume.Perfume{
+				Perfume: models.Perfume{
 					Brand: "Dior",
 					Name:  "Sauvage",
 					Sex:   "male",
@@ -237,9 +238,9 @@ func TestCache_SaveAndLoad(t *testing.T) {
 
 func TestCache_JSONEncoding(t *testing.T) {
 	suggestions := perfume.Suggestions{
-		Perfumes: []perfume.Ranked{
+		Perfumes: []models.Ranked{
 			{
-				Perfume: perfume.Perfume{
+				Perfume: models.Perfume{
 					Brand: "Test",
 					Name:  "Perfume",
 					Sex:   "unisex",
