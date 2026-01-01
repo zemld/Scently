@@ -5,15 +5,15 @@ import (
 	"testing"
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
+	"github.com/zemld/Scently/models"
 )
 
 // MockFetcher is a mock implementation of fetching.Fetcher
 type MockFetcher struct {
-	FetchFunc func(context.Context, []parameters.RequestPerfume) ([]perfume.Perfume, bool)
+	FetchFunc func(context.Context, []parameters.RequestPerfume) ([]models.Perfume, bool)
 }
 
-func (m *MockFetcher) Fetch(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+func (m *MockFetcher) Fetch(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
 	if m.FetchFunc != nil {
 		return m.FetchFunc(ctx, params)
 	}
@@ -22,10 +22,10 @@ func (m *MockFetcher) Fetch(ctx context.Context, params []parameters.RequestPerf
 
 // MockMatcher is a mock implementation of matching.Matcher
 type MockMatcher struct {
-	FindFunc func(favourite perfume.Perfume, all []perfume.Perfume, matchesCount int) []perfume.Ranked
+	FindFunc func(favourite models.Perfume, all []models.Perfume, matchesCount int) []models.Ranked
 }
 
-func (m *MockMatcher) Find(favourite perfume.Perfume, all []perfume.Perfume, matchesCount int) []perfume.Ranked {
+func (m *MockMatcher) Find(favourite models.Perfume, all []models.Perfume, matchesCount int) []models.Ranked {
 	if m.FindFunc != nil {
 		return m.FindFunc(favourite, all, matchesCount)
 	}
@@ -58,27 +58,27 @@ func TestNewBaseAdvisor(t *testing.T) {
 func TestBaseAdvisor_Advise_Success(t *testing.T) {
 	t.Parallel()
 
-	favouritePerfume := perfume.Perfume{
+	favouritePerfume := models.Perfume{
 		Brand: "Chanel",
 		Name:  "No5",
 		Sex:   "female",
 	}
 
-	allPerfumes := []perfume.Perfume{
+	allPerfumes := []models.Perfume{
 		{Brand: "Dior", Name: "J'adore", Sex: "female"},
 		{Brand: "Tom Ford", Name: "Black Orchid", Sex: "unisex"},
 	}
 
-	expectedRanked := []perfume.Ranked{
+	expectedRanked := []models.Ranked{
 		{Perfume: allPerfumes[0], Rank: 1, Score: 0.9},
 		{Perfume: allPerfumes[1], Rank: 2, Score: 0.7},
 	}
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
 			if len(params) == 1 && params[0].Brand == "Chanel" && params[0].Name == "No5" {
 				// First call: fetch favourite
-				return []perfume.Perfume{favouritePerfume}, true
+				return []models.Perfume{favouritePerfume}, true
 			}
 			// Second call: fetch all perfumes by sex
 			return allPerfumes, true
@@ -86,7 +86,7 @@ func TestBaseAdvisor_Advise_Success(t *testing.T) {
 	}
 
 	matcher := &MockMatcher{
-		FindFunc: func(fav perfume.Perfume, all []perfume.Perfume, count int) []perfume.Ranked {
+		FindFunc: func(fav models.Perfume, all []models.Perfume, count int) []models.Ranked {
 			if !fav.Equal(favouritePerfume) {
 				t.Fatalf("expected favourite perfume %+v, got %+v", favouritePerfume, fav)
 			}
@@ -129,7 +129,7 @@ func TestBaseAdvisor_Advise_FetcherFailsOnFavourite(t *testing.T) {
 	t.Parallel()
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
 			return nil, false
 		},
 	}
@@ -159,11 +159,11 @@ func TestBaseAdvisor_Advise_FetcherReturnsEmptyFavourite(t *testing.T) {
 	t.Parallel()
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
 			if len(params) == 1 && params[0].Brand == "Chanel" {
-				return []perfume.Perfume{}, true
+				return []models.Perfume{}, true
 			}
-			return []perfume.Perfume{{Brand: "Dior"}}, true
+			return []models.Perfume{{Brand: "Dior"}}, true
 		},
 	}
 
@@ -191,17 +191,17 @@ func TestBaseAdvisor_Advise_FetcherReturnsEmptyFavourite(t *testing.T) {
 func TestBaseAdvisor_Advise_FetcherFailsOnAllPerfumes(t *testing.T) {
 	t.Parallel()
 
-	favouritePerfume := perfume.Perfume{
+	favouritePerfume := models.Perfume{
 		Brand: "Chanel",
 		Name:  "No5",
 		Sex:   "female",
 	}
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
 			if len(params) == 1 && params[0].Brand == "Chanel" && params[0].Name == "No5" {
 				// First call: fetch favourite - succeeds
-				return []perfume.Perfume{favouritePerfume}, true
+				return []models.Perfume{favouritePerfume}, true
 			}
 			// Second call: fetch all perfumes - fails
 			return nil, false
@@ -232,20 +232,20 @@ func TestBaseAdvisor_Advise_FetcherFailsOnAllPerfumes(t *testing.T) {
 func TestBaseAdvisor_Advise_FetcherReturnsEmptyAllPerfumes(t *testing.T) {
 	t.Parallel()
 
-	favouritePerfume := perfume.Perfume{
+	favouritePerfume := models.Perfume{
 		Brand: "Chanel",
 		Name:  "No5",
 		Sex:   "female",
 	}
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
 			if len(params) == 1 && params[0].Brand == "Chanel" && params[0].Name == "No5" {
 				// First call: fetch favourite - succeeds
-				return []perfume.Perfume{favouritePerfume}, true
+				return []models.Perfume{favouritePerfume}, true
 			}
 			// Second call: fetch all perfumes - returns empty
-			return []perfume.Perfume{}, true
+			return []models.Perfume{}, true
 		},
 	}
 
@@ -273,21 +273,21 @@ func TestBaseAdvisor_Advise_FetcherReturnsEmptyAllPerfumes(t *testing.T) {
 func TestBaseAdvisor_Advise_WithSexFilter(t *testing.T) {
 	t.Parallel()
 
-	favouritePerfume := perfume.Perfume{
+	favouritePerfume := models.Perfume{
 		Brand: "Chanel",
 		Name:  "No5",
 		Sex:   "female",
 	}
 
-	allPerfumes := []perfume.Perfume{
+	allPerfumes := []models.Perfume{
 		{Brand: "Dior", Name: "J'adore", Sex: "female"},
 		{Brand: "Tom Ford", Name: "Black Orchid", Sex: "unisex"},
 	}
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
 			if len(params) == 1 && params[0].Brand == "Chanel" {
-				return []perfume.Perfume{favouritePerfume}, true
+				return []models.Perfume{favouritePerfume}, true
 			}
 			// Verify that second call uses sex filter
 			if len(params) == 1 && params[0].Sex == "female" && params[0].Brand == "" {
@@ -298,8 +298,8 @@ func TestBaseAdvisor_Advise_WithSexFilter(t *testing.T) {
 	}
 
 	matcher := &MockMatcher{
-		FindFunc: func(fav perfume.Perfume, all []perfume.Perfume, count int) []perfume.Ranked {
-			return []perfume.Ranked{
+		FindFunc: func(fav models.Perfume, all []models.Perfume, count int) []models.Ranked {
+			return []models.Ranked{
 				{Perfume: all[0], Rank: 1, Score: 0.9},
 			}
 		},

@@ -4,16 +4,16 @@ import (
 	"container/heap"
 	"sync"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
+	"github.com/zemld/Scently/models"
 )
 
 type PerfumeHeap struct {
 	mu       sync.RWMutex
-	perfumes []perfume.WithScore
+	perfumes []models.Ranked
 }
 
 func (h *PerfumeHeap) Push(x any) {
-	h.perfumes = append(h.perfumes, x.(perfume.WithScore))
+	h.perfumes = append(h.perfumes, x.(models.Ranked))
 }
 
 func (h *PerfumeHeap) Pop() any {
@@ -35,14 +35,14 @@ func (h *PerfumeHeap) Swap(i, j int) {
 	h.perfumes[i], h.perfumes[j] = h.perfumes[j], h.perfumes[i]
 }
 
-func (h *PerfumeHeap) PopSafe() perfume.WithScore {
+func (h *PerfumeHeap) PopSafe() models.Ranked {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	return heap.Pop(h).(perfume.WithScore)
+	return heap.Pop(h).(models.Ranked)
 }
 
-func (h *PerfumeHeap) PushSafeIfNeeded(p perfume.WithScore, limit int) {
+func (h *PerfumeHeap) PushSafeIfNeeded(p models.Ranked, limit int) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 

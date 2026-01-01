@@ -13,10 +13,11 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
+	"github.com/zemld/Scently/models"
 )
 
 type perfumesFetchAndGlueResult struct {
-	Perfumes []perfume.Perfume
+	Perfumes []models.Perfume
 	Status   int
 }
 
@@ -36,7 +37,7 @@ func NewPerfumeHub(url string, token string) *PerfumeHub {
 	}
 }
 
-func (f PerfumeHub) Fetch(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+func (f PerfumeHub) Fetch(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
 	perfumesChan := make(chan perfumesFetchAndGlueResult, len(params))
 
 	wg := sync.WaitGroup{}
@@ -76,7 +77,7 @@ func (f PerfumeHub) getPerfumesAsync(ctx context.Context, params parameters.Requ
 	results <- perfumesFetchAndGlueResult{Perfumes: nil, Status: status}
 }
 
-func (f PerfumeHub) getPerfumes(ctx context.Context, p parameters.RequestPerfume) ([]perfume.Perfume, int) {
+func (f PerfumeHub) getPerfumes(ctx context.Context, p parameters.RequestPerfume) ([]models.Perfume, int) {
 	r, err := http.NewRequestWithContext(ctx, "GET", f.url, nil)
 	if err != nil {
 		log.Printf("Can't create request: %v", err)
@@ -136,8 +137,8 @@ func (f PerfumeHub) getPerfumes(ctx context.Context, p parameters.RequestPerfume
 	return nil, http.StatusInternalServerError
 }
 
-func (f PerfumeHub) fetchPerfumeResults(ctx context.Context, perfumesChan <-chan perfumesFetchAndGlueResult) ([]perfume.Perfume, int) {
-	var perfumes []perfume.Perfume
+func (f PerfumeHub) fetchPerfumeResults(ctx context.Context, perfumesChan <-chan perfumesFetchAndGlueResult) ([]models.Perfume, int) {
+	var perfumes []models.Perfume
 	var status int
 
 	for {

@@ -1,7 +1,7 @@
 package matching
 
-import "github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
+import "github.com/zemld/Scently/models"
 
 type Matcher interface {
-	Find(favourite perfume.Perfume, all []perfume.Perfume, matchesCount int) []perfume.Ranked
+	Find(favourite models.Perfume, all []models.Perfume, matchesCount int) []models.Ranked
 }

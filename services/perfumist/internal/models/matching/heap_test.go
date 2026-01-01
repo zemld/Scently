@@ -5,7 +5,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
+	"github.com/zemld/Scently/models"
 )
 
 func TestPerfumeHeap_Len(t *testing.T) {
@@ -16,9 +16,9 @@ func TestPerfumeHeap_Len(t *testing.T) {
 		t.Fatalf("expected length 0, got %d", h.Len())
 	}
 
-	h.perfumes = []perfume.WithScore{
-		{Perfume: perfume.Perfume{Name: "Test1"}, Score: 0.5},
-		{Perfume: perfume.Perfume{Name: "Test2"}, Score: 0.7},
+	h.perfumes = []models.Ranked{
+		{Perfume: models.Perfume{Name: "Test1"}, Score: 0.5},
+		{Perfume: models.Perfume{Name: "Test2"}, Score: 0.7},
 	}
 	if h.Len() != 2 {
 		t.Fatalf("expected length 2, got %d", h.Len())
@@ -29,9 +29,9 @@ func TestPerfumeHeap_Less(t *testing.T) {
 	t.Parallel()
 
 	h := &PerfumeHeap{
-		perfumes: []perfume.WithScore{
-			{Perfume: perfume.Perfume{Name: "Test1"}, Score: 0.5},
-			{Perfume: perfume.Perfume{Name: "Test2"}, Score: 0.7},
+		perfumes: []models.Ranked{
+			{Perfume: models.Perfume{Name: "Test1"}, Score: 0.5},
+			{Perfume: models.Perfume{Name: "Test2"}, Score: 0.7},
 		},
 	}
 
@@ -48,9 +48,9 @@ func TestPerfumeHeap_Swap(t *testing.T) {
 	t.Parallel()
 
 	h := &PerfumeHeap{
-		perfumes: []perfume.WithScore{
-			{Perfume: perfume.Perfume{Name: "Test1"}, Score: 0.5},
-			{Perfume: perfume.Perfume{Name: "Test2"}, Score: 0.7},
+		perfumes: []models.Ranked{
+			{Perfume: models.Perfume{Name: "Test1"}, Score: 0.5},
+			{Perfume: models.Perfume{Name: "Test2"}, Score: 0.7},
 		},
 	}
 
@@ -68,8 +68,8 @@ func TestPerfumeHeap_Push(t *testing.T) {
 	t.Parallel()
 
 	h := &PerfumeHeap{}
-	item := perfume.WithScore{
-		Perfume: perfume.Perfume{Name: "Test1"},
+	item := models.Ranked{
+		Perfume: models.Perfume{Name: "Test1"},
 		Score:   0.5,
 	}
 
@@ -87,13 +87,13 @@ func TestPerfumeHeap_Pop(t *testing.T) {
 	t.Parallel()
 
 	h := &PerfumeHeap{
-		perfumes: []perfume.WithScore{
-			{Perfume: perfume.Perfume{Name: "Test1"}, Score: 0.5},
-			{Perfume: perfume.Perfume{Name: "Test2"}, Score: 0.7},
+		perfumes: []models.Ranked{
+			{Perfume: models.Perfume{Name: "Test1"}, Score: 0.5},
+			{Perfume: models.Perfume{Name: "Test2"}, Score: 0.7},
 		},
 	}
 
-	item := h.Pop().(perfume.WithScore)
+	item := h.Pop().(models.Ranked)
 
 	if h.Len() != 1 {
 		t.Fatalf("expected length 1 after pop, got %d", h.Len())
@@ -109,12 +109,12 @@ func TestPerfumeHeap_HeapOperations(t *testing.T) {
 	h := &PerfumeHeap{}
 	heap.Init(h)
 
-	items := []perfume.WithScore{
-		{Perfume: perfume.Perfume{Name: "Test1"}, Score: 0.9},
-		{Perfume: perfume.Perfume{Name: "Test2"}, Score: 0.3},
-		{Perfume: perfume.Perfume{Name: "Test3"}, Score: 0.7},
-		{Perfume: perfume.Perfume{Name: "Test4"}, Score: 0.1},
-		{Perfume: perfume.Perfume{Name: "Test5"}, Score: 0.5},
+	items := []models.Ranked{
+		{Perfume: models.Perfume{Name: "Test1"}, Score: 0.9},
+		{Perfume: models.Perfume{Name: "Test2"}, Score: 0.3},
+		{Perfume: models.Perfume{Name: "Test3"}, Score: 0.7},
+		{Perfume: models.Perfume{Name: "Test4"}, Score: 0.1},
+		{Perfume: models.Perfume{Name: "Test5"}, Score: 0.5},
 	}
 
 	for _, item := range items {
@@ -130,7 +130,7 @@ func TestPerfumeHeap_HeapOperations(t *testing.T) {
 		if h.Len() == 0 {
 			t.Fatalf("heap is empty at index %d", i)
 		}
-		item := heap.Pop(h).(perfume.WithScore)
+		item := heap.Pop(h).(models.Ranked)
 		if item.Score != expectedScore {
 			t.Fatalf("at index %d: expected score %f, got %f", i, expectedScore, item.Score)
 		}
@@ -141,8 +141,8 @@ func TestPerfumeHeap_PushSafe(t *testing.T) {
 	t.Parallel()
 
 	h := &PerfumeHeap{}
-	item := perfume.WithScore{
-		Perfume: perfume.Perfume{Name: "Test1"},
+	item := models.Ranked{
+		Perfume: models.Perfume{Name: "Test1"},
 		Score:   0.5,
 	}
 
@@ -160,9 +160,9 @@ func TestPerfumeHeap_PopSafe(t *testing.T) {
 	t.Parallel()
 
 	h := &PerfumeHeap{
-		perfumes: []perfume.WithScore{
-			{Perfume: perfume.Perfume{Name: "Test1"}, Score: 0.5},
-			{Perfume: perfume.Perfume{Name: "Test2"}, Score: 0.7},
+		perfumes: []models.Ranked{
+			{Perfume: models.Perfume{Name: "Test1"}, Score: 0.5},
+			{Perfume: models.Perfume{Name: "Test2"}, Score: 0.7},
 		},
 	}
 
@@ -188,8 +188,8 @@ func TestPerfumeHeap_ConcurrentPushSafe(t *testing.T) {
 		go func(id int) {
 			defer wg.Done()
 			for j := 0; j < itemsPerGoroutine; j++ {
-				item := perfume.WithScore{
-					Perfume: perfume.Perfume{Name: "Test"},
+				item := models.Ranked{
+					Perfume: models.Perfume{Name: "Test"},
 					Score:   float64(id*itemsPerGoroutine + j),
 				}
 				h.PushSafeIfNeeded(item, 1)
@@ -220,8 +220,8 @@ func TestPerfumeHeap_ConcurrentOperations(t *testing.T) {
 		go func(id int) {
 			defer wg.Done()
 			for j := 0; j < itemsPerGoroutine; j++ {
-				item := perfume.WithScore{
-					Perfume: perfume.Perfume{Name: "Test"},
+				item := models.Ranked{
+					Perfume: models.Perfume{Name: "Test"},
 					Score:   float64(id*itemsPerGoroutine + j),
 				}
 				h.PushSafeIfNeeded(item, 1)

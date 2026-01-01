@@ -9,7 +9,7 @@ import (
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
+	"github.com/zemld/Scently/models"
 )
 
 const (
@@ -99,7 +99,7 @@ type aiCompletionResponse struct {
 }
 
 type aISuggestion struct {
-	Perfumes []perfume.Perfume `json:"perfumes"`
+	Perfumes []models.Perfume `json:"perfumes"`
 }
 
 type AI struct {
@@ -120,7 +120,7 @@ func NewAI(url string, folderId string, modelName string, apiKey string) *AI {
 	}
 }
 
-func (f *AI) Fetch(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+func (f *AI) Fetch(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
 	if len(params) == 0 {
 		return nil, false
 	}
@@ -202,7 +202,7 @@ func (f *AI) getAllowedSexes(sex string) []string {
 	return allowed
 }
 
-func (f *AI) tryParseResponse(response *http.Response) ([]perfume.Perfume, error) {
+func (f *AI) tryParseResponse(response *http.Response) ([]models.Perfume, error) {
 	if response.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("bad request to llm service: %d", response.StatusCode)
 	}
@@ -215,7 +215,7 @@ func (f *AI) tryParseResponse(response *http.Response) ([]perfume.Perfume, error
 		return nil, fmt.Errorf("no alternatives in response")
 	}
 
-	var perfumes []perfume.Perfume
+	var perfumes []models.Perfume
 	if err := json.Unmarshal([]byte(completionResponse.Result.Alternatives[0].Message.Text), &perfumes); err != nil {
 		return nil, err
 	}

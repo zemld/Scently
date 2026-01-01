@@ -5,7 +5,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
+	"github.com/zemld/Scently/models"
 )
 
 func TestNewSimpleMatcher(t *testing.T) {
@@ -158,13 +158,13 @@ func TestOverlay_getNotesSimilarityScore(t *testing.T) {
 
 	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 
-	first := perfume.Properties{
+	first := models.Properties{
 		UpperNotes: []string{"bergamot", "lemon"},
 		CoreNotes:  []string{"lavender", "rose"},
 		BaseNotes:  []string{"musk", "vanilla"},
 	}
 
-	second := perfume.Properties{
+	second := models.Properties{
 		UpperNotes: []string{"bergamot"},
 		CoreNotes:  []string{"lavender", "rose"},
 		BaseNotes:  []string{"musk"},
@@ -187,7 +187,7 @@ func TestOverlay_GetPerfumeSimilarityScore(t *testing.T) {
 
 	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 
-	first := perfume.Properties{
+	first := models.Properties{
 		Type:       "EDT",
 		Family:     []string{"floral", "woody"},
 		UpperNotes: []string{"bergamot"},
@@ -195,7 +195,7 @@ func TestOverlay_GetPerfumeSimilarityScore(t *testing.T) {
 		BaseNotes:  []string{"musk"},
 	}
 
-	second := perfume.Properties{
+	second := models.Properties{
 		Type:       "EDT",
 		Family:     []string{"floral"},
 		UpperNotes: []string{"bergamot"},
@@ -220,7 +220,7 @@ func TestOverlay_GetPerfumeSimilarityScore_DifferentType(t *testing.T) {
 
 	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 
-	first := perfume.Properties{
+	first := models.Properties{
 		Type:       "EDT",
 		Family:     []string{"floral"},
 		UpperNotes: []string{"bergamot"},
@@ -228,7 +228,7 @@ func TestOverlay_GetPerfumeSimilarityScore_DifferentType(t *testing.T) {
 		BaseNotes:  []string{"musk"},
 	}
 
-	second := perfume.Properties{
+	second := models.Properties{
 		Type:       "EDP",
 		Family:     []string{"floral"},
 		UpperNotes: []string{"bergamot"},
@@ -253,13 +253,13 @@ func TestOverlay_buildHeapAsync_SkipsEqual(t *testing.T) {
 
 	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 
-	favourite := perfume.Perfume{
+	favourite := models.Perfume{
 		Brand: "Chanel",
 		Name:  "No5",
 		Sex:   "female",
 	}
 
-	all := []perfume.Perfume{
+	all := []models.Perfume{
 		favourite, // Should be skipped
 		{Brand: "Dior", Name: "Sauvage", Sex: "male"},
 		{Brand: "Tom Ford", Name: "Black Orchid", Sex: "unisex"},
@@ -283,11 +283,11 @@ func TestOverlay_Find(t *testing.T) {
 
 	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 2)
 
-	favourite := perfume.Perfume{
+	favourite := models.Perfume{
 		Brand: "Chanel",
 		Name:  "No5",
 		Sex:   "female",
-		Properties: perfume.Properties{
+		Properties: models.Properties{
 			Type:       "EDT",
 			Family:     []string{"floral"},
 			UpperNotes: []string{"bergamot"},
@@ -298,11 +298,11 @@ func TestOverlay_Find(t *testing.T) {
 
 	// Create perfumes with different similarity scores
 	// Perfume1: same type, same family, same notes - highest similarity
-	perfume1 := perfume.Perfume{
+	perfume1 := models.Perfume{
 		Brand: "Dior",
 		Name:  "J'adore",
 		Sex:   "female",
-		Properties: perfume.Properties{
+		Properties: models.Properties{
 			Type:       "EDT",
 			Family:     []string{"floral"},
 			UpperNotes: []string{"bergamot"},
@@ -312,11 +312,11 @@ func TestOverlay_Find(t *testing.T) {
 	}
 
 	// Perfume2: same type, different family - medium similarity
-	perfume2 := perfume.Perfume{
+	perfume2 := models.Perfume{
 		Brand: "Tom Ford",
 		Name:  "Black Orchid",
 		Sex:   "unisex",
-		Properties: perfume.Properties{
+		Properties: models.Properties{
 			Type:       "EDT",
 			Family:     []string{"woody"},
 			UpperNotes: []string{"citrus"},
@@ -326,11 +326,11 @@ func TestOverlay_Find(t *testing.T) {
 	}
 
 	// Perfume3: different type, different everything - lowest similarity
-	perfume3 := perfume.Perfume{
+	perfume3 := models.Perfume{
 		Brand: "Versace",
 		Name:  "Eros",
 		Sex:   "male",
-		Properties: perfume.Properties{
+		Properties: models.Properties{
 			Type:       "EDP",
 			Family:     []string{"fresh"},
 			UpperNotes: []string{"mint"},
@@ -339,7 +339,7 @@ func TestOverlay_Find(t *testing.T) {
 		},
 	}
 
-	all := []perfume.Perfume{perfume1, perfume2, perfume3}
+	all := []models.Perfume{perfume1, perfume2, perfume3}
 
 	result := matcher.Find(favourite, all, 2)
 
@@ -373,13 +373,13 @@ func TestOverlay_Find_EmptyList(t *testing.T) {
 
 	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 
-	favourite := perfume.Perfume{
+	favourite := models.Perfume{
 		Brand: "Chanel",
 		Name:  "No5",
 		Sex:   "female",
 	}
 
-	all := []perfume.Perfume{}
+	all := []models.Perfume{}
 
 	result := matcher.Find(favourite, all, 5)
 
@@ -396,13 +396,13 @@ func TestOverlay_Find_OnlyFavourite(t *testing.T) {
 
 	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 
-	favourite := perfume.Perfume{
+	favourite := models.Perfume{
 		Brand: "Chanel",
 		Name:  "No5",
 		Sex:   "female",
 	}
 
-	all := []perfume.Perfume{favourite}
+	all := []models.Perfume{favourite}
 
 	result := matcher.Find(favourite, all, 5)
 
@@ -419,11 +419,11 @@ func TestOverlay_Find_MoreThanAvailable(t *testing.T) {
 
 	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 
-	favourite := perfume.Perfume{
+	favourite := models.Perfume{
 		Brand: "Chanel",
 		Name:  "No5",
 		Sex:   "female",
-		Properties: perfume.Properties{
+		Properties: models.Properties{
 			Type:       "EDT",
 			Family:     []string{"floral"},
 			UpperNotes: []string{"bergamot"},
@@ -432,7 +432,7 @@ func TestOverlay_Find_MoreThanAvailable(t *testing.T) {
 		},
 	}
 
-	all := []perfume.Perfume{
+	all := []models.Perfume{
 		{Brand: "Dior", Name: "Sauvage", Sex: "male"},
 		{Brand: "Tom Ford", Name: "Black Orchid", Sex: "unisex"},
 	}
@@ -461,11 +461,11 @@ func TestOverlay_Find_OrderedByScore(t *testing.T) {
 
 	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
 
-	favourite := perfume.Perfume{
+	favourite := models.Perfume{
 		Brand: "Chanel",
 		Name:  "No5",
 		Sex:   "female",
-		Properties: perfume.Properties{
+		Properties: models.Properties{
 			Type:       "EDT",
 			Family:     []string{"floral", "woody"},
 			UpperNotes: []string{"bergamot", "lemon"},
@@ -476,11 +476,11 @@ func TestOverlay_Find_OrderedByScore(t *testing.T) {
 
 	// Create perfumes with clearly different similarity scores
 	// High similarity - same type, overlapping family and notes
-	highSimilar := perfume.Perfume{
+	highSimilar := models.Perfume{
 		Brand: "Dior",
 		Name:  "J'adore",
 		Sex:   "female",
-		Properties: perfume.Properties{
+		Properties: models.Properties{
 			Type:       "EDT",
 			Family:     []string{"floral", "woody"},
 			UpperNotes: []string{"bergamot"},
@@ -490,11 +490,11 @@ func TestOverlay_Find_OrderedByScore(t *testing.T) {
 	}
 
 	// Medium similarity - same type, some overlap
-	mediumSimilar := perfume.Perfume{
+	mediumSimilar := models.Perfume{
 		Brand: "Tom Ford",
 		Name:  "Black Orchid",
 		Sex:   "unisex",
-		Properties: perfume.Properties{
+		Properties: models.Properties{
 			Type:       "EDT",
 			Family:     []string{"woody"},
 			UpperNotes: []string{"citrus"},
@@ -504,11 +504,11 @@ func TestOverlay_Find_OrderedByScore(t *testing.T) {
 	}
 
 	// Low similarity - different type, no overlap
-	lowSimilar := perfume.Perfume{
+	lowSimilar := models.Perfume{
 		Brand: "Versace",
 		Name:  "Eros",
 		Sex:   "male",
-		Properties: perfume.Properties{
+		Properties: models.Properties{
 			Type:       "EDP",
 			Family:     []string{"fresh"},
 			UpperNotes: []string{"mint"},
@@ -517,7 +517,7 @@ func TestOverlay_Find_OrderedByScore(t *testing.T) {
 		},
 	}
 
-	all := []perfume.Perfume{highSimilar, mediumSimilar, lowSimilar}
+	all := []models.Perfume{highSimilar, mediumSimilar, lowSimilar}
 
 	result := matcher.Find(favourite, all, 3)
 

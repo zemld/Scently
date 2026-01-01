@@ -4,8 +4,8 @@ import (
 	"container/heap"
 	"sync"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/pkg/set"
+	"github.com/zemld/Scently/models"
 )
 
 type Overlay struct {
@@ -39,7 +39,7 @@ func NewOverlay(familyWeight float64,
 	}
 }
 
-func (m Overlay) Find(favourite perfume.Perfume, all []perfume.Perfume, matchesCount int) []perfume.Ranked {
+func (m Overlay) Find(favourite models.Perfume, all []models.Perfume, matchesCount int) []models.Ranked {
 	matchingHeap := PerfumeHeap{}
 	heap.Init(&matchingHeap)
 
@@ -60,10 +60,10 @@ func (m Overlay) Find(favourite perfume.Perfume, all []perfume.Perfume, matchesC
 
 	matchesCount = min(matchesCount, matchingHeap.Len())
 
-	ranked := make([]perfume.Ranked, matchesCount)
+	ranked := make([]models.Ranked, matchesCount)
 	for i := matchesCount - 1; i >= 0; i-- {
 		mostSimilar := matchingHeap.PopSafe()
-		ranked[i] = perfume.Ranked{
+		ranked[i] = models.Ranked{
 			Perfume: mostSimilar.Perfume,
 			Rank:    i + 1,
 			Score:   mostSimilar.Score,
@@ -72,7 +72,7 @@ func (m Overlay) Find(favourite perfume.Perfume, all []perfume.Perfume, matchesC
 	return ranked
 }
 
-func (m Overlay) processPerfumes(h *PerfumeHeap, wg *sync.WaitGroup, favourite perfume.Perfume, all []perfume.Perfume, limit int) {
+func (m Overlay) processPerfumes(h *PerfumeHeap, wg *sync.WaitGroup, favourite models.Perfume, all []models.Perfume, limit int) {
 	defer wg.Done()
 
 	for _, p := range all {
@@ -81,14 +81,14 @@ func (m Overlay) processPerfumes(h *PerfumeHeap, wg *sync.WaitGroup, favourite p
 		}
 		similarityScore := m.GetPerfumeSimilarityScore(favourite.Properties, p.Properties)
 
-		h.PushSafeIfNeeded(perfume.WithScore{
+		h.PushSafeIfNeeded(models.Ranked{
 			Perfume: p,
 			Score:   similarityScore,
 		}, limit)
 	}
 }
 
-func (m Overlay) GetPerfumeSimilarityScore(first perfume.Properties, second perfume.Properties) float64 {
+func (m Overlay) GetPerfumeSimilarityScore(first models.Properties, second models.Properties) float64 {
 	familiesSimilarityScore := m.getListSimilarityScore(first.Family, second.Family)
 	notesSimilarityScore := m.getNotesSimilarityScore(first, second)
 	typeSimilarity := m.getTypeSimilarityScore(first.Type, second.Type)
@@ -107,7 +107,7 @@ func (m Overlay) getListSimilarityScore(first []string, second []string) float64
 	return float64(len(intersection)) / float64(len(un))
 }
 
-func (m Overlay) getNotesSimilarityScore(first perfume.Properties, second perfume.Properties) float64 {
+func (m Overlay) getNotesSimilarityScore(first models.Properties, second models.Properties) float64 {
 	upperNotesSimilarityScore := m.getListSimilarityScore(first.UpperNotes, second.UpperNotes)
 	middleNotesSimilarityScore := m.getListSimilarityScore(first.CoreNotes, second.CoreNotes)
 	baseNotesSimilarityScore := m.getListSimilarityScore(first.BaseNotes, second.BaseNotes)

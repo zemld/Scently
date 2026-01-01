@@ -7,7 +7,7 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/fetching"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/matching"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
+	"github.com/zemld/Scently/models"
 )
 
 type Base struct {
@@ -20,7 +20,7 @@ func NewBase(fetcher fetching.Fetcher, matcher matching.Matcher, adviseCount int
 	return &Base{fetcher: fetcher, matcher: matcher, adviseCount: adviseCount}
 }
 
-func (a *Base) Advise(ctx context.Context, params parameters.RequestPerfume) ([]perfume.Ranked, error) {
+func (a *Base) Advise(ctx context.Context, params parameters.RequestPerfume) ([]models.Ranked, error) {
 	favouritePerfumes, ok := a.fetcher.Fetch(ctx, []parameters.RequestPerfume{params})
 	if !ok {
 		return nil, errors.NewServiceError("failed to interact with perfume service", nil)

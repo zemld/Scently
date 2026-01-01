@@ -13,6 +13,7 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
+	"github.com/zemld/Scently/models"
 )
 
 func TestNewDbFetcher(t *testing.T) {
@@ -37,7 +38,7 @@ func TestNewDbFetcher(t *testing.T) {
 }
 
 func TestDbFetcher_getPerfumes_Success(t *testing.T) {
-	expectedPerfumes := []perfume.Perfume{
+	expectedPerfumes := []models.Perfume{
 		{Brand: "Chanel", Name: "No5", Sex: "female"},
 		{Brand: "Dior", Name: "Sauvage", Sex: "male"},
 	}
@@ -98,7 +99,7 @@ func TestDbFetcher_getPerfumes_HTTPError(t *testing.T) {
 }
 
 func TestDbFetcher_getPerfumes_BadStatus(t *testing.T) {
-	resp := perfume.PerfumeResponse{Perfumes: []perfume.Perfume{}}
+	resp := perfume.PerfumeResponse{Perfumes: []models.Perfume{}}
 	body, err := json.Marshal(resp)
 	if err != nil {
 		t.Fatalf("failed to marshal test data: %v", err)
@@ -156,7 +157,7 @@ func TestDbFetcher_getPerfumes_ReadBodyError(t *testing.T) {
 }
 
 func TestDbFetcher_getPerfumes_NoContent(t *testing.T) {
-	resp := perfume.PerfumeResponse{Perfumes: []perfume.Perfume{}}
+	resp := perfume.PerfumeResponse{Perfumes: []models.Perfume{}}
 	body, err := json.Marshal(resp)
 	if err != nil {
 		t.Fatalf("failed to marshal test data: %v", err)
@@ -191,7 +192,7 @@ func TestDbFetcher_getPerfumes_NoContent(t *testing.T) {
 }
 
 func TestDbFetcher_getPerfumes_NotFound(t *testing.T) {
-	resp := perfume.PerfumeResponse{Perfumes: []perfume.Perfume{}}
+	resp := perfume.PerfumeResponse{Perfumes: []models.Perfume{}}
 	body, err := json.Marshal(resp)
 	if err != nil {
 		t.Fatalf("failed to marshal test data: %v", err)
@@ -256,7 +257,7 @@ func TestDbFetcher_getPerfumes_AddsAuthHeader(t *testing.T) {
 	origTransport := config.HTTPClient.Transport
 	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		capturedRequest = r
-		resp := perfume.PerfumeResponse{Perfumes: []perfume.Perfume{{Brand: "Test", Name: "Test"}}}
+		resp := perfume.PerfumeResponse{Perfumes: []models.Perfume{{Brand: "Test", Name: "Test"}}}
 		body, _ := json.Marshal(resp)
 		return &http.Response{
 			StatusCode: http.StatusOK,
@@ -284,7 +285,7 @@ func TestDbFetcher_getPerfumes_AddsAuthHeader(t *testing.T) {
 }
 
 func TestDbFetcher_getPerfumesAsync_Success(t *testing.T) {
-	expectedPerfumes := []perfume.Perfume{{Brand: "Chanel", Name: "No5"}}
+	expectedPerfumes := []models.Perfume{{Brand: "Chanel", Name: "No5"}}
 	resp := perfume.PerfumeResponse{Perfumes: expectedPerfumes}
 	body, err := json.Marshal(resp)
 	if err != nil {
@@ -356,15 +357,15 @@ func TestDbFetcher_fetchPerfumeResults_Success(t *testing.T) {
 	ch := make(chan perfumesFetchAndGlueResult, 3)
 	ch <- perfumesFetchAndGlueResult{
 		Status:   http.StatusOK,
-		Perfumes: []perfume.Perfume{{Brand: "Chanel", Name: "No5"}},
+		Perfumes: []models.Perfume{{Brand: "Chanel", Name: "No5"}},
 	}
 	ch <- perfumesFetchAndGlueResult{
 		Status:   http.StatusOK,
-		Perfumes: []perfume.Perfume{{Brand: "Dior", Name: "Sauvage"}},
+		Perfumes: []models.Perfume{{Brand: "Dior", Name: "Sauvage"}},
 	}
 	ch <- perfumesFetchAndGlueResult{
 		Status:   http.StatusNotFound,
-		Perfumes: []perfume.Perfume{},
+		Perfumes: []models.Perfume{},
 	}
 	close(ch)
 
@@ -419,7 +420,7 @@ func TestDbFetcher_Fetch_Success(t *testing.T) {
 	origTransport := config.HTTPClient.Transport
 	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		callCount++
-		perfumes := []perfume.Perfume{
+		perfumes := []models.Perfume{
 			{Brand: "Chanel", Name: "No5"},
 			{Brand: "Dior", Name: "Sauvage"},
 		}
@@ -458,7 +459,7 @@ func TestDbFetcher_Fetch_Success(t *testing.T) {
 func TestDbFetcher_Fetch_EmptyResults(t *testing.T) {
 	origTransport := config.HTTPClient.Transport
 	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
-		resp := perfume.PerfumeResponse{Perfumes: []perfume.Perfume{}}
+		resp := perfume.PerfumeResponse{Perfumes: []models.Perfume{}}
 		body, _ := json.Marshal(resp)
 		return &http.Response{
 			StatusCode: http.StatusOK,

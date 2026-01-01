@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
+	"github.com/zemld/Scently/models"
 )
 
 func TestNewAiAdvisor(t *testing.T) {
@@ -30,18 +30,18 @@ func TestNewAiAdvisor(t *testing.T) {
 func TestAiAdvisor_Advise_Success(t *testing.T) {
 	t.Parallel()
 
-	aiSuggestions := []perfume.Perfume{
+	aiSuggestions := []models.Perfume{
 		{Brand: "Chanel", Name: "No5", Sex: "female"},
 		{Brand: "Dior", Name: "J'adore", Sex: "female"},
 	}
 
-	enrichedPerfumes := []perfume.Perfume{
+	enrichedPerfumes := []models.Perfume{
 		{Brand: "Chanel", Name: "No5", Sex: "female", ImageUrl: "http://example.com/no5.jpg"},
 		{Brand: "Dior", Name: "J'adore", Sex: "female", ImageUrl: "http://example.com/jadore.jpg"},
 	}
 
 	adviseFetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
 			if len(params) == 1 && params[0].Brand == "Chanel" {
 				return aiSuggestions, true
 			}
@@ -50,7 +50,7 @@ func TestAiAdvisor_Advise_Success(t *testing.T) {
 	}
 
 	enrichFetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
 			// Verify enrichment params are constructed correctly
 			if len(params) != len(aiSuggestions) {
 				t.Fatalf("expected %d enrichment params, got %d", len(aiSuggestions), len(params))
@@ -101,7 +101,7 @@ func TestAiAdvisor_Advise_AdviseFetcherFails(t *testing.T) {
 	t.Parallel()
 
 	adviseFetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
 			return nil, false
 		},
 	}
@@ -131,8 +131,8 @@ func TestAiAdvisor_Advise_AdviseFetcherReturnsEmpty(t *testing.T) {
 	t.Parallel()
 
 	adviseFetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
-			return []perfume.Perfume{}, true
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
+			return []models.Perfume{}, true
 		},
 	}
 
@@ -160,19 +160,19 @@ func TestAiAdvisor_Advise_AdviseFetcherReturnsEmpty(t *testing.T) {
 func TestAiAdvisor_Advise_EnrichFetcherFails(t *testing.T) {
 	t.Parallel()
 
-	aiSuggestions := []perfume.Perfume{
+	aiSuggestions := []models.Perfume{
 		{Brand: "Chanel", Name: "No5", Sex: "female"},
 		{Brand: "Dior", Name: "J'adore", Sex: "female"},
 	}
 
 	adviseFetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
 			return aiSuggestions, true
 		},
 	}
 
 	enrichFetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
 			return nil, false
 		},
 	}
@@ -205,20 +205,20 @@ func TestAiAdvisor_Advise_EnrichFetcherFails(t *testing.T) {
 func TestAiAdvisor_Advise_EnrichFetcherReturnsEmpty(t *testing.T) {
 	t.Parallel()
 
-	aiSuggestions := []perfume.Perfume{
+	aiSuggestions := []models.Perfume{
 		{Brand: "Chanel", Name: "No5", Sex: "female"},
 		{Brand: "Dior", Name: "J'adore", Sex: "female"},
 	}
 
 	adviseFetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
 			return aiSuggestions, true
 		},
 	}
 
 	enrichFetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
-			return []perfume.Perfume{}, true
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
+			return []models.Perfume{}, true
 		},
 	}
 
@@ -250,26 +250,26 @@ func TestAiAdvisor_Advise_EnrichFetcherReturnsEmpty(t *testing.T) {
 func TestAiAdvisor_Advise_MultipleSuggestions(t *testing.T) {
 	t.Parallel()
 
-	aiSuggestions := []perfume.Perfume{
+	aiSuggestions := []models.Perfume{
 		{Brand: "Chanel", Name: "No5", Sex: "female"},
 		{Brand: "Dior", Name: "J'adore", Sex: "female"},
 		{Brand: "Tom Ford", Name: "Black Orchid", Sex: "unisex"},
 	}
 
-	enrichedPerfumes := []perfume.Perfume{
+	enrichedPerfumes := []models.Perfume{
 		{Brand: "Chanel", Name: "No5", Sex: "female"},
 		{Brand: "Dior", Name: "J'adore", Sex: "female"},
 		{Brand: "Tom Ford", Name: "Black Orchid", Sex: "unisex"},
 	}
 
 	adviseFetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
 			return aiSuggestions, true
 		},
 	}
 
 	enrichFetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
 			return enrichedPerfumes, true
 		},
 	}
@@ -301,24 +301,24 @@ func TestAiAdvisor_Advise_MultipleSuggestions(t *testing.T) {
 func TestAiAdvisor_Advise_EnrichmentParamsConstruction(t *testing.T) {
 	t.Parallel()
 
-	aiSuggestions := []perfume.Perfume{
+	aiSuggestions := []models.Perfume{
 		{Brand: "Chanel", Name: "No5", Sex: "female"},
 		{Brand: "Dior", Name: "Sauvage", Sex: "male"},
 	}
 
-	enrichedPerfumes := []perfume.Perfume{
+	enrichedPerfumes := []models.Perfume{
 		{Brand: "Chanel", Name: "No5", Sex: "female"},
 		{Brand: "Dior", Name: "Sauvage", Sex: "male"},
 	}
 
 	adviseFetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
 			return aiSuggestions, true
 		},
 	}
 
 	enrichFetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]perfume.Perfume, bool) {
+		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
 			// Verify that enrichment params preserve brand and name from suggestions
 			// but use sex from original params
 			if len(params) != 2 {

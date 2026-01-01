@@ -10,7 +10,7 @@ import (
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
+	"github.com/zemld/Scently/models"
 )
 
 func TestNewAIFetcher(t *testing.T) {
@@ -144,7 +144,7 @@ func TestAIFetcher_Fetch_InvalidJSON(t *testing.T) {
 }
 
 func TestAIFetcher_Fetch_Success(t *testing.T) {
-	expectedPerfumes := []perfume.Perfume{
+	expectedPerfumes := []models.Perfume{
 		{Brand: "Chanel", Name: "No5", Sex: "female"},
 		{Brand: "Dior", Name: "Sauvage", Sex: "male"},
 	}
