@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"net/http"
 
+	perfumeModels "github.com/zemld/Scently/models"
 	"github.com/zemld/Scently/perfume-hub/internal/models"
 )
 
 type PerfumeResponse struct {
-	Perfumes []models.Perfume      `json:"perfumes"`
-	State    models.ProcessedState `json:"state"`
+	Perfumes []perfumeModels.Perfume `json:"perfumes"`
+	State    models.ProcessedState   `json:"state"`
 }
 
 func WriteResponse(w http.ResponseWriter, code int, body any) {

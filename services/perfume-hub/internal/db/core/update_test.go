@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 
+	perfumeModels "github.com/zemld/Scently/models"
 	queries "github.com/zemld/Scently/perfume-hub/internal/db/query"
 	"github.com/zemld/Scently/perfume-hub/internal/models"
 )
@@ -114,23 +115,23 @@ func TestNewUpdateStatus(t *testing.T) {
 }
 
 func TestUpsertSuccess(t *testing.T) {
-	perfume := models.Perfume{
+	perfume := perfumeModels.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
-		Properties: models.PerfumeProperties{
+		Properties: perfumeModels.Properties{
 			Type:       "Eau de Parfum",
 			Family:     []string{"Floral"},
 			UpperNotes: []string{"Bergamot"},
 			CoreNotes:  []string{"Rose"},
 			BaseNotes:  []string{"Musk"},
 		},
-		Shops: []models.ShopInfo{
+		Shops: []perfumeModels.ShopInfo{
 			{
 				ShopName: "Gold Apple",
 				Domain:   "goldapple.ru",
 				ImageUrl: "http://image1.com",
-				Variants: []models.PerfumeVariant{
+				Variants: []perfumeModels.Variant{
 					{Volume: 100, Price: 5000, Link: "http://link1.com"},
 				},
 			},
@@ -140,7 +141,7 @@ func TestUpsertSuccess(t *testing.T) {
 	tx := newMockTx()
 	ctx := context.Background()
 
-	status := upsert(ctx, tx, []models.Perfume{perfume})
+	status := upsert(ctx, tx, []perfumeModels.Perfume{perfume})
 
 	if status.SuccessfulCount != 1 {
 		t.Fatalf("upsert successful count = %d, want %d", status.SuccessfulCount, 1)
@@ -174,23 +175,23 @@ func TestUpsertSuccess(t *testing.T) {
 }
 
 func TestUpsertFailureRollsBack(t *testing.T) {
-	perfume := models.Perfume{
+	perfume := perfumeModels.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
-		Properties: models.PerfumeProperties{
+		Properties: perfumeModels.Properties{
 			Type:       "Eau de Parfum",
 			Family:     []string{"Floral"},
 			UpperNotes: []string{"Bergamot"},
 			CoreNotes:  []string{"Rose"},
 			BaseNotes:  []string{"Musk"},
 		},
-		Shops: []models.ShopInfo{
+		Shops: []perfumeModels.ShopInfo{
 			{
 				ShopName: "Gold Apple",
 				Domain:   "goldapple.ru",
 				ImageUrl: "http://image1.com",
-				Variants: []models.PerfumeVariant{
+				Variants: []perfumeModels.Variant{
 					{Volume: 100, Price: 5000, Link: "http://link1.com"},
 				},
 			},
@@ -201,7 +202,7 @@ func TestUpsertFailureRollsBack(t *testing.T) {
 	tx.setExecError(queries.GetOrInsertShop, errors.New("database error"))
 	ctx := context.Background()
 
-	status := upsert(ctx, tx, []models.Perfume{perfume})
+	status := upsert(ctx, tx, []perfumeModels.Perfume{perfume})
 
 	if status.SuccessfulCount != 0 {
 		t.Fatalf("upsert successful count = %d, want %d", status.SuccessfulCount, 0)
@@ -229,24 +230,24 @@ func TestUpsertFailureRollsBack(t *testing.T) {
 }
 
 func TestUpsertMultiplePerfumes(t *testing.T) {
-	perfumes := []models.Perfume{
+	perfumes := []perfumeModels.Perfume{
 		{
 			Brand: "Brand1",
 			Name:  "Name1",
 			Sex:   "male",
-			Properties: models.PerfumeProperties{
+			Properties: perfumeModels.Properties{
 				Type:       "Eau de Parfum",
 				Family:     []string{"Floral"},
 				UpperNotes: []string{"Bergamot"},
 				CoreNotes:  []string{"Rose"},
 				BaseNotes:  []string{"Musk"},
 			},
-			Shops: []models.ShopInfo{
+			Shops: []perfumeModels.ShopInfo{
 				{
 					ShopName: "Gold Apple",
 					Domain:   "goldapple.ru",
 					ImageUrl: "http://image1.com",
-					Variants: []models.PerfumeVariant{
+					Variants: []perfumeModels.Variant{
 						{Volume: 100, Price: 5000, Link: "http://link1.com"},
 					},
 				},
@@ -256,19 +257,19 @@ func TestUpsertMultiplePerfumes(t *testing.T) {
 			Brand: "Brand2",
 			Name:  "Name2",
 			Sex:   "female",
-			Properties: models.PerfumeProperties{
+			Properties: perfumeModels.Properties{
 				Type:       "Eau de Toilette",
 				Family:     []string{"Woody"},
 				UpperNotes: []string{"Lemon"},
 				CoreNotes:  []string{"Jasmine"},
 				BaseNotes:  []string{"Sandalwood"},
 			},
-			Shops: []models.ShopInfo{
+			Shops: []perfumeModels.ShopInfo{
 				{
 					ShopName: "Randewoo",
 					Domain:   "randewoo.ru",
 					ImageUrl: "http://image2.com",
-					Variants: []models.PerfumeVariant{
+					Variants: []perfumeModels.Variant{
 						{Volume: 50, Price: 3000, Link: "http://link2.com"},
 					},
 				},
@@ -312,24 +313,24 @@ func TestUpsertMultiplePerfumes(t *testing.T) {
 }
 
 func TestUpsertPartialFailure(t *testing.T) {
-	perfumes := []models.Perfume{
+	perfumes := []perfumeModels.Perfume{
 		{
 			Brand: "Brand1",
 			Name:  "Name1",
 			Sex:   "male",
-			Properties: models.PerfumeProperties{
+			Properties: perfumeModels.Properties{
 				Type:       "Eau de Parfum",
 				Family:     []string{"Floral"},
 				UpperNotes: []string{"Bergamot"},
 				CoreNotes:  []string{"Rose"},
 				BaseNotes:  []string{"Musk"},
 			},
-			Shops: []models.ShopInfo{
+			Shops: []perfumeModels.ShopInfo{
 				{
 					ShopName: "Gold Apple",
 					Domain:   "goldapple.ru",
 					ImageUrl: "http://image1.com",
-					Variants: []models.PerfumeVariant{
+					Variants: []perfumeModels.Variant{
 						{Volume: 100, Price: 5000, Link: "http://link1.com"},
 					},
 				},
@@ -339,19 +340,19 @@ func TestUpsertPartialFailure(t *testing.T) {
 			Brand: "Brand2",
 			Name:  "Name2",
 			Sex:   "female",
-			Properties: models.PerfumeProperties{
+			Properties: perfumeModels.Properties{
 				Type:       "Eau de Toilette",
 				Family:     []string{"Woody"},
 				UpperNotes: []string{"Lemon"},
 				CoreNotes:  []string{"Jasmine"},
 				BaseNotes:  []string{"Sandalwood"},
 			},
-			Shops: []models.ShopInfo{
+			Shops: []perfumeModels.ShopInfo{
 				{
 					ShopName: "Randewoo",
 					Domain:   "randewoo.ru",
 					ImageUrl: "http://image2.com",
-					Variants: []models.PerfumeVariant{
+					Variants: []perfumeModels.Variant{
 						{Volume: 50, Price: 3000, Link: "http://link2.com"},
 					},
 				},
@@ -408,23 +409,23 @@ func TestDeleteOldPerfumesError(t *testing.T) {
 }
 
 func TestRunUpdateQueries(t *testing.T) {
-	perfume := models.Perfume{
+	perfume := perfumeModels.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
-		Properties: models.PerfumeProperties{
+		Properties: perfumeModels.Properties{
 			Type:       "Eau de Parfum",
 			Family:     []string{"Floral", "Woody"},
 			UpperNotes: []string{"Bergamot", "Lemon"},
 			CoreNotes:  []string{"Rose", "Jasmine"},
 			BaseNotes:  []string{"Musk", "Sandalwood"},
 		},
-		Shops: []models.ShopInfo{
+		Shops: []perfumeModels.ShopInfo{
 			{
 				ShopName: "Gold Apple",
 				Domain:   "goldapple.ru",
 				ImageUrl: "http://image1.com",
-				Variants: []models.PerfumeVariant{
+				Variants: []perfumeModels.Variant{
 					{Volume: 100, Price: 5000, Link: "http://link1.com"},
 					{Volume: 50, Price: 3000, Link: "http://link2.com"},
 				},
@@ -469,23 +470,23 @@ func TestRunUpdateQueries(t *testing.T) {
 }
 
 func TestRunUpdateQueriesError(t *testing.T) {
-	perfume := models.Perfume{
+	perfume := perfumeModels.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
-		Properties: models.PerfumeProperties{
+		Properties: perfumeModels.Properties{
 			Type:       "Eau de Parfum",
 			Family:     []string{"Floral"},
 			UpperNotes: []string{"Bergamot"},
 			CoreNotes:  []string{"Rose"},
 			BaseNotes:  []string{"Musk"},
 		},
-		Shops: []models.ShopInfo{
+		Shops: []perfumeModels.ShopInfo{
 			{
 				ShopName: "Gold Apple",
 				Domain:   "goldapple.ru",
 				ImageUrl: "http://image1.com",
-				Variants: []models.PerfumeVariant{
+				Variants: []perfumeModels.Variant{
 					{Volume: 100, Price: 5000, Link: "http://link1.com"},
 				},
 			},
@@ -522,16 +523,16 @@ func TestRunUpdateQueriesError(t *testing.T) {
 }
 
 func TestUpdateShopInfo(t *testing.T) {
-	perfume := models.Perfume{
+	perfume := perfumeModels.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
-		Shops: []models.ShopInfo{
+		Shops: []perfumeModels.ShopInfo{
 			{
 				ShopName: "Gold Apple",
 				Domain:   "goldapple.ru",
 				ImageUrl: "http://image1.com",
-				Variants: []models.PerfumeVariant{
+				Variants: []perfumeModels.Variant{
 					{Volume: 100, Price: 5000, Link: "http://link1.com"},
 					{Volume: 50, Price: 3000, Link: "http://link2.com"},
 				},
@@ -540,7 +541,7 @@ func TestUpdateShopInfo(t *testing.T) {
 				ShopName: "Randewoo",
 				Domain:   "randewoo.ru",
 				ImageUrl: "http://image2.com",
-				Variants: []models.PerfumeVariant{
+				Variants: []perfumeModels.Variant{
 					{Volume: 75, Price: 4000, Link: "http://link3.com"},
 				},
 			},
@@ -582,23 +583,23 @@ func TestUpdateShopInfo(t *testing.T) {
 
 	// Проверяем аргументы первого варианта
 	firstVariantCall := tx.execCalls[1] // После первого GetOrInsertShop
-	expectedArgs := []any{"brand", "name", "male", "Gold Apple", 100, 5000, "http://link1.com"}
+	expectedArgs := []any{"brand", "name", perfume.Sex, "Gold Apple", 100, 5000, "http://link1.com"}
 	if !reflect.DeepEqual(firstVariantCall.args, expectedArgs) {
 		t.Fatalf("updateShopInfo first variant args = %v, want %v", firstVariantCall.args, expectedArgs)
 	}
 }
 
 func TestUpdateShopInfoError(t *testing.T) {
-	perfume := models.Perfume{
+	perfume := perfumeModels.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
-		Shops: []models.ShopInfo{
+		Shops: []perfumeModels.ShopInfo{
 			{
 				ShopName: "Gold Apple",
 				Domain:   "goldapple.ru",
 				ImageUrl: "http://image1.com",
-				Variants: []models.PerfumeVariant{
+				Variants: []perfumeModels.Variant{
 					{Volume: 100, Price: 5000, Link: "http://link1.com"},
 				},
 			},
@@ -630,11 +631,11 @@ func TestUpdateShopInfoError(t *testing.T) {
 }
 
 func TestUpdateFamilies(t *testing.T) {
-	perfume := models.Perfume{
+	perfume := perfumeModels.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
-		Properties: models.PerfumeProperties{
+		Properties: perfumeModels.Properties{
 			Family: []string{"Floral", "Woody", "Oriental"},
 		},
 	}
@@ -657,7 +658,7 @@ func TestUpdateFamilies(t *testing.T) {
 		if call.sql != queries.InsertFamily {
 			t.Fatalf("updateFamilies exec[%d] sql = %q, want %q", i, call.sql, queries.InsertFamily)
 		}
-		expectedArgs := []any{"brand", "name", "male", perfume.Properties.Family[i]}
+		expectedArgs := []any{"brand", "name", perfume.Sex, perfume.Properties.Family[i]}
 		if !reflect.DeepEqual(call.args, expectedArgs) {
 			t.Fatalf("updateFamilies exec[%d] args = %v, want %v", i, call.args, expectedArgs)
 		}
@@ -665,11 +666,11 @@ func TestUpdateFamilies(t *testing.T) {
 }
 
 func TestUpdateFamiliesError(t *testing.T) {
-	perfume := models.Perfume{
+	perfume := perfumeModels.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
-		Properties: models.PerfumeProperties{
+		Properties: perfumeModels.Properties{
 			Family: []string{"Floral"},
 		},
 	}
@@ -687,11 +688,11 @@ func TestUpdateFamiliesError(t *testing.T) {
 }
 
 func TestUpdateNotes(t *testing.T) {
-	perfume := models.Perfume{
+	perfume := perfumeModels.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
-		Properties: models.PerfumeProperties{
+		Properties: perfumeModels.Properties{
 			UpperNotes: []string{"Bergamot", "Lemon"},
 			CoreNotes:  []string{"Rose", "Jasmine"},
 			BaseNotes:  []string{"Musk", "Sandalwood"},
@@ -729,7 +730,7 @@ func TestUpdateNotes(t *testing.T) {
 				if call.sql != tt.query {
 					t.Fatalf("updateNotes(%s) exec[%d] sql = %q, want %q", tt.noteType, i, call.sql, tt.query)
 				}
-				expectedArgs := []any{"brand", "name", "male", tt.notes[i]}
+				expectedArgs := []any{"brand", "name", perfume.Sex, tt.notes[i]}
 				if !reflect.DeepEqual(call.args, expectedArgs) {
 					t.Fatalf("updateNotes(%s) exec[%d] args = %v, want %v", tt.noteType, i, call.args, expectedArgs)
 				}
@@ -739,11 +740,11 @@ func TestUpdateNotes(t *testing.T) {
 }
 
 func TestUpdateNotesError(t *testing.T) {
-	perfume := models.Perfume{
+	perfume := perfumeModels.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
-		Properties: models.PerfumeProperties{
+		Properties: perfumeModels.Properties{
 			UpperNotes: []string{"Bergamot"},
 		},
 	}
@@ -761,19 +762,19 @@ func TestUpdateNotesError(t *testing.T) {
 }
 
 func TestUpdatePerfumeType(t *testing.T) {
-	perfume := models.Perfume{
+	perfume := perfumeModels.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
-		Properties: models.PerfumeProperties{
+		Properties: perfumeModels.Properties{
 			Type: "Eau de Parfum",
 		},
-		Shops: []models.ShopInfo{
+		Shops: []perfumeModels.ShopInfo{
 			{
 				ShopName: "Gold Apple",
 				Domain:   "goldapple.ru",
 				ImageUrl: "http://image1.com",
-				Variants: []models.PerfumeVariant{},
+				Variants: []perfumeModels.Variant{},
 			},
 		},
 	}
@@ -797,26 +798,26 @@ func TestUpdatePerfumeType(t *testing.T) {
 		t.Fatalf("updatePerfumeType exec sql = %q, want %q", call.sql, queries.InsertPerfumeBaseInfo)
 	}
 
-	expectedArgs := []any{"brand", "name", "male", "Brand", "Name", "Eau de Parfum", "http://image1.com"}
+	expectedArgs := []any{"brand", "name", perfume.Sex, "Brand", "Name", "Eau de Parfum", "http://image1.com"}
 	if !reflect.DeepEqual(call.args, expectedArgs) {
 		t.Fatalf("updatePerfumeType exec args = %v, want %v", call.args, expectedArgs)
 	}
 }
 
 func TestUpdatePerfumeTypeError(t *testing.T) {
-	perfume := models.Perfume{
+	perfume := perfumeModels.Perfume{
 		Brand: "Brand",
 		Name:  "Name",
 		Sex:   "male",
-		Properties: models.PerfumeProperties{
+		Properties: perfumeModels.Properties{
 			Type: "Eau de Parfum",
 		},
-		Shops: []models.ShopInfo{
+		Shops: []perfumeModels.ShopInfo{
 			{
 				ShopName: "Gold Apple",
 				Domain:   "goldapple.ru",
 				ImageUrl: "http://image1.com",
-				Variants: []models.PerfumeVariant{},
+				Variants: []perfumeModels.Variant{},
 			},
 		},
 	}
@@ -836,13 +837,13 @@ func TestUpdatePerfumeTypeError(t *testing.T) {
 func TestGetPreferredImageUrl(t *testing.T) {
 	tests := []struct {
 		name     string
-		perfume  models.Perfume
+		perfume  perfumeModels.Perfume
 		expected string
 	}{
 		{
 			"Gold Apple priority",
-			models.Perfume{
-				Shops: []models.ShopInfo{
+			perfumeModels.Perfume{
+				Shops: []perfumeModels.ShopInfo{
 					{ShopName: "Randewoo", ImageUrl: "http://randewoo.com/image"},
 					{ShopName: "Gold Apple", ImageUrl: "http://goldapple.com/image"},
 					{ShopName: "Letu", ImageUrl: "http://letu.com/image"},
@@ -852,8 +853,8 @@ func TestGetPreferredImageUrl(t *testing.T) {
 		},
 		{
 			"Randewoo when Gold Apple missing",
-			models.Perfume{
-				Shops: []models.ShopInfo{
+			perfumeModels.Perfume{
+				Shops: []perfumeModels.ShopInfo{
 					{ShopName: "Letu", ImageUrl: "http://letu.com/image"},
 					{ShopName: "Randewoo", ImageUrl: "http://randewoo.com/image"},
 				},
@@ -862,8 +863,8 @@ func TestGetPreferredImageUrl(t *testing.T) {
 		},
 		{
 			"Letu when others missing",
-			models.Perfume{
-				Shops: []models.ShopInfo{
+			perfumeModels.Perfume{
+				Shops: []perfumeModels.ShopInfo{
 					{ShopName: "Letu", ImageUrl: "http://letu.com/image"},
 				},
 			},
@@ -871,15 +872,15 @@ func TestGetPreferredImageUrl(t *testing.T) {
 		},
 		{
 			"empty when no shops",
-			models.Perfume{
-				Shops: []models.ShopInfo{},
+			perfumeModels.Perfume{
+				Shops: []perfumeModels.ShopInfo{},
 			},
 			"",
 		},
 		{
 			"unknown shop returns its image",
-			models.Perfume{
-				Shops: []models.ShopInfo{
+			perfumeModels.Perfume{
+				Shops: []perfumeModels.ShopInfo{
 					{ShopName: "Unknown Shop", ImageUrl: "http://unknown.com/image"},
 				},
 			},

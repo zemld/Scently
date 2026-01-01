@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/jackc/pgx/v5"
+	perfumeModels "github.com/zemld/Scently/models"
 	queries "github.com/zemld/Scently/perfume-hub/internal/db/query"
 	"github.com/zemld/Scently/perfume-hub/internal/errors"
 	"github.com/zemld/Scently/perfume-hub/internal/models"
@@ -52,7 +53,7 @@ func deleteOldPerfumes(ctx context.Context, tx pgx.Tx) bool {
 	return true
 }
 
-func upsert(ctx context.Context, tx pgx.Tx, perfumes []models.Perfume) models.ProcessedState {
+func upsert(ctx context.Context, tx pgx.Tx, perfumes []perfumeModels.Perfume) models.ProcessedState {
 	updateState := models.NewProcessedState()
 	for i, perfume := range perfumes {
 		updateSavepointStatus(ctx, tx, queries.Savepoint, i)
@@ -69,7 +70,7 @@ func upsert(ctx context.Context, tx pgx.Tx, perfumes []models.Perfume) models.Pr
 	return updateState
 }
 
-func runUpdateQueries(ctx context.Context, tx pgx.Tx, perfume models.Perfume) error {
+func runUpdateQueries(ctx context.Context, tx pgx.Tx, perfume perfumeModels.Perfume) error {
 	canonizedPerfume := perfume.Canonize()
 	if err := updateShopInfo(ctx, tx, perfume, canonizedPerfume); err != nil {
 		return err
@@ -92,7 +93,7 @@ func runUpdateQueries(ctx context.Context, tx pgx.Tx, perfume models.Perfume) er
 	return nil
 }
 
-func updateShopInfo(ctx context.Context, tx pgx.Tx, perfume models.Perfume, canonizedPerfume models.CanonizedPerfume) error {
+func updateShopInfo(ctx context.Context, tx pgx.Tx, perfume perfumeModels.Perfume, canonizedPerfume perfumeModels.CanonizedPerfume) error {
 	for _, shop := range perfume.Shops {
 		if _, err := tx.Exec(ctx, queries.GetOrInsertShop, shop.ShopName, shop.Domain); err != nil {
 			return err
@@ -114,7 +115,7 @@ func updateShopInfo(ctx context.Context, tx pgx.Tx, perfume models.Perfume, cano
 	return nil
 }
 
-func updateFamilies(ctx context.Context, tx pgx.Tx, perfume models.Perfume, canonizedPerfume models.CanonizedPerfume) error {
+func updateFamilies(ctx context.Context, tx pgx.Tx, perfume perfumeModels.Perfume, canonizedPerfume perfumeModels.CanonizedPerfume) error {
 	for _, family := range perfume.Properties.Family {
 		if _, err := tx.Exec(ctx, queries.InsertFamily, canonizedPerfume.Brand, canonizedPerfume.Name, perfume.Sex, family); err != nil {
 			return err
@@ -123,7 +124,7 @@ func updateFamilies(ctx context.Context, tx pgx.Tx, perfume models.Perfume, cano
 	return nil
 }
 
-func updateNotes(ctx context.Context, tx pgx.Tx, query string, perfume models.Perfume, canonizedPerfume models.CanonizedPerfume, notes []string) error {
+func updateNotes(ctx context.Context, tx pgx.Tx, query string, perfume perfumeModels.Perfume, canonizedPerfume perfumeModels.CanonizedPerfume, notes []string) error {
 	for _, note := range notes {
 		if _, err := tx.Exec(ctx, query, canonizedPerfume.Brand, canonizedPerfume.Name, perfume.Sex, note); err != nil {
 			return err
@@ -132,7 +133,7 @@ func updateNotes(ctx context.Context, tx pgx.Tx, query string, perfume models.Pe
 	return nil
 }
 
-func updatePerfumeType(ctx context.Context, tx pgx.Tx, perfume models.Perfume, canonizedPerfume models.CanonizedPerfume) error {
+func updatePerfumeType(ctx context.Context, tx pgx.Tx, perfume perfumeModels.Perfume, canonizedPerfume perfumeModels.CanonizedPerfume) error {
 	imageUrl := getPreferredImageUrl(perfume)
 	if _, err := tx.Exec(ctx, queries.InsertPerfumeBaseInfo, canonizedPerfume.Brand, canonizedPerfume.Name, perfume.Sex, perfume.Brand, perfume.Name, perfume.Properties.Type, imageUrl); err != nil {
 		return err
@@ -140,7 +141,7 @@ func updatePerfumeType(ctx context.Context, tx pgx.Tx, perfume models.Perfume, c
 	return nil
 }
 
-func getPreferredImageUrl(perfume models.Perfume) string {
+func getPreferredImageUrl(perfume perfumeModels.Perfume) string {
 	priority := 100
 	imageUrl := ""
 	for _, shop := range perfume.Shops {
