@@ -1,3 +1,16 @@
 secrets
 
 **/.DS_Store
+
+**/__pycache__/
+
+**/package.json
+**/next-env.d.ts
+**/components.json
+**/.next/
+**/node_modules/
+**/tsconfig.json
+
+**/logs/
+
+services/parser/**/*.json
