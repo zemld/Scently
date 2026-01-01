@@ -30,13 +30,11 @@ const (
 )
 
 const (
-	DefaultAISuggestURL   = "http://ai_advisor:8000/v1/advise"
 	DefaultGetPerfumesURL = "http://perfume:8000/v1/perfumes/get"
 )
 
 const (
 	PerfumeInternalTokenEnv = "PERFUME_INTERNAL_TOKEN"
-	AISuggestURLEnv         = "AI_SUGGEST_URL"
 	GetPerfumesURLEnv       = "GET_PERFUMES_URL"
 	PerfumeHubURLEnv        = "PERFUME_HUB_URL"
 )

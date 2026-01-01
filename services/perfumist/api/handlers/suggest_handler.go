@@ -86,15 +86,18 @@ func createAdvisor(params parameters.RequestPerfume) advising.Advisor {
 		getPerfumesURL = config.DefaultGetPerfumesURL
 	}
 
-	aiSuggestURL := os.Getenv(config.AISuggestURLEnv)
-	if aiSuggestURL == "" {
-		aiSuggestURL = config.DefaultAISuggestURL
-	}
-
 	fetcher := fetching.NewPerfumeHub(getPerfumesURL, os.Getenv(config.PerfumeInternalTokenEnv))
 
 	if params.UseAI {
-		return advising.NewAI(fetching.NewAI(aiSuggestURL), fetcher)
+		return advising.NewAI(
+			fetching.NewAI(
+				os.Getenv("BASE_URL"),
+				os.Getenv("FOLDER_ID"),
+				os.Getenv("MODEL_NAME"),
+				os.Getenv("API_KEY"),
+			),
+			fetcher,
+		)
 	}
 
 	return advising.NewBase(
