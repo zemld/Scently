@@ -5,6 +5,7 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/zemld/Scently/models"
 	queries "github.com/zemld/Scently/perfume-hub/internal/db/query"
 )
 
@@ -13,14 +14,14 @@ type contextKey string
 const UpdateParametersContextKey contextKey = "update_parameters"
 
 type UpdateParameters struct {
-	Perfumes []Perfume `json:"perfumes"`
+	Perfumes []models.Perfume `json:"perfumes"`
 }
 
 func NewUpdateParameters() *UpdateParameters {
 	return &UpdateParameters{}
 }
 
-func (p *UpdateParameters) WithPerfumes(perfumes []Perfume) *UpdateParameters {
+func (p *UpdateParameters) WithPerfumes(perfumes []models.Perfume) *UpdateParameters {
 	p.Perfumes = perfumes
 	return p
 }

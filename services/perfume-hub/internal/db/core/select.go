@@ -4,13 +4,14 @@ import (
 	"context"
 	"log"
 
+	perfumeModels "github.com/zemld/Scently/models"
 	"github.com/zemld/Scently/perfume-hub/internal/errors"
 	"github.com/zemld/Scently/perfume-hub/internal/models"
 )
 
-type SelectFunc func(ctx context.Context, params *models.SelectParameters) ([]models.Perfume, models.ProcessedState)
+type SelectFunc func(ctx context.Context, params *models.SelectParameters) ([]perfumeModels.Perfume, models.ProcessedState)
 
-func Select(ctx context.Context, params *models.SelectParameters) ([]models.Perfume, models.ProcessedState) {
+func Select(ctx context.Context, params *models.SelectParameters) ([]perfumeModels.Perfume, models.ProcessedState) {
 	rows, err := Pool.Query(ctx, params.GetQuery(), params.Unpack()...)
 	if err != nil {
 		log.Printf("Error executing query: %v\n", err)
@@ -19,9 +20,9 @@ func Select(ctx context.Context, params *models.SelectParameters) ([]models.Perf
 	defer rows.Close()
 
 	processedState := models.NewProcessedState()
-	var perfumes []models.Perfume
+	var perfumes []perfumeModels.Perfume
 	for rows.Next() {
-		var perfume models.Perfume
+		var perfume perfumeModels.Perfume
 		err := rows.Scan(
 			&perfume.Brand,
 			&perfume.Name,
