@@ -38,6 +38,8 @@ services:
       - ./secrets/perfume-hub.env
       - ./secrets/ai_advisor.env
       - ./secrets/perfumist.env
+    ports:
+      - "8088:8000"
     expose:
       - "8000"
     depends_on:
