@@ -12,3 +12,5 @@ secrets
 **/tsconfig.json
 
 **/logs/
+
+services/parser/**/*.json
