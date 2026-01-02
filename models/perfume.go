@@ -35,9 +35,14 @@ type Properties struct {
 }
 
 type EnrichedNote struct {
-	Name            string   `json:"name"`
-	Tags            []string `json:"tags"`
-	Characteristics []string `json:"characteristics"`
+	Name            string               `json:"name"`
+	Tags            []string             `json:"tags"`
+	Characteristics []NoteCharacteristic `json:"characteristics"`
+}
+
+type NoteCharacteristic struct {
+	Name  string  `json:"name"`
+	Value float64 `json:"value"`
 }
 
 type ShopInfo struct {
