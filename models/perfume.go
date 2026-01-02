@@ -28,6 +28,16 @@ type Properties struct {
 	UpperNotes []string `json:"upper_notes"`
 	CoreNotes  []string `json:"core_notes"`
 	BaseNotes  []string `json:"base_notes"`
+
+	EnrichedUpperNotes []EnrichedNote `json:"enriched_upper_notes,omitempty"`
+	EnrichedCoreNotes  []EnrichedNote `json:"enriched_core_notes,omitempty"`
+	EnrichedBaseNotes  []EnrichedNote `json:"enriched_base_notes,omitempty"`
+}
+
+type EnrichedNote struct {
+	Name            string   `json:"name"`
+	Tags            []string `json:"tags"`
+	Characteristics []string `json:"characteristics"`
 }
 
 type ShopInfo struct {
