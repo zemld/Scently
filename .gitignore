@@ -12,3 +12,6 @@ secrets
 **/logs/
 
 services/parser/**/*.json
+
+**/.vscode/
+**/.cursor/
