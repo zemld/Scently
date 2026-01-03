@@ -1,4 +1,3 @@
-// Словарь переводов нот парфюма с английского на русский
 export const notesTranslations: Record<string, string> = {
     "honeysuckle": "жимолость",
     "vodka": "водка",
@@ -996,7 +995,6 @@ export const notesTranslations: Record<string, string> = {
     "yellow mandarin": "желтый мандарин"
 }
 
-// Словарь переводов тегов парфюма с английского на русский
 export const tagsTranslations: Record<string, string> = {
     "light": "легкий",
     "airy": "воздушный",
@@ -1047,39 +1045,55 @@ export const tagsTranslations: Record<string, string> = {
     "noble": "благородный"
 }
 
-/**
- * Переводит название ноты с английского на русский
- * @param note - название ноты на английском
- * @returns перевод на русский, если он есть в словаре, иначе оригинальное название
- */
+export const sexTranslations: Record<string, string> = {
+    "unisex": "унисекс",
+    "male": "мужской",
+    "female": "женский"
+}
+
+export const familyTranslations: Record<string, string> = {
+    "fresh": "свежий",
+    "amber": "амбровый",
+    "woody": "древесный",
+    "floral": "цветочный"
+}
+
 export function translateNote(note: string): string {
-    // Приводим к нижнему регистру для поиска в словаре
     const normalizedNote = note.toLowerCase().trim()
     
-    // Ищем точное совпадение
     if (notesTranslations[normalizedNote]) {
         return notesTranslations[normalizedNote]
     }
     
-    // Если точного совпадения нет, возвращаем оригинальное название
     return note
 }
-
-/**
- * Переводит тег с английского на русский
- * @param tag - название тега на английском
- * @returns перевод на русский, если он есть в словаре, иначе оригинальное название
- */
 export function translateTag(tag: string): string {
-    // Приводим к нижнему регистру для поиска в словаре
     const normalizedTag = tag.toLowerCase().trim()
     
-    // Ищем точное совпадение
     if (tagsTranslations[normalizedTag]) {
         return tagsTranslations[normalizedTag]
     }
     
-    // Если точного совпадения нет, возвращаем оригинальное название
     return tag
+}
+
+export function translateSex(sex: string): string {
+    const normalizedSex = sex.toLowerCase().trim()
+    
+    if (sexTranslations[normalizedSex]) {
+        return sexTranslations[normalizedSex]
+    }
+    
+    return sex
+}
+
+export function translateFamily(family: string): string {
+    const normalizedFamily = family.toLowerCase().trim()
+    
+    if (familyTranslations[normalizedFamily]) {
+        return familyTranslations[normalizedFamily]
+    }
+    
+    return family
 }
 

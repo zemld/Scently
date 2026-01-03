@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Perfume } from "@/lib/api"
-import { translateNote, translateTag } from "@/lib/translations"
+import { translateNote, translateTag, translateSex, translateFamily } from "@/lib/translations"
 
 interface PerfumeModalProps {
     perfume: Perfume | null
@@ -69,14 +69,14 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                             <h2 className="text-4xl md:text-5xl font-bold text-[#F8F5F0]">{perfume.name}</h2>
                             {perfume.sex && (
                                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/15 backdrop-blur-md border border-white/30 rounded-full w-fit">
-                                    <span className="text-sm text-[#E3B23C]">{perfume.sex}</span>
+                                    <span className="text-sm text-[#E3B23C]">{translateSex(perfume.sex)}</span>
                                 </div>
                             )}
                             {uniqueFamiliesList.length > 0 && (
                                 <div className="flex flex-wrap gap-2">
                                     {uniqueFamiliesList.map((family, index) => (
                                         <div key={index} className="inline-flex items-center gap-2 px-4 py-2 bg-white/15 backdrop-blur-md border border-white/30 rounded-full">
-                                            <span className="text-sm text-[#E3B23C]">{family}</span>
+                                            <span className="text-sm text-[#E3B23C]">{translateFamily(family)}</span>
                                         </div>
                                     ))}
                                 </div>
