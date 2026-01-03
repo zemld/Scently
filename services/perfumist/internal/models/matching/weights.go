@@ -26,7 +26,10 @@ func NewBaseWeights(
 	}
 }
 
-func NewCombinedWeights(
+func NewWeights(
+	familyWeight float64,
+	notesWeight float64,
+	typeWeight float64,
 	upperNotesWeight float64,
 	coreNotesWeight float64,
 	baseNotesWeight float64,
@@ -35,6 +38,9 @@ func NewCombinedWeights(
 	overlayWeight float64,
 ) *Weights {
 	w := NewBaseWeights(upperNotesWeight, coreNotesWeight, baseNotesWeight)
+	w.FamilyWeight = familyWeight
+	w.NotesWeight = notesWeight
+	w.TypeWeight = typeWeight
 	w.CharacteristicsWeight = characteristicsWeight
 	w.TagsWeight = tagsWeight
 	w.OverlayWeight = overlayWeight

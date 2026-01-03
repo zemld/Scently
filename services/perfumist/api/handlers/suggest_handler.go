@@ -103,7 +103,10 @@ func createAdvisor(params parameters.RequestPerfume) advising.Advisor {
 	return advising.NewBase(
 		fetcher,
 		matching.NewCombinedMatcher(
-			*matching.NewCombinedWeights(
+			*matching.NewWeights(
+				config.FamilyWeight,
+				config.NotesWeight,
+				config.TypeWeight,
 				config.UpperNotesWeight,
 				config.CoreNotesWeight,
 				config.BaseNotesWeight,
