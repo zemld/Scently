@@ -1,12 +1,29 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api'
 
 // Types
+export interface PerfumeCharacteristics {
+    density: number
+    earthiness: number
+    floralcy: number
+    freshness: number
+    fruityness: number
+    powderiness: number
+    spiciness: number
+    sweetness: number
+    warmth: number
+    woodiness: number
+}
+
 export interface PerfumeProperties {
     perfume_type: string
     family: string[]
     upper_notes: string[]
     core_notes: string[]
     base_notes: string[]
+    tags?: string[]
+    upper_characteristics?: PerfumeCharacteristics
+    core_characteristics?: PerfumeCharacteristics
+    base_characteristics?: PerfumeCharacteristics
 }
 
 export interface PerfumeVariant {
