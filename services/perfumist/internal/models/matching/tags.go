@@ -1,6 +1,9 @@
 package matching
 
-import "github.com/zemld/Scently/models"
+import (
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
+	"github.com/zemld/Scently/models"
+)
 
 type Tags struct {
 	Weights
@@ -66,7 +69,7 @@ func calculatePerfumeTags(p *models.Perfume) {
 	)
 	chosenTags := make([]string, 0, len(tags))
 	for tag, count := range tags {
-		if count > 1 {
+		if count > config.MinimalTagCount {
 			chosenTags = append(chosenTags, tag)
 		}
 	}

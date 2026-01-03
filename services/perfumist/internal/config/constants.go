@@ -40,3 +40,5 @@ const (
 	GetPerfumesURLEnv       = "GET_PERFUMES_URL"
 	PerfumeHubURLEnv        = "PERFUME_HUB_URL"
 )
+
+const MinimalTagCount = 3
