@@ -24,7 +24,7 @@ const (
 )
 
 const (
-	ThreadsCount = 5
+	ThreadsCount = 8
 	SuggestCount = 4
 )
 

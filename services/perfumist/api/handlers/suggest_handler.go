@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -31,7 +30,6 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	suggested, err := advisor.Advise(ctx, params)
-	log.Println("suggested", suggested, err)
 	if err != nil {
 		handleError(w, err)
 		return

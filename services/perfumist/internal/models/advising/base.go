@@ -3,6 +3,7 @@ package advising
 import (
 	"context"
 
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/errors"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/fetching"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/matching"
@@ -35,6 +36,6 @@ func (a *Base) Advise(ctx context.Context, params parameters.RequestPerfume) ([]
 	if len(allPerfumes) == 0 {
 		return nil, errors.NewServiceError("no perfumes available in database", nil)
 	}
-	matches := matching.Find(matching.NewMatchData(a.matcher, favouritePerfumes[0], allPerfumes, a.adviseCount, 8))
+	matches := matching.Find(matching.NewMatchData(a.matcher, favouritePerfumes[0], allPerfumes, a.adviseCount, config.ThreadsCount))
 	return matches, nil
 }
