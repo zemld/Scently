@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Perfume } from "@/lib/api"
+import { translateNote } from "@/lib/notes-translations"
 
 interface PerfumeModalProps {
     perfume: Perfume | null
@@ -98,7 +99,7 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                                                     key={index}
                                                     className="px-3 py-1.5 text-sm bg-white/15 backdrop-blur-md border border-white/30 rounded-full text-[#F8F5F0] hover:bg-white/20 hover:border-[#E3B23C]/50 transition-all duration-300"
                                                 >
-                                                    {note}
+                                                    {translateNote(note)}
                                                 </span>
                                             ))}
                                         </div>
@@ -115,7 +116,7 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                                                     key={index}
                                                     className="px-3 py-1.5 text-sm bg-white/15 backdrop-blur-md border border-white/30 rounded-full text-[#F8F5F0] hover:bg-white/20 hover:border-[#E3B23C]/50 transition-all duration-300"
                                                 >
-                                                    {note}
+                                                    {translateNote(note)}
                                                 </span>
                                             ))}
                                         </div>
@@ -132,7 +133,7 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                                                     key={index}
                                                     className="px-3 py-1.5 text-sm bg-white/15 backdrop-blur-md border border-white/30 rounded-full text-[#F8F5F0] hover:bg-white/20 hover:border-[#E3B23C]/50 transition-all duration-300"
                                                 >
-                                                    {note}
+                                                    {translateNote(note)}
                                                 </span>
                                             ))}
                                         </div>
