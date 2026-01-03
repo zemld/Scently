@@ -26,35 +26,7 @@ func NewBaseWeights(
 	}
 }
 
-func NewOverlayWeights(
-	upperNotesWeight float64,
-	coreNotesWeight float64,
-	baseNotesWeight float64,
-	familyWeight float64,
-	notesWeight float64,
-	typeWeight float64,
-) *Weights {
-	w := NewBaseWeights(upperNotesWeight, coreNotesWeight, baseNotesWeight)
-	w.FamilyWeight = familyWeight
-	w.NotesWeight = notesWeight
-	w.TypeWeight = typeWeight
-	return w
-}
-
-func NewSmartWeights(
-	upperNotesWeight float64,
-	coreNotesWeight float64,
-	baseNotesWeight float64,
-	characteristicsWeight float64,
-	tagsWeight float64,
-) *Weights {
-	w := NewBaseWeights(upperNotesWeight, coreNotesWeight, baseNotesWeight)
-	w.CharacteristicsWeight = characteristicsWeight
-	w.TagsWeight = tagsWeight
-	return w
-}
-
-func NewSmartEnhancedWeights(
+func NewCombinedWeights(
 	upperNotesWeight float64,
 	coreNotesWeight float64,
 	baseNotesWeight float64,
@@ -62,7 +34,9 @@ func NewSmartEnhancedWeights(
 	tagsWeight float64,
 	overlayWeight float64,
 ) *Weights {
-	w := NewSmartWeights(upperNotesWeight, coreNotesWeight, baseNotesWeight, characteristicsWeight, tagsWeight)
+	w := NewBaseWeights(upperNotesWeight, coreNotesWeight, baseNotesWeight)
+	w.CharacteristicsWeight = characteristicsWeight
+	w.TagsWeight = tagsWeight
 	w.OverlayWeight = overlayWeight
 	return w
 }

@@ -2,6 +2,7 @@ package matching
 
 import (
 	"container/heap"
+	"math"
 	"sync"
 
 	"github.com/zemld/Scently/models"
@@ -26,13 +27,15 @@ func NewMatchData(
 	mathesCount int,
 	threadsCount int,
 ) *MatchData {
-	return &MatchData{
+	md := &MatchData{
 		Matcher:      matcher,
 		favourite:    favourite,
 		all:          all,
 		matchesCount: mathesCount,
 		threadsCount: threadsCount,
 	}
+	preparePerfumeCharacteristics(&md.favourite)
+	return md
 }
 
 func Find(md *MatchData) []models.Ranked {
@@ -73,6 +76,7 @@ func findChunk(md *MatchData, perfumes []models.Perfume, results chan<- PerfumeH
 		if md.favourite.Equal(p) {
 			continue
 		}
+		preparePerfumeCharacteristics(&p)
 		similarityScore := md.Matcher.GetPerfumeSimilarityScore(
 			md.favourite.Properties,
 			p.Properties,
@@ -107,6 +111,33 @@ func getMatchingResults(md *MatchData, h *PerfumeHeap) []models.Ranked {
 	for i := md.matchesCount - 1; i >= 0; i-- {
 		ranked[i] = heap.Pop(h).(models.Ranked)
 		ranked[i].Rank = md.matchesCount - i
+		calculatePerfumeTags(&ranked[i].Perfume)
 	}
 	return ranked
+}
+
+func cosineSimilarity(first map[string]float64, second map[string]float64) float64 {
+	dotProduct := multiplyMaps(first, second)
+	firstNorm := math.Sqrt(multiplyMaps(first, first))
+	secondNorm := math.Sqrt(multiplyMaps(second, second))
+
+	if firstNorm == 0 || secondNorm == 0 {
+		return 0.0
+	}
+
+	return dotProduct / (firstNorm * secondNorm)
+}
+
+func multiplyMaps(first map[string]float64, second map[string]float64) float64 {
+	if len(second) < len(first) {
+		return multiplyMaps(second, first)
+	}
+
+	score := 0.0
+	for tag, value := range first {
+		if secondValue, ok := second[tag]; ok {
+			score += value * secondValue
+		}
+	}
+	return score
 }

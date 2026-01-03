@@ -15,12 +15,15 @@ const (
 )
 
 const (
-	FamilyWeight     = 0.4
-	NotesWeight      = 0.55
-	TypeWeight       = 0.05
-	UpperNotesWeight = 0.15
-	CoreNotesWeight  = 0.45
-	BaseNotesWeight  = 0.4
+	FamilyWeight          = 0.4
+	NotesWeight           = 0.55
+	TypeWeight            = 0.05
+	UpperNotesWeight      = 0.2
+	CoreNotesWeight       = 0.35
+	BaseNotesWeight       = 0.45
+	CharacteristicsWeight = 0.3
+	TagsWeight            = 0.5
+	OverlayWeight         = 0.2
 )
 
 const (
