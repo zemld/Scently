@@ -35,6 +35,6 @@ func (a *Base) Advise(ctx context.Context, params parameters.RequestPerfume) ([]
 	if len(allPerfumes) == 0 {
 		return nil, errors.NewServiceError("no perfumes available in database", nil)
 	}
-	similarities := a.matcher.Find(favouritePerfumes[0], allPerfumes, a.adviseCount)
-	return similarities, nil
+	matches := matching.Find(matching.NewMatchData(a.matcher, favouritePerfumes[0], allPerfumes, a.adviseCount, 8))
+	return matches, nil
 }

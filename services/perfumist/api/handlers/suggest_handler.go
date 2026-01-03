@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -30,6 +31,7 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	suggested, err := advisor.Advise(ctx, params)
+	log.Println("suggested", suggested, err)
 	if err != nil {
 		handleError(w, err)
 		return
@@ -103,13 +105,14 @@ func createAdvisor(params parameters.RequestPerfume) advising.Advisor {
 	return advising.NewBase(
 		fetcher,
 		matching.NewOverlay(
-			config.FamilyWeight,
-			config.NotesWeight,
-			config.TypeWeight,
-			config.UpperNotesWeight,
-			config.MiddleNotesWeight,
-			config.BaseNotesWeight,
-			config.ThreadsCount,
+			*matching.NewOverlayWeights(
+				config.UpperNotesWeight,
+				config.CoreNotesWeight,
+				config.BaseNotesWeight,
+				config.FamilyWeight,
+				config.NotesWeight,
+				config.TypeWeight,
+			),
 		),
 		config.SuggestCount,
 	)
