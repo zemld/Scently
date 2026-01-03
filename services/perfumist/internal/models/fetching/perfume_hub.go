@@ -32,7 +32,7 @@ func NewPerfumeHub(url string, token string) *PerfumeHub {
 	return &PerfumeHub{
 		url:     url,
 		token:   token,
-		timeout: config.DBFetcherTimeout,
+		timeout: config.PerfumeHubFetcherTimeout,
 		client:  config.HTTPClient,
 	}
 }

@@ -10,18 +10,17 @@ const (
 )
 
 const (
-	DBFetcherTimeout         = 2 * time.Second
 	AIFetcherTimeout         = 20 * time.Second
-	PerfumeHubFetcherTimeout = 1 * time.Second
+	PerfumeHubFetcherTimeout = 5 * time.Second
 )
 
 const (
-	FamilyWeight      = 0.4
-	NotesWeight       = 0.55
-	TypeWeight        = 0.05
-	UpperNotesWeight  = 0.15
-	MiddleNotesWeight = 0.45
-	BaseNotesWeight   = 0.4
+	FamilyWeight     = 0.4
+	NotesWeight      = 0.55
+	TypeWeight       = 0.05
+	UpperNotesWeight = 0.15
+	CoreNotesWeight  = 0.45
+	BaseNotesWeight  = 0.4
 )
 
 const (
