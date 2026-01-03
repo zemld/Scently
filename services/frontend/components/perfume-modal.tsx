@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Perfume } from "@/lib/api"
+import { translateNote, translateTag, translateSex, translateFamily } from "@/lib/translations"
 
 interface PerfumeModalProps {
     perfume: Perfume | null
@@ -54,11 +55,15 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                     {/* Header Area */}
                     <div className="grid md:grid-cols-2 gap-8 mb-8">
                         {/* Image */}
-                        <div className="aspect-square rounded-2xl overflow-hidden bg-white flex items-center justify-center p-4">
+                        <div className="aspect-square rounded-2xl overflow-hidden bg-white">
                             <img
                                 src={perfume.image_url || "/luxury-perfume-bottle-amber-gold.jpg"}
                                 alt={perfume.name}
-                                className="w-full h-full object-contain"
+                                className={`w-full h-full ${
+                                    perfume.image_url 
+                                        ? "object-contain p-4" 
+                                        : "object-cover"
+                                }`}
                             />
                         </div>
 
@@ -68,14 +73,14 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                             <h2 className="text-4xl md:text-5xl font-bold text-[#F8F5F0]">{perfume.name}</h2>
                             {perfume.sex && (
                                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/15 backdrop-blur-md border border-white/30 rounded-full w-fit">
-                                    <span className="text-sm text-[#E3B23C]">{perfume.sex}</span>
+                                    <span className="text-sm text-[#E3B23C]">{translateSex(perfume.sex)}</span>
                                 </div>
                             )}
                             {uniqueFamiliesList.length > 0 && (
                                 <div className="flex flex-wrap gap-2">
                                     {uniqueFamiliesList.map((family, index) => (
                                         <div key={index} className="inline-flex items-center gap-2 px-4 py-2 bg-white/15 backdrop-blur-md border border-white/30 rounded-full">
-                                            <span className="text-sm text-[#E3B23C]">{family}</span>
+                                            <span className="text-sm text-[#E3B23C]">{translateFamily(family)}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -98,7 +103,7 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                                                     key={index}
                                                     className="px-3 py-1.5 text-sm bg-white/15 backdrop-blur-md border border-white/30 rounded-full text-[#F8F5F0] hover:bg-white/20 hover:border-[#E3B23C]/50 transition-all duration-300"
                                                 >
-                                                    {note}
+                                                    {translateNote(note)}
                                                 </span>
                                             ))}
                                         </div>
@@ -115,7 +120,7 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                                                     key={index}
                                                     className="px-3 py-1.5 text-sm bg-white/15 backdrop-blur-md border border-white/30 rounded-full text-[#F8F5F0] hover:bg-white/20 hover:border-[#E3B23C]/50 transition-all duration-300"
                                                 >
-                                                    {note}
+                                                    {translateNote(note)}
                                                 </span>
                                             ))}
                                         </div>
@@ -132,7 +137,7 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                                                     key={index}
                                                     className="px-3 py-1.5 text-sm bg-white/15 backdrop-blur-md border border-white/30 rounded-full text-[#F8F5F0] hover:bg-white/20 hover:border-[#E3B23C]/50 transition-all duration-300"
                                                 >
-                                                    {note}
+                                                    {translateNote(note)}
                                                 </span>
                                             ))}
                                         </div>
@@ -160,7 +165,7 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                                                     key={index}
                                                     className="px-3 py-1.5 text-sm bg-white/15 backdrop-blur-md border border-white/30 rounded-full text-[#F8F5F0] hover:bg-white/20 hover:border-[#E3B23C]/50 transition-all duration-300"
                                                 >
-                                                    {tag}
+                                                    {translateTag(tag)}
                                                 </span>
                                             ))}
                                         </div>
