@@ -996,6 +996,57 @@ export const notesTranslations: Record<string, string> = {
     "yellow mandarin": "желтый мандарин"
 }
 
+// Словарь переводов тегов парфюма с английского на русский
+export const tagsTranslations: Record<string, string> = {
+    "light": "легкий",
+    "airy": "воздушный",
+    "soft": "мягкий",
+    "rich": "насыщенный",
+    "dense": "плотный",
+    "sharp": "резкий",
+    "bright": "яркий",
+    "muted": "приглушенный",
+    "warm": "теплый",
+    "cold": "холодный",
+    "fresh": "свежий",
+    "cool": "прохладный",
+    "cozy": "уютный",
+    "sweet": "сладкий",
+    "bitter": "горький",
+    "sour": "кислый",
+    "salty": "соленый",
+    "spicy": "пряный",
+    "vanillic": "ванильный",
+    "caramel": "карамельный",
+    "gourmand": "гурманский",
+    "powdery": "пудровый",
+    "velvety": "бархатистый",
+    "dry": "сухой",
+    "wet": "влажный",
+    "smoky": "дымный",
+    "soapy": "мыльный",
+    "leathery": "кожаный",
+    "woody": "древесный",
+    "floral": "цветочный",
+    "fruity": "фруктовый",
+    "green": "зеленый",
+    "marine": "морской",
+    "herbal": "травяной",
+    "resinous": "смолистый",
+    "earthy": "землистый",
+    "mossy": "моховой",
+    "romantic": "романтичный",
+    "sensual": "чувственный",
+    "calm": "спокойный",
+    "invigorating": "бодрящий",
+    "mysterious": "загадочный",
+    "elegant": "элегантный",
+    "energetic": "энергичный",
+    "bold": "смелый",
+    "clean": "чистый",
+    "noble": "благородный"
+}
+
 /**
  * Переводит название ноты с английского на русский
  * @param note - название ноты на английском
@@ -1012,5 +1063,23 @@ export function translateNote(note: string): string {
     
     // Если точного совпадения нет, возвращаем оригинальное название
     return note
+}
+
+/**
+ * Переводит тег с английского на русский
+ * @param tag - название тега на английском
+ * @returns перевод на русский, если он есть в словаре, иначе оригинальное название
+ */
+export function translateTag(tag: string): string {
+    // Приводим к нижнему регистру для поиска в словаре
+    const normalizedTag = tag.toLowerCase().trim()
+    
+    // Ищем точное совпадение
+    if (tagsTranslations[normalizedTag]) {
+        return tagsTranslations[normalizedTag]
+    }
+    
+    // Если точного совпадения нет, возвращаем оригинальное название
+    return tag
 }
 
