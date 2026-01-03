@@ -102,14 +102,18 @@ func createAdvisor(params parameters.RequestPerfume) advising.Advisor {
 
 	return advising.NewBase(
 		fetcher,
-		matching.NewOverlay(
-			config.FamilyWeight,
-			config.NotesWeight,
-			config.TypeWeight,
-			config.UpperNotesWeight,
-			config.MiddleNotesWeight,
-			config.BaseNotesWeight,
-			config.ThreadsCount,
+		matching.NewCombinedMatcher(
+			*matching.NewWeights(
+				config.FamilyWeight,
+				config.NotesWeight,
+				config.TypeWeight,
+				config.UpperNotesWeight,
+				config.CoreNotesWeight,
+				config.BaseNotesWeight,
+				config.CharacteristicsWeight,
+				config.TagsWeight,
+				config.OverlayWeight,
+			),
 		),
 		config.SuggestCount,
 	)

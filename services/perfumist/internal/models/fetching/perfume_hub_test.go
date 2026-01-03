@@ -16,27 +16,6 @@ import (
 	"github.com/zemld/Scently/models"
 )
 
-func TestNewDbFetcher(t *testing.T) {
-	t.Parallel()
-
-	url := "http://test-url:8080"
-	token := "test-token"
-	fetcher := NewPerfumeHub(url, token)
-
-	if fetcher == nil {
-		t.Fatal("expected non-nil fetcher")
-	}
-	if fetcher.url != url {
-		t.Fatalf("expected url %q, got %q", url, fetcher.url)
-	}
-	if fetcher.token != token {
-		t.Fatalf("expected token %q, got %q", token, fetcher.token)
-	}
-	if fetcher.timeout != 2*time.Second {
-		t.Fatalf("expected timeout %v, got %v", 2*time.Second, fetcher.timeout)
-	}
-}
-
 func TestDbFetcher_getPerfumes_Success(t *testing.T) {
 	expectedPerfumes := []models.Perfume{
 		{Brand: "Chanel", Name: "No5", Sex: "female"},

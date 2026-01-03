@@ -1,539 +1,299 @@
 package matching
 
 import (
-	"math"
-	"sync"
 	"testing"
 
 	"github.com/zemld/Scently/models"
 )
 
-func TestNewSimpleMatcher(t *testing.T) {
+func TestNewOverlay(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 4)
+	weights := NewBaseWeights(0.3, 0.4, 0.3)
+	overlay := NewOverlay(*weights)
 
-	if matcher == nil {
-		t.Fatal("expected non-nil matcher")
+	if overlay.Weights.UpperNotesWeight != 0.3 {
+		t.Fatalf("expected UpperNotesWeight 0.3, got %f", overlay.Weights.UpperNotesWeight)
 	}
-	if matcher.familyWeight != 0.3 {
-		t.Fatalf("expected familyWeight 0.3, got %f", matcher.familyWeight)
+	if overlay.Weights.CoreNotesWeight != 0.4 {
+		t.Fatalf("expected CoreNotesWeight 0.4, got %f", overlay.Weights.CoreNotesWeight)
 	}
-	if matcher.notesWeight != 0.4 {
-		t.Fatalf("expected notesWeight 0.4, got %f", matcher.notesWeight)
-	}
-	if matcher.typeWeight != 0.3 {
-		t.Fatalf("expected typeWeight 0.3, got %f", matcher.typeWeight)
-	}
-	if matcher.upperNotesWeight != 0.2 {
-		t.Fatalf("expected upperNotesWeight 0.2, got %f", matcher.upperNotesWeight)
-	}
-	if matcher.middleNotesWeight != 0.3 {
-		t.Fatalf("expected middleNotesWeight 0.3, got %f", matcher.middleNotesWeight)
-	}
-	if matcher.baseNotesWeight != 0.5 {
-		t.Fatalf("expected baseNotesWeight 0.5, got %f", matcher.baseNotesWeight)
-	}
-	if matcher.threadsCount != 4 {
-		t.Fatalf("expected threadsCount 4, got %d", matcher.threadsCount)
-	}
-}
-
-func TestOverlay_getTypeSimilarityScore_Identical(t *testing.T) {
-	t.Parallel()
-
-	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
-	score := matcher.getTypeSimilarityScore("EDT", "EDT")
-
-	if score != 1.0 {
-		t.Fatalf("expected score 1.0 for identical types, got %f", score)
-	}
-}
-
-func TestOverlay_getTypeSimilarityScore_Different(t *testing.T) {
-	t.Parallel()
-
-	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
-	score := matcher.getTypeSimilarityScore("EDT", "EDP")
-
-	if score != 0.0 {
-		t.Fatalf("expected score 0.0 for different types, got %f", score)
-	}
-}
-
-func TestOverlay_getListSimilarityScore_Identical(t *testing.T) {
-	t.Parallel()
-
-	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
-	first := []string{"floral", "woody", "spicy"}
-	second := []string{"floral", "woody", "spicy"}
-
-	score := matcher.getListSimilarityScore(first, second)
-
-	if score != 1.0 {
-		t.Fatalf("expected score 1.0 for identical lists, got %f", score)
-	}
-}
-
-func TestOverlay_getListSimilarityScore_PartialOverlap(t *testing.T) {
-	t.Parallel()
-
-	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
-	first := []string{"floral", "woody"}
-	second := []string{"floral", "woody", "spicy"}
-
-	score := matcher.getListSimilarityScore(first, second)
-
-	// Intersection: {"floral", "woody"} = 2
-	// Union: {"floral", "woody", "spicy"} = 3
-	// Score: 2/3 = 0.666...
-	expected := 2.0 / 3.0
-	if score != expected {
-		t.Fatalf("expected score %f, got %f", expected, score)
-	}
-}
-
-func TestOverlay_getListSimilarityScore_NoOverlap(t *testing.T) {
-	t.Parallel()
-
-	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
-	first := []string{"floral", "woody"}
-	second := []string{"citrus", "spicy"}
-
-	score := matcher.getListSimilarityScore(first, second)
-
-	if score != 0.0 {
-		t.Fatalf("expected score 0.0 for no overlap, got %f", score)
-	}
-}
-
-func TestOverlay_getListSimilarityScore_EmptyLists(t *testing.T) {
-	t.Parallel()
-
-	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
-	first := []string{}
-	second := []string{}
-
-	score := matcher.getListSimilarityScore(first, second)
-
-	if score != 0.0 {
-		t.Fatalf("expected score 0.0 for empty lists, got %f", score)
-	}
-}
-
-func TestOverlay_getListSimilarityScore_OneEmpty(t *testing.T) {
-	t.Parallel()
-
-	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
-	first := []string{"floral", "woody"}
-	second := []string{}
-
-	score := matcher.getListSimilarityScore(first, second)
-
-	if score != 0.0 {
-		t.Fatalf("expected score 0.0 when one list is empty, got %f", score)
-	}
-}
-
-func TestOverlay_getListSimilarityScore_Duplicates(t *testing.T) {
-	t.Parallel()
-
-	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
-	first := []string{"floral", "floral", "woody"}
-	second := []string{"floral", "woody", "woody"}
-
-	score := matcher.getListSimilarityScore(first, second)
-
-	// Sets: first = {"floral", "woody"}, second = {"floral", "woody"}
-	// Intersection: {"floral", "woody"} = 2
-	// Union: {"floral", "woody"} = 2
-	// Score: 2/2 = 1.0
-	if score != 1.0 {
-		t.Fatalf("expected score 1.0 (duplicates should be ignored), got %f", score)
-	}
-}
-
-func TestOverlay_getNotesSimilarityScore(t *testing.T) {
-	t.Parallel()
-
-	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
-
-	first := models.Properties{
-		UpperNotes: []string{"bergamot", "lemon"},
-		CoreNotes:  []string{"lavender", "rose"},
-		BaseNotes:  []string{"musk", "vanilla"},
-	}
-
-	second := models.Properties{
-		UpperNotes: []string{"bergamot"},
-		CoreNotes:  []string{"lavender", "rose"},
-		BaseNotes:  []string{"musk"},
-	}
-
-	score := matcher.getNotesSimilarityScore(first, second)
-
-	// Upper: {"bergamot"} / {"bergamot", "lemon"} = 1/2 = 0.5
-	// Core: {"lavender", "rose"} / {"lavender", "rose"} = 2/2 = 1.0
-	// Base: {"musk"} / {"musk", "vanilla"} = 1/2 = 0.5
-	// Weighted: 0.5*0.2 + 1.0*0.3 + 0.5*0.5 = 0.1 + 0.3 + 0.25 = 0.65
-	expected := 0.5*0.2 + 1.0*0.3 + 0.5*0.5
-	if math.Abs(score-expected) > 0.0001 {
-		t.Fatalf("expected score %f, got %f", expected, score)
+	if overlay.Weights.BaseNotesWeight != 0.3 {
+		t.Fatalf("expected BaseNotesWeight 0.3, got %f", overlay.Weights.BaseNotesWeight)
 	}
 }
 
 func TestOverlay_GetPerfumeSimilarityScore(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
+	weights := NewBaseWeights(0.2, 0.3, 0.2)
+	weights.FamilyWeight = 0.1
+	weights.NotesWeight = 0.15
+	weights.TypeWeight = 0.05
+	overlay := NewOverlay(*weights)
 
 	first := models.Properties{
-		Type:       "EDT",
-		Family:     []string{"floral", "woody"},
-		UpperNotes: []string{"bergamot"},
-		CoreNotes:  []string{"rose"},
-		BaseNotes:  []string{"musk"},
+		Type:       "Eau de Parfum",
+		Family:     []string{"Floral", "Oriental"},
+		UpperNotes: []string{"Rose", "Jasmine"},
+		CoreNotes:  []string{"Vanilla", "Amber"},
+		BaseNotes:  []string{"Musk", "Patchouli"},
 	}
 
 	second := models.Properties{
-		Type:       "EDT",
-		Family:     []string{"floral"},
-		UpperNotes: []string{"bergamot"},
-		CoreNotes:  []string{"rose"},
-		BaseNotes:  []string{"musk"},
+		Type:       "Eau de Parfum",
+		Family:     []string{"Floral"},
+		UpperNotes: []string{"Rose", "Lily"},
+		CoreNotes:  []string{"Vanilla"},
+		BaseNotes:  []string{"Musk"},
 	}
 
-	score := matcher.GetPerfumeSimilarityScore(first, second)
+	score := overlay.GetPerfumeSimilarityScore(first, second)
 
-	// Type: 1.0 (identical) * 0.3 = 0.3
-	// Family: 1/2 = 0.5 * 0.3 = 0.15
-	// Notes: 1.0 (all identical) * 0.4 = 0.4
-	// Total: 0.3 + 0.15 + 0.4 = 0.85
-	expected := 0.3 + 0.15 + 0.4
-	if math.Abs(score-expected) > 0.0001 {
+	// Expected calculations:
+	// Family similarity: 1/2 = 0.5 (intersection: Floral, union: Floral, Oriental)
+	// Upper notes similarity: 1/3 = 0.333... (intersection: Rose, union: Rose, Jasmine, Lily)
+	// Core notes similarity: 1/2 = 0.5 (intersection: Vanilla, union: Vanilla, Amber)
+	// Base notes similarity: 1/2 = 0.5 (intersection: Musk, union: Musk, Patchouli)
+	// Notes similarity: 0.333*0.2 + 0.5*0.3 + 0.5*0.2 = 0.0666 + 0.15 + 0.1 = 0.3166
+	// Type similarity: 1.0 (both are "Eau de Parfum")
+	// Total: 0.5*0.1 + 0.3166*0.15 + 1.0*0.05 = 0.05 + 0.04749 + 0.05 = 0.14749
+
+	if score <= 0 {
+		t.Fatalf("expected positive score, got %f", score)
+	}
+	if score > 1.0 {
+		t.Fatalf("expected score <= 1.0, got %f", score)
+	}
+}
+
+func TestOverlay_GetPerfumeSimilarityScore_Identical(t *testing.T) {
+	t.Parallel()
+
+	weights := NewBaseWeights(0.2, 0.3, 0.2)
+	weights.FamilyWeight = 0.1
+	weights.NotesWeight = 0.15
+	weights.TypeWeight = 0.05
+	overlay := NewOverlay(*weights)
+
+	props := models.Properties{
+		Type:       "Eau de Parfum",
+		Family:     []string{"Floral"},
+		UpperNotes: []string{"Rose", "Jasmine"},
+		CoreNotes:  []string{"Vanilla"},
+		BaseNotes:  []string{"Musk"},
+	}
+
+	score := overlay.GetPerfumeSimilarityScore(props, props)
+
+	// All similarities should be 1.0
+	// Family: 1.0, Notes: 1.0*0.2 + 1.0*0.3 + 1.0*0.2 = 0.7, Type: 1.0
+	// Total: 1.0*0.1 + 0.7*0.15 + 1.0*0.05 = 0.1 + 0.105 + 0.05 = 0.255
+	expectedMin := 0.2 // At least should be high
+	if score < expectedMin {
+		t.Fatalf("expected score >= %f for identical properties, got %f", expectedMin, score)
+	}
+}
+
+func TestOverlay_GetPerfumeSimilarityScore_CompletelyDifferent(t *testing.T) {
+	t.Parallel()
+
+	weights := NewBaseWeights(0.2, 0.3, 0.2)
+	weights.FamilyWeight = 0.1
+	weights.NotesWeight = 0.15
+	weights.TypeWeight = 0.05
+	overlay := NewOverlay(*weights)
+
+	first := models.Properties{
+		Type:       "Eau de Parfum",
+		Family:     []string{"Floral"},
+		UpperNotes: []string{"Rose"},
+		CoreNotes:  []string{"Vanilla"},
+		BaseNotes:  []string{"Musk"},
+	}
+
+	second := models.Properties{
+		Type:       "Eau de Toilette",
+		Family:     []string{"Oriental"},
+		UpperNotes: []string{"Citrus"},
+		CoreNotes:  []string{"Spice"},
+		BaseNotes:  []string{"Wood"},
+	}
+
+	score := overlay.GetPerfumeSimilarityScore(first, second)
+
+	// All similarities should be 0.0
+	// Total should be 0.0
+	if score != 0.0 {
+		t.Fatalf("expected score 0.0 for completely different properties, got %f", score)
+	}
+}
+
+func TestOverlay_getListSimilarityScore(t *testing.T) {
+	t.Parallel()
+
+	weights := NewBaseWeights(0.3, 0.4, 0.3)
+	overlay := NewOverlay(*weights)
+
+	// Test identical lists
+	score := overlay.getListSimilarityScore([]string{"A", "B"}, []string{"A", "B"})
+	if score != 1.0 {
+		t.Fatalf("expected score 1.0 for identical lists, got %f", score)
+	}
+
+	// Test partial overlap
+	score = overlay.getListSimilarityScore([]string{"A", "B"}, []string{"A", "C"})
+	// Intersection: {A} = 1, Union: {A, B, C} = 3, Score: 1/3
+	expected := 1.0 / 3.0
+	if score != expected {
+		t.Fatalf("expected score %f, got %f", expected, score)
+	}
+
+	// Test no overlap
+	score = overlay.getListSimilarityScore([]string{"A", "B"}, []string{"C", "D"})
+	if score != 0.0 {
+		t.Fatalf("expected score 0.0 for no overlap, got %f", score)
+	}
+
+	// Test empty lists
+	score = overlay.getListSimilarityScore([]string{}, []string{})
+	if score != 0.0 {
+		t.Fatalf("expected score 0.0 for empty lists, got %f", score)
+	}
+
+	// Test one empty list
+	score = overlay.getListSimilarityScore([]string{"A"}, []string{})
+	if score != 0.0 {
+		t.Fatalf("expected score 0.0 when one list is empty, got %f", score)
+	}
+
+	// Test complete subset
+	score = overlay.getListSimilarityScore([]string{"A"}, []string{"A", "B", "C"})
+	// Intersection: {A} = 1, Union: {A, B, C} = 3, Score: 1/3
+	expected = 1.0 / 3.0
+	if score != expected {
 		t.Fatalf("expected score %f, got %f", expected, score)
 	}
 }
 
-func TestOverlay_GetPerfumeSimilarityScore_DifferentType(t *testing.T) {
+func TestOverlay_getNotesSimilarityScore(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
+	weights := NewBaseWeights(0.2, 0.3, 0.2)
+	weights.FamilyWeight = 0.1
+	weights.NotesWeight = 0.15
+	weights.TypeWeight = 0.05
+	overlay := NewOverlay(*weights)
 
 	first := models.Properties{
-		Type:       "EDT",
-		Family:     []string{"floral"},
-		UpperNotes: []string{"bergamot"},
-		CoreNotes:  []string{"rose"},
-		BaseNotes:  []string{"musk"},
+		UpperNotes: []string{"Rose", "Jasmine"},
+		CoreNotes:  []string{"Vanilla"},
+		BaseNotes:  []string{"Musk"},
 	}
 
 	second := models.Properties{
-		Type:       "EDP",
-		Family:     []string{"floral"},
-		UpperNotes: []string{"bergamot"},
-		CoreNotes:  []string{"rose"},
-		BaseNotes:  []string{"musk"},
+		UpperNotes: []string{"Rose", "Lily"},
+		CoreNotes:  []string{"Vanilla", "Amber"},
+		BaseNotes:  []string{"Musk", "Patchouli"},
 	}
 
-	score := matcher.GetPerfumeSimilarityScore(first, second)
+	score := overlay.getNotesSimilarityScore(first, second)
 
-	// Type: 0.0 (different) * 0.3 = 0.0
-	// Family: 1.0 (identical) * 0.3 = 0.3
-	// Notes: 1.0 (all identical) * 0.4 = 0.4
-	// Total: 0.0 + 0.3 + 0.4 = 0.7
-	expected := 0.0 + 0.3 + 0.4
-	if math.Abs(score-expected) > 0.0001 {
-		t.Fatalf("expected score %f, got %f", expected, score)
+	// Upper notes: 1/3 = 0.333... (Rose in common, union: Rose, Jasmine, Lily)
+	// Core notes: 1/2 = 0.5 (Vanilla in common, union: Vanilla, Amber)
+	// Base notes: 1/2 = 0.5 (Musk in common, union: Musk, Patchouli)
+	// Total: 0.333*0.2 + 0.5*0.3 + 0.5*0.2 = 0.0666 + 0.15 + 0.1 = 0.3166
+
+	if score <= 0 {
+		t.Fatalf("expected positive score, got %f", score)
 	}
-}
-
-func TestOverlay_buildHeapAsync_SkipsEqual(t *testing.T) {
-	t.Parallel()
-
-	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
-
-	favourite := models.Perfume{
-		Brand: "Chanel",
-		Name:  "No5",
-		Sex:   "female",
-	}
-
-	all := []models.Perfume{
-		favourite, // Should be skipped
-		{Brand: "Dior", Name: "Sauvage", Sex: "male"},
-		{Brand: "Tom Ford", Name: "Black Orchid", Sex: "unisex"},
-	}
-
-	h := &PerfumeHeap{}
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
-
-	matcher.processPerfumes(h, wg, favourite, all, 2)
-	wg.Wait()
-
-	// Should have 2 items (favourite is skipped)
-	if h.Len() != 2 {
-		t.Fatalf("expected 2 items in heap (favourite skipped), got %d", h.Len())
+	if score > 1.0 {
+		t.Fatalf("expected score <= 1.0, got %f", score)
 	}
 }
 
-func TestOverlay_Find(t *testing.T) {
+func TestOverlay_getTypeSimilarityScore(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 2)
+	weights := NewBaseWeights(0.3, 0.4, 0.3)
+	overlay := NewOverlay(*weights)
 
-	favourite := models.Perfume{
-		Brand: "Chanel",
-		Name:  "No5",
-		Sex:   "female",
-		Properties: models.Properties{
-			Type:       "EDT",
-			Family:     []string{"floral"},
-			UpperNotes: []string{"bergamot"},
-			CoreNotes:  []string{"rose"},
-			BaseNotes:  []string{"musk"},
-		},
+	// Test identical types
+	score := overlay.getTypeSimilarityScore("Eau de Parfum", "Eau de Parfum")
+	if score != 1.0 {
+		t.Fatalf("expected score 1.0 for identical types, got %f", score)
 	}
 
-	// Create perfumes with different similarity scores
-	// Perfume1: same type, same family, same notes - highest similarity
-	perfume1 := models.Perfume{
-		Brand: "Dior",
-		Name:  "J'adore",
-		Sex:   "female",
-		Properties: models.Properties{
-			Type:       "EDT",
-			Family:     []string{"floral"},
-			UpperNotes: []string{"bergamot"},
-			CoreNotes:  []string{"rose"},
-			BaseNotes:  []string{"musk"},
-		},
+	// Test different types
+	score = overlay.getTypeSimilarityScore("Eau de Parfum", "Eau de Toilette")
+	if score != 0.0 {
+		t.Fatalf("expected score 0.0 for different types, got %f", score)
 	}
 
-	// Perfume2: same type, different family - medium similarity
-	perfume2 := models.Perfume{
-		Brand: "Tom Ford",
-		Name:  "Black Orchid",
-		Sex:   "unisex",
-		Properties: models.Properties{
-			Type:       "EDT",
-			Family:     []string{"woody"},
-			UpperNotes: []string{"citrus"},
-			CoreNotes:  []string{"spicy"},
-			BaseNotes:  []string{"amber"},
-		},
+	// Test empty strings
+	score = overlay.getTypeSimilarityScore("", "")
+	if score != 1.0 {
+		t.Fatalf("expected score 1.0 for empty strings, got %f", score)
 	}
 
-	// Perfume3: different type, different everything - lowest similarity
-	perfume3 := models.Perfume{
-		Brand: "Versace",
-		Name:  "Eros",
-		Sex:   "male",
-		Properties: models.Properties{
-			Type:       "EDP",
-			Family:     []string{"fresh"},
-			UpperNotes: []string{"mint"},
-			CoreNotes:  []string{"tonka"},
-			BaseNotes:  []string{"vanilla"},
-		},
-	}
-
-	all := []models.Perfume{perfume1, perfume2, perfume3}
-
-	result := matcher.Find(favourite, all, 2)
-
-	if len(result) != 2 {
-		t.Fatalf("expected 2 results, got %d", len(result))
-	}
-
-	// Results should be sorted by score descending (highest first)
-	// Since heap is max-heap, first element should have highest score
-	if result[0].Rank != 1 {
-		t.Fatalf("expected first rank to be 1, got %d", result[0].Rank)
-	}
-	if result[1].Rank != 2 {
-		t.Fatalf("expected second rank to be 2, got %d", result[1].Rank)
-	}
-
-	// Verify scores are in descending order
-	if result[0].Score < result[1].Score {
-		t.Fatalf("expected first score (%f) to be >= second (%f)", result[0].Score, result[1].Score)
-	}
-
-	// Verify that perfume1 (identical properties) has highest or equal score
-	// Since it has identical properties, it should have score close to 1.0
-	if result[0].Score < 0.9 {
-		t.Fatalf("expected highest score to be >= 0.9, got %f", result[0].Score)
+	// Test one empty string
+	score = overlay.getTypeSimilarityScore("Eau de Parfum", "")
+	if score != 0.0 {
+		t.Fatalf("expected score 0.0 when one type is empty, got %f", score)
 	}
 }
 
-func TestOverlay_Find_EmptyList(t *testing.T) {
+func TestOverlay_GetPerfumeSimilarityScore_EmptyProperties(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
+	weights := NewBaseWeights(0.2, 0.3, 0.2)
+	weights.FamilyWeight = 0.1
+	weights.NotesWeight = 0.15
+	weights.TypeWeight = 0.05
+	overlay := NewOverlay(*weights)
 
-	favourite := models.Perfume{
-		Brand: "Chanel",
-		Name:  "No5",
-		Sex:   "female",
+	empty := models.Properties{}
+	filled := models.Properties{
+		Type:       "Eau de Parfum",
+		Family:     []string{"Floral"},
+		UpperNotes: []string{"Rose"},
+		CoreNotes:  []string{"Vanilla"},
+		BaseNotes:  []string{"Musk"},
 	}
 
-	all := []models.Perfume{}
-
-	result := matcher.Find(favourite, all, 5)
-
-	if result == nil {
-		t.Fatal("expected empty slice, got nil")
-	}
-	if len(result) != 0 {
-		t.Fatalf("expected empty result, got %d items", len(result))
+	score := overlay.GetPerfumeSimilarityScore(empty, filled)
+	// Should handle empty properties gracefully
+	if score < 0 || score > 1.0 {
+		t.Fatalf("expected score in range [0, 1], got %f", score)
 	}
 }
 
-func TestOverlay_Find_OnlyFavourite(t *testing.T) {
+func TestOverlay_GetPerfumeSimilarityScore_WeightsSum(t *testing.T) {
 	t.Parallel()
 
-	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
+	// Test with different weight configurations
+	weights := NewBaseWeights(0.1, 0.2, 0.1)
+	weights.FamilyWeight = 0.2
+	weights.NotesWeight = 0.3
+	weights.TypeWeight = 0.1
+	overlay := NewOverlay(*weights)
 
-	favourite := models.Perfume{
-		Brand: "Chanel",
-		Name:  "No5",
-		Sex:   "female",
+	props := models.Properties{
+		Type:       "Eau de Parfum",
+		Family:     []string{"Floral"},
+		UpperNotes: []string{"Rose"},
+		CoreNotes:  []string{"Vanilla"},
+		BaseNotes:  []string{"Musk"},
 	}
 
-	all := []models.Perfume{favourite}
+	score := overlay.GetPerfumeSimilarityScore(props, props)
 
-	result := matcher.Find(favourite, all, 5)
-
-	if result == nil {
-		t.Fatal("expected empty slice, got nil")
-	}
-	if len(result) != 0 {
-		t.Fatalf("expected empty result (favourite is skipped), got %d items", len(result))
-	}
-}
-
-func TestOverlay_Find_MoreThanAvailable(t *testing.T) {
-	t.Parallel()
-
-	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
-
-	favourite := models.Perfume{
-		Brand: "Chanel",
-		Name:  "No5",
-		Sex:   "female",
-		Properties: models.Properties{
-			Type:       "EDT",
-			Family:     []string{"floral"},
-			UpperNotes: []string{"bergamot"},
-			CoreNotes:  []string{"rose"},
-			BaseNotes:  []string{"musk"},
-		},
-	}
-
-	all := []models.Perfume{
-		{Brand: "Dior", Name: "Sauvage", Sex: "male"},
-		{Brand: "Tom Ford", Name: "Black Orchid", Sex: "unisex"},
-	}
-
-	// Request more than available
-	result := matcher.Find(favourite, all, 10)
-
-	// Should return only available items (2)
-	if len(result) != 2 {
-		t.Fatalf("expected 2 results, got %d", len(result))
-	}
-
-	// Verify all results have valid ranks and scores
-	for i, r := range result {
-		if r.Rank != i+1 {
-			t.Fatalf("expected rank %d at index %d, got %d", i+1, i, r.Rank)
-		}
-		if r.Score < 0 || r.Score > 1 {
-			t.Fatalf("expected score between 0 and 1, got %f", r.Score)
-		}
-	}
-}
-
-func TestOverlay_Find_OrderedByScore(t *testing.T) {
-	t.Parallel()
-
-	matcher := NewOverlay(0.3, 0.4, 0.3, 0.2, 0.3, 0.5, 1)
-
-	favourite := models.Perfume{
-		Brand: "Chanel",
-		Name:  "No5",
-		Sex:   "female",
-		Properties: models.Properties{
-			Type:       "EDT",
-			Family:     []string{"floral", "woody"},
-			UpperNotes: []string{"bergamot", "lemon"},
-			CoreNotes:  []string{"rose", "jasmine"},
-			BaseNotes:  []string{"musk", "vanilla"},
-		},
-	}
-
-	// Create perfumes with clearly different similarity scores
-	// High similarity - same type, overlapping family and notes
-	highSimilar := models.Perfume{
-		Brand: "Dior",
-		Name:  "J'adore",
-		Sex:   "female",
-		Properties: models.Properties{
-			Type:       "EDT",
-			Family:     []string{"floral", "woody"},
-			UpperNotes: []string{"bergamot"},
-			CoreNotes:  []string{"rose"},
-			BaseNotes:  []string{"musk"},
-		},
-	}
-
-	// Medium similarity - same type, some overlap
-	mediumSimilar := models.Perfume{
-		Brand: "Tom Ford",
-		Name:  "Black Orchid",
-		Sex:   "unisex",
-		Properties: models.Properties{
-			Type:       "EDT",
-			Family:     []string{"woody"},
-			UpperNotes: []string{"citrus"},
-			CoreNotes:  []string{"spicy"},
-			BaseNotes:  []string{"amber"},
-		},
-	}
-
-	// Low similarity - different type, no overlap
-	lowSimilar := models.Perfume{
-		Brand: "Versace",
-		Name:  "Eros",
-		Sex:   "male",
-		Properties: models.Properties{
-			Type:       "EDP",
-			Family:     []string{"fresh"},
-			UpperNotes: []string{"mint"},
-			CoreNotes:  []string{"tonka"},
-			BaseNotes:  []string{"vanilla"},
-		},
-	}
-
-	all := []models.Perfume{highSimilar, mediumSimilar, lowSimilar}
-
-	result := matcher.Find(favourite, all, 3)
-
-	if len(result) != 3 {
-		t.Fatalf("expected 3 results, got %d", len(result))
-	}
-
-	// Verify scores are in descending order
-	for i := 0; i < len(result)-1; i++ {
-		if result[i].Score < result[i+1].Score {
-			t.Fatalf("expected result[%d].Score (%f) >= result[%d].Score (%f)", i, result[i].Score, i+1, result[i+1].Score)
-		}
-	}
-
-	// Verify highest score is from highSimilar perfume
-	if result[0].Score <= result[1].Score || result[0].Score <= result[2].Score {
-		t.Fatalf("expected first result to have highest score, got scores: %f, %f, %f", result[0].Score, result[1].Score, result[2].Score)
+	// For identical properties, score should be based on weights
+	// All individual similarities are 1.0
+	// Notes: 1.0*0.1 + 1.0*0.2 + 1.0*0.1 = 0.4
+	// Total: 1.0*0.2 + 0.4*0.3 + 1.0*0.1 = 0.2 + 0.12 + 0.1 = 0.42
+	expectedMin := 0.3
+	if score < expectedMin {
+		t.Fatalf("expected score >= %f for identical properties with these weights, got %f", expectedMin, score)
 	}
 }

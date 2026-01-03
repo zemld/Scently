@@ -2,24 +2,45 @@ package matching
 
 import (
 	"container/heap"
-	"sync"
 
 	"github.com/zemld/Scently/models"
 )
 
 type PerfumeHeap struct {
-	mu       sync.RWMutex
 	perfumes []models.Ranked
+	limit    int
 }
 
 func (h *PerfumeHeap) Push(x any) {
-	h.perfumes = append(h.perfumes, x.(models.Ranked))
+	if h.limit <= 0 {
+		return
+	}
+
+	ranked, ok := x.(models.Ranked)
+	if !ok {
+		return
+	}
+
+	if h.Len() < h.limit {
+		h.perfumes = append(h.perfumes, ranked)
+		heap.Fix(h, h.Len()-1)
+		return
+	}
+
+	if ranked.Score <= h.perfumes[0].Score {
+		return
+	}
+	heap.Pop(h)
+	h.perfumes = append(h.perfumes, ranked)
+	heap.Fix(h, h.Len()-1)
 }
 
 func (h *PerfumeHeap) Pop() any {
-	n := len(h.perfumes)
-	x := h.perfumes[n-1]
-	h.perfumes = h.perfumes[0 : n-1]
+	if h.Len() == 0 {
+		return nil
+	}
+	x := h.perfumes[0]
+	h.perfumes = h.perfumes[1:]
 	return x
 }
 
@@ -33,31 +54,4 @@ func (h *PerfumeHeap) Less(i, j int) bool {
 
 func (h *PerfumeHeap) Swap(i, j int) {
 	h.perfumes[i], h.perfumes[j] = h.perfumes[j], h.perfumes[i]
-}
-
-func (h *PerfumeHeap) PopSafe() models.Ranked {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-
-	return heap.Pop(h).(models.Ranked)
-}
-
-func (h *PerfumeHeap) PushSafeIfNeeded(p models.Ranked, limit int) {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-
-	if limit <= 0 {
-		return
-	}
-
-	if h.Len() < limit {
-		heap.Push(h, p)
-		return
-	}
-
-	if len(h.perfumes) == 0 || p.Score <= h.perfumes[0].Score {
-		return
-	}
-	heap.Pop(h)
-	heap.Push(h, p)
 }
