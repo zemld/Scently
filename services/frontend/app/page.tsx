@@ -8,6 +8,7 @@ import { usePerfumeAPI } from "@/hooks/use-perfume-api"
 import { Perfume } from "@/lib/api"
 import { PerfumeModal } from "@/components/perfume-modal"
 import { SexSelector } from "@/components/sex-selector"
+import { translateSex, translateFamily } from "@/lib/translations"
 
 export default function ScentlyLanding() {
   const [showInputSection, setShowInputSection] = useState(false)
@@ -170,11 +171,15 @@ export default function ScentlyLanding() {
                     className="group bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 hover:bg-white/15 hover:border-[#E3B23C]/50 hover:shadow-[0_8px_32px_rgba(227,178,60,0.3)] hover:scale-105 transition-all duration-300 cursor-pointer animate-fadeIn"
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    <div className="aspect-square mb-4 rounded-xl overflow-hidden bg-white flex items-center justify-center p-4">
+                    <div className="aspect-square mb-4 rounded-xl overflow-hidden bg-white">
                       <img
                         src={perfume.image_url || defaultPerfumeImage}
                         alt={perfume.name}
-                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                        className={`w-full h-full group-hover:scale-105 transition-transform duration-300 ${
+                          perfume.image_url 
+                            ? "object-contain p-4" 
+                            : "object-cover"
+                        }`}
                       />
                     </div>
                     <h3 className="text-xl font-bold text-[#F8F5F0] mb-1">{perfume.name}</h3>
@@ -205,7 +210,7 @@ export default function ScentlyLanding() {
                     {perfume.sex && (
                       <div className="mt-2">
                         <span className="text-xs bg-white/10 backdrop-blur-md border border-white/20 text-[#E3B23C] px-2 py-1 rounded-full">
-                          {perfume.sex}
+                          {translateSex(perfume.sex)}
                         </span>
                       </div>
                     )}
@@ -216,7 +221,7 @@ export default function ScentlyLanding() {
                             key={familyIndex}
                             className="text-xs bg-[#C38E70]/20 text-[#C38E70] px-2 py-1 rounded-full"
                           >
-                            {family}
+                            {translateFamily(family)}
                           </span>
                         ))}
                       </div>

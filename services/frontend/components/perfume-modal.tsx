@@ -55,11 +55,15 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                     {/* Header Area */}
                     <div className="grid md:grid-cols-2 gap-8 mb-8">
                         {/* Image */}
-                        <div className="aspect-square rounded-2xl overflow-hidden bg-white flex items-center justify-center p-4">
+                        <div className="aspect-square rounded-2xl overflow-hidden bg-white">
                             <img
                                 src={perfume.image_url || "/luxury-perfume-bottle-amber-gold.jpg"}
                                 alt={perfume.name}
-                                className="w-full h-full object-contain"
+                                className={`w-full h-full ${
+                                    perfume.image_url 
+                                        ? "object-contain p-4" 
+                                        : "object-cover"
+                                }`}
                             />
                         </div>
 
