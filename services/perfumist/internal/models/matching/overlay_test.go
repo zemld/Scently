@@ -26,7 +26,10 @@ func TestNewOverlay(t *testing.T) {
 func TestOverlay_GetPerfumeSimilarityScore(t *testing.T) {
 	t.Parallel()
 
-	weights := NewOverlayWeights(0.2, 0.3, 0.2, 0.1, 0.15, 0.05)
+	weights := NewBaseWeights(0.2, 0.3, 0.2)
+	weights.FamilyWeight = 0.1
+	weights.NotesWeight = 0.15
+	weights.TypeWeight = 0.05
 	overlay := NewOverlay(*weights)
 
 	first := models.Properties{
@@ -67,7 +70,10 @@ func TestOverlay_GetPerfumeSimilarityScore(t *testing.T) {
 func TestOverlay_GetPerfumeSimilarityScore_Identical(t *testing.T) {
 	t.Parallel()
 
-	weights := NewOverlayWeights(0.2, 0.3, 0.2, 0.1, 0.15, 0.05)
+	weights := NewBaseWeights(0.2, 0.3, 0.2)
+	weights.FamilyWeight = 0.1
+	weights.NotesWeight = 0.15
+	weights.TypeWeight = 0.05
 	overlay := NewOverlay(*weights)
 
 	props := models.Properties{
@@ -92,7 +98,10 @@ func TestOverlay_GetPerfumeSimilarityScore_Identical(t *testing.T) {
 func TestOverlay_GetPerfumeSimilarityScore_CompletelyDifferent(t *testing.T) {
 	t.Parallel()
 
-	weights := NewOverlayWeights(0.2, 0.3, 0.2, 0.1, 0.15, 0.05)
+	weights := NewBaseWeights(0.2, 0.3, 0.2)
+	weights.FamilyWeight = 0.1
+	weights.NotesWeight = 0.15
+	weights.TypeWeight = 0.05
 	overlay := NewOverlay(*weights)
 
 	first := models.Properties{
@@ -170,7 +179,10 @@ func TestOverlay_getListSimilarityScore(t *testing.T) {
 func TestOverlay_getNotesSimilarityScore(t *testing.T) {
 	t.Parallel()
 
-	weights := NewOverlayWeights(0.2, 0.3, 0.2, 0.1, 0.15, 0.05)
+	weights := NewBaseWeights(0.2, 0.3, 0.2)
+	weights.FamilyWeight = 0.1
+	weights.NotesWeight = 0.15
+	weights.TypeWeight = 0.05
 	overlay := NewOverlay(*weights)
 
 	first := models.Properties{
@@ -234,7 +246,10 @@ func TestOverlay_getTypeSimilarityScore(t *testing.T) {
 func TestOverlay_GetPerfumeSimilarityScore_EmptyProperties(t *testing.T) {
 	t.Parallel()
 
-	weights := NewOverlayWeights(0.2, 0.3, 0.2, 0.1, 0.15, 0.05)
+	weights := NewBaseWeights(0.2, 0.3, 0.2)
+	weights.FamilyWeight = 0.1
+	weights.NotesWeight = 0.15
+	weights.TypeWeight = 0.05
 	overlay := NewOverlay(*weights)
 
 	empty := models.Properties{}
@@ -257,7 +272,10 @@ func TestOverlay_GetPerfumeSimilarityScore_WeightsSum(t *testing.T) {
 	t.Parallel()
 
 	// Test with different weight configurations
-	weights := NewOverlayWeights(0.1, 0.2, 0.1, 0.2, 0.3, 0.1)
+	weights := NewBaseWeights(0.1, 0.2, 0.1)
+	weights.FamilyWeight = 0.2
+	weights.NotesWeight = 0.3
+	weights.TypeWeight = 0.1
 	overlay := NewOverlay(*weights)
 
 	props := models.Properties{
@@ -279,4 +297,3 @@ func TestOverlay_GetPerfumeSimilarityScore_WeightsSum(t *testing.T) {
 		t.Fatalf("expected score >= %f for identical properties with these weights, got %f", expectedMin, score)
 	}
 }
-
