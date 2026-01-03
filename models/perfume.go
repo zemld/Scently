@@ -32,6 +32,12 @@ type Properties struct {
 	EnrichedUpperNotes []EnrichedNote `json:"enriched_upper_notes,omitempty"`
 	EnrichedCoreNotes  []EnrichedNote `json:"enriched_core_notes,omitempty"`
 	EnrichedBaseNotes  []EnrichedNote `json:"enriched_base_notes,omitempty"`
+
+	Tags []string `json:"tags,omitempty"`
+
+	UpperCharacteristics map[string]float64 `json:"upper_characteristics,omitempty"`
+	CoreCharacteristics  map[string]float64 `json:"core_characteristics,omitempty"`
+	BaseCharacteristics  map[string]float64 `json:"base_characteristics,omitempty"`
 }
 
 type EnrichedNote struct {
