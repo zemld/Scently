@@ -22,7 +22,7 @@ const (
 
 const (
 	defaultAITimeout    = 20 * time.Second
-	defaultNonAITimeout = 2 * time.Second
+	defaultNonAITimeout = 4 * time.Second
 )
 
 var (
