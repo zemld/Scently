@@ -60,7 +60,7 @@ func uniteTags(notes []models.EnrichedNote) map[string]int {
 	return united
 }
 
-func calculatePerfumeTags(p *models.Perfume) {
+func CalculatePerfumeTags(p *models.Perfume) {
 	tags := uniteTags(
 		append(
 			append(p.Properties.EnrichedUpperNotes, p.Properties.EnrichedCoreNotes...),

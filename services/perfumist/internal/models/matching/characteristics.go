@@ -38,7 +38,7 @@ func uniteCharacteristics(notes []models.EnrichedNote) map[string]float64 {
 	return united
 }
 
-func preparePerfumeCharacteristics(p *models.Perfume) {
+func PreparePerfumeCharacteristics(p *models.Perfume) {
 	p.Properties.UpperCharacteristics = uniteCharacteristics(p.Properties.EnrichedUpperNotes)
 	p.Properties.CoreCharacteristics = uniteCharacteristics(p.Properties.EnrichedCoreNotes)
 	p.Properties.BaseCharacteristics = uniteCharacteristics(p.Properties.EnrichedBaseNotes)

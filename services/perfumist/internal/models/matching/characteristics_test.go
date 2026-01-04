@@ -331,7 +331,7 @@ func TestPreparePerfumeCharacteristics(t *testing.T) {
 		},
 	}
 
-	preparePerfumeCharacteristics(perfume)
+	PreparePerfumeCharacteristics(perfume)
 
 	if perfume.Properties.UpperCharacteristics == nil {
 		t.Fatal("expected UpperCharacteristics to be set")
