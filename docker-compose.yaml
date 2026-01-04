@@ -38,15 +38,12 @@ services:
       - ./secrets/perfume-hub.env
       - ./secrets/ai_advisor.env
       - ./secrets/perfumist.env
-    ports:
-      - "8088:8000"
     expose:
       - "8000"
     depends_on:
       - perfume-hub
     networks:
       - backend
-      - frontend
 
   redis_cache:
     image: redis:latest
@@ -83,9 +80,23 @@ services:
     networks:
       - frontend
       - backend
+
+  config_storage:
+    image: redis:latest
+    env_file:
+      - ./secrets/config_storage.env
+    ports:
+      - "6380:6379"
+    volumes:
+      - config_vlm:/data
+    networks:
+      - backend
+      - frontend
+
 volumes:
   perfume_volume:
   redis_data:
+  config_vlm:
 
 networks:
   frontend:
