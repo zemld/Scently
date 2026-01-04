@@ -5,6 +5,7 @@ import (
 
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/errors"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/fetching"
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/matching"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 	"github.com/zemld/Scently/models"
 )
@@ -42,6 +43,8 @@ func (a AI) Advise(ctx context.Context, params parameters.RequestPerfume) ([]mod
 	rankedResults := make([]models.Ranked, 0, len(adviseResults))
 	for i, advise := range adviseResults {
 		if enriched, ok := rankedMap[getKey(advise)]; ok {
+			matching.PreparePerfumeCharacteristics(&enriched)
+			matching.CalculatePerfumeTags(&enriched)
 			rankedResults = append(rankedResults, models.Ranked{
 				Perfume: enriched,
 				Rank:    i + 1,
