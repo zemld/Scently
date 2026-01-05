@@ -17,7 +17,6 @@ import (
 func Suggest(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	params := parseQueryParams(r)
-
 	if err := params.Validate(); err != nil {
 		handleError(w, err)
 		return
@@ -91,7 +90,7 @@ func createAdvisor(params parameters.RequestPerfume, cm cm.ConfigManager) advisi
 		return nil
 	}
 
-	fetcher := fetching.NewPerfumeHub(getPerfumesUrl, os.Getenv(perfumeHubInternalTokenEnv), config.Manager())
+	fetcher := fetching.NewPerfumeHub(getPerfumesUrl, os.Getenv(perfumeHubInternalTokenEnv), cm)
 
 	if params.UseAI {
 		return advising.NewAI(
@@ -100,10 +99,10 @@ func createAdvisor(params parameters.RequestPerfume, cm cm.ConfigManager) advisi
 				os.Getenv("FOLDER_ID"),
 				os.Getenv("MODEL_NAME"),
 				os.Getenv("API_KEY"),
-				config.Manager(),
+				cm,
 			),
 			fetcher,
-			config.Manager(),
+			cm,
 		)
 	}
 
@@ -122,6 +121,6 @@ func createAdvisor(params parameters.RequestPerfume, cm cm.ConfigManager) advisi
 				cm.GetFloatWithDefault("overlay_weight", 0.2),
 			),
 		),
-		config.Manager(),
+		cm,
 	)
 }
