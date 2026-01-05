@@ -3,12 +3,17 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/zemld/PerfumeRecommendationSystem/gateway/api/handlers"
 	"github.com/zemld/PerfumeRecommendationSystem/gateway/api/middleware"
+	"github.com/zemld/PerfumeRecommendationSystem/gateway/internal/config"
 )
 
 func main() {
+	config.Manager().StartLoading(10 * time.Second)
+	defer config.Manager().StopLoading()
+
 	router := http.NewServeMux()
 
 	router.HandleFunc("GET /perfume/suggest", middleware.Cors(middleware.Cache(handlers.Suggest)))

@@ -11,22 +11,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/zemld/PerfumeRecommendationSystem/gateway/internal/config"
 	"github.com/zemld/PerfumeRecommendationSystem/gateway/internal/errors"
 	"github.com/zemld/PerfumeRecommendationSystem/gateway/internal/models/perfume"
-)
-
-const (
-	aITimeout    = "SUGGEST_AI_TIMEOUT"
-	nonAITimeout = "SUGGEST_TIMEOUT"
-)
-
-const (
-	defaultAITimeout    = 20 * time.Second
-	defaultNonAITimeout = 4 * time.Second
-)
-
-var (
-	suggestUrl = os.Getenv("PERFUMIST_URL")
+	"github.com/zemld/config-manager/pkg/cm"
 )
 
 func Suggest(w http.ResponseWriter, r *http.Request) {
@@ -34,10 +22,17 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 		gatewayErr.WriteHTTP(w)
 		return
 	}
-	ctx, cancel := context.WithTimeout(r.Context(), getTimeoutFromRequest(*r))
+	m := config.Manager()
+	ctx, cancel := context.WithTimeout(r.Context(), getTimeoutFromRequest(*r, m))
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, suggestUrl, nil)
+	perfumistUrl, err := m.GetString("perfumist_url")
+	if err != nil {
+		gatewayErr := errors.NewInternalError(err)
+		gatewayErr.WriteHTTP(w)
+		return
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, perfumistUrl, nil)
 	if err != nil {
 		gatewayErr := errors.NewInternalError(err)
 		gatewayErr.WriteHTTP(w)
@@ -46,8 +41,10 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 	req.URL.RawQuery = r.URL.Query().Encode()
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("PERFUMIST_INTERNAL_TOKEN")))
 
-	timeout := getTimeoutFromRequest(*r)
-	client := getHTTPClient(timeout)
+	timeout := getTimeoutFromRequest(*r, m)
+	client := http.Client{
+		Timeout: timeout,
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		gatewayErr := errors.NewInternalError(err)
@@ -115,34 +112,11 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getTimeoutFromRequest(r http.Request) time.Duration {
+func getTimeoutFromRequest(r http.Request, cm cm.ConfigManager) time.Duration {
 	if strings.EqualFold(r.URL.Query().Get("use_ai"), "true") {
-		timeout, err := time.ParseDuration(os.Getenv(aITimeout))
-		if err != nil {
-			return defaultAITimeout
-		}
-		return timeout
+		return cm.GetDurationWithDefault("ai_suggest_timeout", 20*time.Second)
 	}
-	timeout, err := time.ParseDuration(os.Getenv(nonAITimeout))
-	if err != nil {
-		return defaultNonAITimeout
-	}
-	return timeout
-}
-
-func getHTTPClient(timeout time.Duration) *http.Client {
-	responseHeaderTimeout := max(timeout-1*time.Second, 1*time.Second)
-
-	return &http.Client{
-		Timeout: timeout,
-		Transport: &http.Transport{
-			MaxIdleConns:          10,
-			IdleConnTimeout:       30 * time.Second,
-			DisableCompression:    true,
-			ResponseHeaderTimeout: responseHeaderTimeout,
-			DisableKeepAlives:     false,
-		},
-	}
+	return cm.GetDurationWithDefault("non_ai_suggest_timeout", 8*time.Second)
 }
 
 func writeNoContentResponse(w http.ResponseWriter) {
