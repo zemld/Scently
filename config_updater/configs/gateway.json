@@ -1,0 +1,5 @@
+{
+    "perfumist_url": "http://perfumist:8000/v1/perfume/suggest",
+    "ai_suggest_timeout": "20s",
+    "non_ai_suggest_timeout": "8s"
+}
