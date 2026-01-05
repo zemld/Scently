@@ -27,8 +27,8 @@ func TestDbFetcher_getPerfumes_Success(t *testing.T) {
 		t.Fatalf("failed to marshal test data: %v", err)
 	}
 
-	origTransport := config.HTTPClient.Transport
-	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := http.DefaultClient.Transport
+	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: http.StatusOK,
 			Status:     http.StatusText(http.StatusOK),
@@ -38,10 +38,11 @@ func TestDbFetcher_getPerfumes_Success(t *testing.T) {
 		}, nil
 	})
 	t.Cleanup(func() {
-		config.HTTPClient.Transport = origTransport
+		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewPerfumeHub("http://test-url:8080", "test-token")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
 	perfumes, status := fetcher.getPerfumes(context.Background(), parameters.RequestPerfume{})
 
 	if status != http.StatusOK {
@@ -58,15 +59,16 @@ func TestDbFetcher_getPerfumes_Success(t *testing.T) {
 }
 
 func TestDbFetcher_getPerfumes_HTTPError(t *testing.T) {
-	origTransport := config.HTTPClient.Transport
-	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := http.DefaultClient.Transport
+	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		return nil, io.ErrUnexpectedEOF
 	})
 	t.Cleanup(func() {
-		config.HTTPClient.Transport = origTransport
+		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewPerfumeHub("http://test-url:8080", "test-token")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
 	perfumes, status := fetcher.getPerfumes(context.Background(), parameters.RequestPerfume{})
 
 	if status != http.StatusInternalServerError {
@@ -84,8 +86,8 @@ func TestDbFetcher_getPerfumes_BadStatus(t *testing.T) {
 		t.Fatalf("failed to marshal test data: %v", err)
 	}
 
-	origTransport := config.HTTPClient.Transport
-	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := http.DefaultClient.Transport
+	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: http.StatusInternalServerError,
 			Status:     http.StatusText(http.StatusInternalServerError),
@@ -95,10 +97,11 @@ func TestDbFetcher_getPerfumes_BadStatus(t *testing.T) {
 		}, nil
 	})
 	t.Cleanup(func() {
-		config.HTTPClient.Transport = origTransport
+		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewPerfumeHub("http://test-url:8080", "test-token")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
 	perfumes, status := fetcher.getPerfumes(context.Background(), parameters.RequestPerfume{})
 
 	if status != http.StatusInternalServerError {
@@ -110,8 +113,8 @@ func TestDbFetcher_getPerfumes_BadStatus(t *testing.T) {
 }
 
 func TestDbFetcher_getPerfumes_ReadBodyError(t *testing.T) {
-	origTransport := config.HTTPClient.Transport
-	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := http.DefaultClient.Transport
+	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: http.StatusOK,
 			Status:     http.StatusText(http.StatusOK),
@@ -121,10 +124,11 @@ func TestDbFetcher_getPerfumes_ReadBodyError(t *testing.T) {
 		}, nil
 	})
 	t.Cleanup(func() {
-		config.HTTPClient.Transport = origTransport
+		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewPerfumeHub("http://test-url:8080", "test-token")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
 	perfumes, status := fetcher.getPerfumes(context.Background(), parameters.RequestPerfume{})
 
 	if status != http.StatusInternalServerError {
@@ -142,8 +146,8 @@ func TestDbFetcher_getPerfumes_NoContent(t *testing.T) {
 		t.Fatalf("failed to marshal test data: %v", err)
 	}
 
-	origTransport := config.HTTPClient.Transport
-	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := http.DefaultClient.Transport
+	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: http.StatusOK,
 			Status:     http.StatusText(http.StatusOK),
@@ -153,10 +157,11 @@ func TestDbFetcher_getPerfumes_NoContent(t *testing.T) {
 		}, nil
 	})
 	t.Cleanup(func() {
-		config.HTTPClient.Transport = origTransport
+		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewPerfumeHub("http://test-url:8080", "test-token")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
 	perfumes, status := fetcher.getPerfumes(context.Background(), parameters.RequestPerfume{})
 
 	if status != http.StatusOK {
@@ -177,8 +182,8 @@ func TestDbFetcher_getPerfumes_NotFound(t *testing.T) {
 		t.Fatalf("failed to marshal test data: %v", err)
 	}
 
-	origTransport := config.HTTPClient.Transport
-	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := http.DefaultClient.Transport
+	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: http.StatusNotFound,
 			Status:     http.StatusText(http.StatusNotFound),
@@ -188,10 +193,11 @@ func TestDbFetcher_getPerfumes_NotFound(t *testing.T) {
 		}, nil
 	})
 	t.Cleanup(func() {
-		config.HTTPClient.Transport = origTransport
+		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewPerfumeHub("http://test-url:8080", "test-token")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
 	perfumes, status := fetcher.getPerfumes(context.Background(), parameters.RequestPerfume{})
 
 	if status != http.StatusNotFound {
@@ -206,8 +212,8 @@ func TestDbFetcher_getPerfumes_NotFound(t *testing.T) {
 }
 
 func TestDbFetcher_getPerfumes_Forbidden(t *testing.T) {
-	origTransport := config.HTTPClient.Transport
-	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := http.DefaultClient.Transport
+	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: http.StatusForbidden,
 			Status:     http.StatusText(http.StatusForbidden),
@@ -217,10 +223,11 @@ func TestDbFetcher_getPerfumes_Forbidden(t *testing.T) {
 		}, nil
 	})
 	t.Cleanup(func() {
-		config.HTTPClient.Transport = origTransport
+		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewPerfumeHub("http://test-url:8080", "test-token")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
 	perfumes, status := fetcher.getPerfumes(context.Background(), parameters.RequestPerfume{})
 
 	if status != http.StatusForbidden {
@@ -233,8 +240,8 @@ func TestDbFetcher_getPerfumes_Forbidden(t *testing.T) {
 
 func TestDbFetcher_getPerfumes_AddsAuthHeader(t *testing.T) {
 	var capturedRequest *http.Request
-	origTransport := config.HTTPClient.Transport
-	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := http.DefaultClient.Transport
+	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		capturedRequest = r
 		resp := perfume.PerfumeResponse{Perfumes: []models.Perfume{{Brand: "Test", Name: "Test"}}}
 		body, _ := json.Marshal(resp)
@@ -247,10 +254,11 @@ func TestDbFetcher_getPerfumes_AddsAuthHeader(t *testing.T) {
 		}, nil
 	})
 	t.Cleanup(func() {
-		config.HTTPClient.Transport = origTransport
+		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewPerfumeHub("http://test-url:8080", "test-token")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
 	fetcher.getPerfumes(context.Background(), parameters.RequestPerfume{})
 
 	if capturedRequest == nil {
@@ -271,8 +279,8 @@ func TestDbFetcher_getPerfumesAsync_Success(t *testing.T) {
 		t.Fatalf("failed to marshal test data: %v", err)
 	}
 
-	origTransport := config.HTTPClient.Transport
-	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := http.DefaultClient.Transport
+	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: http.StatusOK,
 			Status:     http.StatusText(http.StatusOK),
@@ -282,10 +290,11 @@ func TestDbFetcher_getPerfumesAsync_Success(t *testing.T) {
 		}, nil
 	})
 	t.Cleanup(func() {
-		config.HTTPClient.Transport = origTransport
+		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewPerfumeHub("http://test-url:8080", "test-token")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
 	results := make(chan perfumesFetchAndGlueResult, 1)
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
@@ -304,15 +313,16 @@ func TestDbFetcher_getPerfumesAsync_Success(t *testing.T) {
 }
 
 func TestDbFetcher_getPerfumesAsync_Error(t *testing.T) {
-	origTransport := config.HTTPClient.Transport
-	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := http.DefaultClient.Transport
+	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		return nil, io.ErrUnexpectedEOF
 	})
 	t.Cleanup(func() {
-		config.HTTPClient.Transport = origTransport
+		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewPerfumeHub("http://test-url:8080", "test-token")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
 	results := make(chan perfumesFetchAndGlueResult, 1)
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
@@ -348,7 +358,8 @@ func TestDbFetcher_fetchPerfumeResults_Success(t *testing.T) {
 	}
 	close(ch)
 
-	fetcher := NewPerfumeHub("http://test-url:8080", "test-token")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
 	perfumes, status := fetcher.fetchPerfumeResults(context.Background(), ch)
 
 	if status != http.StatusOK {
@@ -366,7 +377,8 @@ func TestDbFetcher_fetchPerfumeResults_ServerError(t *testing.T) {
 	ch <- perfumesFetchAndGlueResult{Status: http.StatusInternalServerError}
 	close(ch)
 
-	fetcher := NewPerfumeHub("http://test-url:8080", "test-token")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
 	perfumes, status := fetcher.fetchPerfumeResults(context.Background(), ch)
 
 	if status != http.StatusInternalServerError {
@@ -383,7 +395,8 @@ func TestDbFetcher_fetchPerfumeResults_ContextCancelled(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	fetcher := NewPerfumeHub("http://test-url:8080", "test-token")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
 	perfumes, status := fetcher.fetchPerfumeResults(ctx, make(chan perfumesFetchAndGlueResult))
 
 	if status != http.StatusInternalServerError {
@@ -396,8 +409,8 @@ func TestDbFetcher_fetchPerfumeResults_ContextCancelled(t *testing.T) {
 
 func TestDbFetcher_Fetch_Success(t *testing.T) {
 	callCount := 0
-	origTransport := config.HTTPClient.Transport
-	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := http.DefaultClient.Transport
+	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		callCount++
 		perfumes := []models.Perfume{
 			{Brand: "Chanel", Name: "No5"},
@@ -414,10 +427,11 @@ func TestDbFetcher_Fetch_Success(t *testing.T) {
 		}, nil
 	})
 	t.Cleanup(func() {
-		config.HTTPClient.Transport = origTransport
+		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewPerfumeHub("http://test-url:8080", "test-token")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
 	params := []parameters.RequestPerfume{
 		{Brand: "Chanel"},
 		{Brand: "Dior"},
@@ -436,8 +450,8 @@ func TestDbFetcher_Fetch_Success(t *testing.T) {
 }
 
 func TestDbFetcher_Fetch_EmptyResults(t *testing.T) {
-	origTransport := config.HTTPClient.Transport
-	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := http.DefaultClient.Transport
+	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		resp := perfume.PerfumeResponse{Perfumes: []models.Perfume{}}
 		body, _ := json.Marshal(resp)
 		return &http.Response{
@@ -449,10 +463,11 @@ func TestDbFetcher_Fetch_EmptyResults(t *testing.T) {
 		}, nil
 	})
 	t.Cleanup(func() {
-		config.HTTPClient.Transport = origTransport
+		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewPerfumeHub("http://test-url:8080", "test-token")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
 	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
 	perfumes, ok := fetcher.Fetch(context.Background(), params)
 
@@ -465,8 +480,8 @@ func TestDbFetcher_Fetch_EmptyResults(t *testing.T) {
 }
 
 func TestDbFetcher_Fetch_ServerError(t *testing.T) {
-	origTransport := config.HTTPClient.Transport
-	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := http.DefaultClient.Transport
+	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: http.StatusInternalServerError,
 			Status:     http.StatusText(http.StatusInternalServerError),
@@ -476,10 +491,11 @@ func TestDbFetcher_Fetch_ServerError(t *testing.T) {
 		}, nil
 	})
 	t.Cleanup(func() {
-		config.HTTPClient.Transport = origTransport
+		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewPerfumeHub("http://test-url:8080", "test-token")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
 	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
 	perfumes, ok := fetcher.Fetch(context.Background(), params)
 
@@ -492,8 +508,8 @@ func TestDbFetcher_Fetch_ServerError(t *testing.T) {
 }
 
 func TestDbFetcher_Fetch_Timeout(t *testing.T) {
-	origTransport := config.HTTPClient.Transport
-	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := http.DefaultClient.Transport
+	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		// Simulate timeout by waiting longer than the fetcher's timeout
 		time.Sleep(3 * time.Second)
 		return &http.Response{
@@ -505,10 +521,11 @@ func TestDbFetcher_Fetch_Timeout(t *testing.T) {
 		}, nil
 	})
 	t.Cleanup(func() {
-		config.HTTPClient.Transport = origTransport
+		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewPerfumeHub("http://test-url:8080", "test-token")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
 	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
 	perfumes, ok := fetcher.Fetch(context.Background(), params)
 

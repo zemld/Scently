@@ -3,22 +3,22 @@ package advising
 import (
 	"context"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/errors"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/fetching"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/matching"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 	"github.com/zemld/Scently/models"
+	"github.com/zemld/config-manager/pkg/cm"
 )
 
 type Base struct {
-	fetcher     fetching.Fetcher
-	matcher     matching.Matcher
-	adviseCount int
+	fetcher fetching.Fetcher
+	matcher matching.Matcher
+	cm      cm.ConfigManager
 }
 
-func NewBase(fetcher fetching.Fetcher, matcher matching.Matcher, adviseCount int) *Base {
-	return &Base{fetcher: fetcher, matcher: matcher, adviseCount: adviseCount}
+func NewBase(fetcher fetching.Fetcher, matcher matching.Matcher, cm cm.ConfigManager) *Base {
+	return &Base{fetcher: fetcher, matcher: matcher, cm: cm}
 }
 
 func (a *Base) Advise(ctx context.Context, params parameters.RequestPerfume) ([]models.Ranked, error) {
@@ -36,6 +36,17 @@ func (a *Base) Advise(ctx context.Context, params parameters.RequestPerfume) ([]
 	if len(allPerfumes) == 0 {
 		return nil, errors.NewServiceError("no perfumes available in database", nil)
 	}
-	matches := matching.Find(matching.NewMatchData(a.matcher, favouritePerfumes[0], allPerfumes, a.adviseCount, config.ThreadsCount))
+	matches := matching.Find(
+		matching.NewMatchData(
+			a.matcher,
+			favouritePerfumes[0],
+			allPerfumes,
+			a.cm.GetIntWithDefault("suggest_count", 4),
+			a.cm.GetIntWithDefault("threads_count", 8),
+		),
+	)
+	for _, match := range matches {
+		matching.CalculatePerfumeTags(&match.Perfume, a.cm.GetIntWithDefault("minimal_tag_count", 3))
+	}
 	return matches, nil
 }

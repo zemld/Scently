@@ -11,6 +11,7 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/fetching"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/matching"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
+	"github.com/zemld/config-manager/pkg/cm"
 )
 
 func Suggest(w http.ResponseWriter, r *http.Request) {
@@ -22,7 +23,7 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	advisor := createAdvisor(params)
+	advisor := createAdvisor(params, config.Manager())
 
 	if advisor == nil {
 		handleError(w, errors.NewServiceError("failed to create advisor", nil))
@@ -80,13 +81,17 @@ func handleError(w http.ResponseWriter, err error) {
 	WriteResponse(w, ErrorResponse{Error: errorMsg}, status)
 }
 
-func createAdvisor(params parameters.RequestPerfume) advising.Advisor {
-	getPerfumesURL := os.Getenv(config.GetPerfumesURLEnv)
-	if getPerfumesURL == "" {
-		getPerfumesURL = config.DefaultGetPerfumesURL
+func createAdvisor(params parameters.RequestPerfume, cm cm.ConfigManager) advising.Advisor {
+	getPerfumesUrl, err := cm.GetString("get_perfumes_url")
+	if err != nil {
+		return nil
+	}
+	perfumeHubInternalTokenEnv, err := cm.GetString("perfume_hub_internal_token_env_name")
+	if err != nil {
+		return nil
 	}
 
-	fetcher := fetching.NewPerfumeHub(getPerfumesURL, os.Getenv(config.PerfumeInternalTokenEnv))
+	fetcher := fetching.NewPerfumeHub(getPerfumesUrl, os.Getenv(perfumeHubInternalTokenEnv), config.Manager())
 
 	if params.UseAI {
 		return advising.NewAI(
@@ -95,8 +100,10 @@ func createAdvisor(params parameters.RequestPerfume) advising.Advisor {
 				os.Getenv("FOLDER_ID"),
 				os.Getenv("MODEL_NAME"),
 				os.Getenv("API_KEY"),
+				config.Manager(),
 			),
 			fetcher,
+			config.Manager(),
 		)
 	}
 
@@ -104,17 +111,17 @@ func createAdvisor(params parameters.RequestPerfume) advising.Advisor {
 		fetcher,
 		matching.NewCombinedMatcher(
 			*matching.NewWeights(
-				config.FamilyWeight,
-				config.NotesWeight,
-				config.TypeWeight,
-				config.UpperNotesWeight,
-				config.CoreNotesWeight,
-				config.BaseNotesWeight,
-				config.CharacteristicsWeight,
-				config.TagsWeight,
-				config.OverlayWeight,
+				cm.GetFloatWithDefault("family_weight", 0.4),
+				cm.GetFloatWithDefault("notes_weight", 0.55),
+				cm.GetFloatWithDefault("type_weight", 0.05),
+				cm.GetFloatWithDefault("upper_notes_weight", 0.2),
+				cm.GetFloatWithDefault("core_notes_weight", 0.35),
+				cm.GetFloatWithDefault("base_notes_weight", 0.45),
+				cm.GetFloatWithDefault("characteristics_weight", 0.3),
+				cm.GetFloatWithDefault("tags_weight", 0.5),
+				cm.GetFloatWithDefault("overlay_weight", 0.2),
 			),
 		),
-		config.SuggestCount,
+		config.Manager(),
 	)
 }

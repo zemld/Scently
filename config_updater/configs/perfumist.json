@@ -1,0 +1,18 @@
+{
+    "ai_fetcher_timeout": "20s",
+    "perfume_hub_fetcher_timeout": "5s",
+    "family_weight": 0.4,
+    "notes_weight": 0.55,
+    "type_weight": 0.05,
+    "upper_notes_weight": 0.2,
+    "core_notes_weight": 0.35,
+    "base_notes_weight": 0.45,
+    "characteristics_weight": 0.3,
+    "tags_weight": 0.5,
+    "overlay_weight": 0.2,
+    "threads_count": 8,
+    "suggest_count": 4,
+    "get_perfumes_url": "http://perfume-hub:8000/v1/perfumes/get",
+    "perfume_hub_internal_token_env_name": "PERFUME_HUB_INTERNAL_TOKEN",
+    "minimal_tag_count": 3
+}

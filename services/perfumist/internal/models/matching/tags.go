@@ -1,7 +1,6 @@
 package matching
 
 import (
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
 	"github.com/zemld/Scently/models"
 )
 
@@ -60,7 +59,7 @@ func uniteTags(notes []models.EnrichedNote) map[string]int {
 	return united
 }
 
-func CalculatePerfumeTags(p *models.Perfume) {
+func CalculatePerfumeTags(p *models.Perfume, minimalTagCount int) {
 	tags := uniteTags(
 		append(
 			append(p.Properties.EnrichedUpperNotes, p.Properties.EnrichedCoreNotes...),
@@ -69,7 +68,7 @@ func CalculatePerfumeTags(p *models.Perfume) {
 	)
 	chosenTags := make([]string, 0, len(tags))
 	for tag, count := range tags {
-		if count > config.MinimalTagCount {
+		if count > minimalTagCount {
 			chosenTags = append(chosenTags, tag)
 		}
 	}

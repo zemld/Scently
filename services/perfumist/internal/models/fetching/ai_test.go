@@ -17,7 +17,8 @@ func TestNewAIFetcher(t *testing.T) {
 	t.Parallel()
 
 	url := "http://test-url:8000/v1/advise"
-	fetcher := NewAI(url, "test-folder", "test-model", "test-api-key")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewAI(url, "test-folder", "test-model", "test-api-key", mockConfig)
 
 	if fetcher == nil {
 		t.Fatal("expected non-nil fetcher")
@@ -30,7 +31,8 @@ func TestNewAIFetcher(t *testing.T) {
 func TestAIFetcher_Fetch_EmptyParams(t *testing.T) {
 	t.Parallel()
 
-	fetcher := NewAI("http://test-url:8000/v1/advise", "test-folder", "test-model", "test-api-key")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewAI("http://test-url:8000/v1/advise", "test-folder", "test-model", "test-api-key", mockConfig)
 	perfumes, ok := fetcher.Fetch(context.Background(), []parameters.RequestPerfume{})
 
 	if ok {
@@ -42,15 +44,16 @@ func TestAIFetcher_Fetch_EmptyParams(t *testing.T) {
 }
 
 func TestAIFetcher_Fetch_HTTPError(t *testing.T) {
-	origTransport := config.HTTPClient.Transport
-	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := http.DefaultClient.Transport
+	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		return nil, io.ErrUnexpectedEOF
 	})
 	t.Cleanup(func() {
-		config.HTTPClient.Transport = origTransport
+		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewAI("http://test-url:8000/v1/advise", "test-folder", "test-model", "test-api-key")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewAI("http://test-url:8000/v1/advise", "test-folder", "test-model", "test-api-key", mockConfig)
 	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
 	perfumes, ok := fetcher.Fetch(context.Background(), params)
 
@@ -63,8 +66,8 @@ func TestAIFetcher_Fetch_HTTPError(t *testing.T) {
 }
 
 func TestAIFetcher_Fetch_Non200Status(t *testing.T) {
-	origTransport := config.HTTPClient.Transport
-	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := http.DefaultClient.Transport
+	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: http.StatusInternalServerError,
 			Status:     http.StatusText(http.StatusInternalServerError),
@@ -74,10 +77,11 @@ func TestAIFetcher_Fetch_Non200Status(t *testing.T) {
 		}, nil
 	})
 	t.Cleanup(func() {
-		config.HTTPClient.Transport = origTransport
+		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewAI("http://test-url:8000/v1/advise", "test-folder", "test-model", "test-api-key")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewAI("http://test-url:8000/v1/advise", "test-folder", "test-model", "test-api-key", mockConfig)
 	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
 	perfumes, ok := fetcher.Fetch(context.Background(), params)
 
@@ -90,8 +94,8 @@ func TestAIFetcher_Fetch_Non200Status(t *testing.T) {
 }
 
 func TestAIFetcher_Fetch_EmptyBody(t *testing.T) {
-	origTransport := config.HTTPClient.Transport
-	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := http.DefaultClient.Transport
+	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: http.StatusOK,
 			Status:     http.StatusText(http.StatusOK),
@@ -101,10 +105,11 @@ func TestAIFetcher_Fetch_EmptyBody(t *testing.T) {
 		}, nil
 	})
 	t.Cleanup(func() {
-		config.HTTPClient.Transport = origTransport
+		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewAI("http://test-url:8000/v1/advise", "test-folder", "test-model", "test-api-key")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewAI("http://test-url:8000/v1/advise", "test-folder", "test-model", "test-api-key", mockConfig)
 	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
 	perfumes, ok := fetcher.Fetch(context.Background(), params)
 
@@ -117,8 +122,8 @@ func TestAIFetcher_Fetch_EmptyBody(t *testing.T) {
 }
 
 func TestAIFetcher_Fetch_InvalidJSON(t *testing.T) {
-	origTransport := config.HTTPClient.Transport
-	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := http.DefaultClient.Transport
+	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: http.StatusOK,
 			Status:     http.StatusText(http.StatusOK),
@@ -128,10 +133,11 @@ func TestAIFetcher_Fetch_InvalidJSON(t *testing.T) {
 		}, nil
 	})
 	t.Cleanup(func() {
-		config.HTTPClient.Transport = origTransport
+		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewAI("http://test-url:8000/v1/advise", "test-folder", "test-model", "test-api-key")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewAI("http://test-url:8000/v1/advise", "test-folder", "test-model", "test-api-key", mockConfig)
 	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
 	perfumes, ok := fetcher.Fetch(context.Background(), params)
 
@@ -168,8 +174,8 @@ func TestAIFetcher_Fetch_Success(t *testing.T) {
 		t.Fatalf("failed to marshal test data: %v", err)
 	}
 
-	origTransport := config.HTTPClient.Transport
-	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := http.DefaultClient.Transport
+	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: http.StatusOK,
 			Status:     http.StatusText(http.StatusOK),
@@ -179,10 +185,11 @@ func TestAIFetcher_Fetch_Success(t *testing.T) {
 		}, nil
 	})
 	t.Cleanup(func() {
-		config.HTTPClient.Transport = origTransport
+		http.DefaultClient.Transport = origTransport
 	})
 
-	fetcher := NewAI("http://test-url:8000/v1/advise", "test-folder", "test-model", "test-api-key")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewAI("http://test-url:8000/v1/advise", "test-folder", "test-model", "test-api-key", mockConfig)
 	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
 	perfumes, ok := fetcher.Fetch(context.Background(), params)
 
@@ -203,8 +210,8 @@ func TestAIFetcher_Fetch_BuildsPOSTRequestToCompletionAPI(t *testing.T) {
 	var capturedRequest *http.Request
 	var capturedBody []byte
 
-	origTransport := config.HTTPClient.Transport
-	config.HTTPClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	origTransport := http.DefaultClient.Transport
+	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		capturedRequest = r
 		if r.Body != nil {
 			b, _ := io.ReadAll(r.Body)
@@ -232,11 +239,12 @@ func TestAIFetcher_Fetch_BuildsPOSTRequestToCompletionAPI(t *testing.T) {
 		}, nil
 	})
 	t.Cleanup(func() {
-		config.HTTPClient.Transport = origTransport
+		http.DefaultClient.Transport = origTransport
 	})
 
 	url := "http://test-url:8000/v1/advise"
-	fetcher := NewAI(url, "test-folder", "aliceai-llm/latest", "test-api-key")
+	mockConfig := &config.MockConfigManager{}
+	fetcher := NewAI(url, "test-folder", "aliceai-llm/latest", "test-api-key", mockConfig)
 	params := []parameters.RequestPerfume{
 		{Brand: "Chanel", Name: "No5", Sex: parameters.SexFemale},
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 	"github.com/zemld/Scently/models"
 )
@@ -13,8 +14,9 @@ func TestNewAiAdvisor(t *testing.T) {
 
 	adviseFetcher := &MockFetcher{}
 	enrichFetcher := &MockFetcher{}
+	mockConfig := &config.MockConfigManager{}
 
-	advisor := NewAI(adviseFetcher, enrichFetcher)
+	advisor := NewAI(adviseFetcher, enrichFetcher, mockConfig)
 
 	if advisor == nil {
 		t.Fatal("expected non-nil advisor")
@@ -70,7 +72,8 @@ func TestAiAdvisor_Advise_Success(t *testing.T) {
 		},
 	}
 
-	advisor := NewAI(adviseFetcher, enrichFetcher)
+	mockConfig := &config.MockConfigManager{}
+	advisor := NewAI(adviseFetcher, enrichFetcher, mockConfig)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -107,7 +110,8 @@ func TestAiAdvisor_Advise_AdviseFetcherFails(t *testing.T) {
 	}
 
 	enrichFetcher := &MockFetcher{}
-	advisor := NewAI(adviseFetcher, enrichFetcher)
+	mockConfig := &config.MockConfigManager{}
+	advisor := NewAI(adviseFetcher, enrichFetcher, mockConfig)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -137,7 +141,8 @@ func TestAiAdvisor_Advise_AdviseFetcherReturnsEmpty(t *testing.T) {
 	}
 
 	enrichFetcher := &MockFetcher{}
-	advisor := NewAI(adviseFetcher, enrichFetcher)
+	mockConfig := &config.MockConfigManager{}
+	advisor := NewAI(adviseFetcher, enrichFetcher, mockConfig)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -177,7 +182,8 @@ func TestAiAdvisor_Advise_EnrichFetcherFails(t *testing.T) {
 		},
 	}
 
-	advisor := NewAI(adviseFetcher, enrichFetcher)
+	mockConfig := &config.MockConfigManager{}
+	advisor := NewAI(adviseFetcher, enrichFetcher, mockConfig)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -222,7 +228,8 @@ func TestAiAdvisor_Advise_EnrichFetcherReturnsEmpty(t *testing.T) {
 		},
 	}
 
-	advisor := NewAI(adviseFetcher, enrichFetcher)
+	mockConfig := &config.MockConfigManager{}
+	advisor := NewAI(adviseFetcher, enrichFetcher, mockConfig)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -274,7 +281,8 @@ func TestAiAdvisor_Advise_MultipleSuggestions(t *testing.T) {
 		},
 	}
 
-	advisor := NewAI(adviseFetcher, enrichFetcher)
+	mockConfig := &config.MockConfigManager{}
+	advisor := NewAI(adviseFetcher, enrichFetcher, mockConfig)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -348,7 +356,8 @@ func TestAiAdvisor_Advise_EnrichmentParamsConstruction(t *testing.T) {
 		},
 	}
 
-	advisor := NewAI(adviseFetcher, enrichFetcher)
+	mockConfig := &config.MockConfigManager{}
+	advisor := NewAI(adviseFetcher, enrichFetcher, mockConfig)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
