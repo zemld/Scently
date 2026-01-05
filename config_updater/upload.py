@@ -15,9 +15,9 @@ def _read_env_file(path: Path) -> dict:
 def _get_redis_client() -> Redis:
     redis_env = _read_env_file(Path(__file__).parent.parent / "secrets/config_storage.env")
     r = Redis(
-        host="localhost" if IS_TESTING else str(redis_env.get("REDIS_HOST")),
-        port=int(redis_env.get("REDIS_PORT", 6379)),
-        password=None if IS_TESTING else redis_env.get("REDIS_PASSWORD"),
+        host="localhost" if IS_TESTING else str(redis_env.get("CONFIG_STORAGE_HOST")),
+        port=6380 if IS_TESTING else int(redis_env.get("CONFIG_STORAGE_PORT", 6380)),
+        password=None if IS_TESTING else redis_env.get("CONFIG_STORAGE_PASSWORD"),
     )
     return r
 
