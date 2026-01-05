@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/errors"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 	"github.com/zemld/Scently/models"
@@ -127,7 +128,8 @@ func TestBase_Advise_Success(t *testing.T) {
 		},
 	}
 
-	base := NewBase(fetcher, matcher, 2)
+	mockConfig := &config.MockConfigManager{}
+	base := NewBase(fetcher, matcher, mockConfig)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -164,7 +166,8 @@ func TestBase_Advise_FetcherFailsOnFirstFetch(t *testing.T) {
 	}
 
 	matcher := &MockMatcher{}
-	base := NewBase(fetcher, matcher, 5)
+	mockConfig := &config.MockConfigManager{}
+	base := NewBase(fetcher, matcher, mockConfig)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -198,7 +201,8 @@ func TestBase_Advise_FetcherReturnsEmptyOnFirstFetch(t *testing.T) {
 	}
 
 	matcher := &MockMatcher{}
-	base := NewBase(fetcher, matcher, 5)
+	mockConfig := &config.MockConfigManager{}
+	base := NewBase(fetcher, matcher, mockConfig)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -243,7 +247,8 @@ func TestBase_Advise_FetcherFailsOnSecondFetch(t *testing.T) {
 	}
 
 	matcher := &MockMatcher{}
-	base := NewBase(fetcher, matcher, 5)
+	mockConfig := &config.MockConfigManager{}
+	base := NewBase(fetcher, matcher, mockConfig)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -288,7 +293,8 @@ func TestBase_Advise_FetcherReturnsEmptyOnSecondFetch(t *testing.T) {
 	}
 
 	matcher := &MockMatcher{}
-	base := NewBase(fetcher, matcher, 5)
+	mockConfig := &config.MockConfigManager{}
+	base := NewBase(fetcher, matcher, mockConfig)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -358,7 +364,8 @@ func TestBase_Advise_VerifySecondFetchParams(t *testing.T) {
 		},
 	}
 
-	base := NewBase(fetcher, matcher, 1)
+	mockConfig := &config.MockConfigManager{}
+	base := NewBase(fetcher, matcher, mockConfig)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -409,8 +416,15 @@ func TestBase_Advise_RespectsAdviseCount(t *testing.T) {
 		},
 	}
 
-	adviseCount := 3
-	base := NewBase(fetcher, matcher, adviseCount)
+	mockConfig := &config.MockConfigManager{
+		GetIntWithDefaultFunc: func(key string, defaultValue int) int {
+			if key == "suggest_count" {
+				return 3
+			}
+			return defaultValue
+		},
+	}
+	base := NewBase(fetcher, matcher, mockConfig)
 	params := parameters.RequestPerfume{
 		Brand: "Chanel",
 		Name:  "No5",
@@ -422,7 +436,8 @@ func TestBase_Advise_RespectsAdviseCount(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
-	if len(result) > adviseCount {
-		t.Fatalf("expected at most %d results, got %d", adviseCount, len(result))
+	expectedCount := 3
+	if len(result) > expectedCount {
+		t.Fatalf("expected at most %d results, got %d", expectedCount, len(result))
 	}
 }
