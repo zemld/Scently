@@ -8,7 +8,7 @@ import (
 	"github.com/zemld/Scently/perfume-hub/internal/errors"
 )
 
-var perfumeToken = os.Getenv("PERFUME_INTERNAL_TOKEN")
+var perfumeHubToken = os.Getenv("PERFUME_HUB_INTERNAL_TOKEN")
 
 const prefix = "Bearer "
 
@@ -21,7 +21,7 @@ func Auth(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 		token := strings.TrimPrefix(rawToken, prefix)
-		if token != perfumeToken {
+		if token != perfumeHubToken {
 			authErr := errors.NewAuthError("invalid token")
 			handleAuthError(w, authErr)
 			return
