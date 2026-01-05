@@ -75,8 +75,10 @@ services:
       - ./secrets/redis.env
       - ./secrets/perfumist.env
       - ./secrets/origins.env
+      - ./secrets/config_storage.env
     depends_on:
       - perfumist
+      - config_storage
     networks:
       - frontend
       - backend
