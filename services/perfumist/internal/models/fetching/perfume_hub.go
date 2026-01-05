@@ -10,10 +10,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
 	"github.com/zemld/Scently/models"
+	"github.com/zemld/config-manager/pkg/cm"
 )
 
 type perfumesFetchAndGlueResult struct {
@@ -26,14 +26,16 @@ type PerfumeHub struct {
 	token   string
 	timeout time.Duration
 	client  *http.Client
+	cm      cm.ConfigManager
 }
 
-func NewPerfumeHub(url string, token string) *PerfumeHub {
+func NewPerfumeHub(url string, token string, cm cm.ConfigManager) *PerfumeHub {
 	return &PerfumeHub{
 		url:     url,
 		token:   token,
-		timeout: config.PerfumeHubFetcherTimeout,
-		client:  config.HTTPClient,
+		timeout: cm.GetDurationWithDefault("perfume_hub_fetcher_timeout", 5*time.Second),
+		client:  http.DefaultClient,
+		cm:      cm,
 	}
 }
 
@@ -43,7 +45,7 @@ func (f PerfumeHub) Fetch(ctx context.Context, params []parameters.RequestPerfum
 	wg := sync.WaitGroup{}
 	wg.Add(len(params))
 
-	ctx, cancel := context.WithTimeout(ctx, f.timeout)
+	ctx, cancel := context.WithTimeout(ctx, f.cm.GetDurationWithDefault("perfume_hub_fetcher_timeout", 5*time.Second))
 	defer cancel()
 
 	for _, param := range params {

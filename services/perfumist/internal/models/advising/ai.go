@@ -8,18 +8,20 @@ import (
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/matching"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 	"github.com/zemld/Scently/models"
+	"github.com/zemld/config-manager/pkg/cm"
 )
 
 type AI struct {
 	adviseFetcher fetching.Fetcher
 	enrichFetcher fetching.Fetcher
+	cm            cm.ConfigManager
 }
 
-func NewAI(adviseFetcher fetching.Fetcher, enrichFetcher fetching.Fetcher) *AI {
-	return &AI{adviseFetcher: adviseFetcher, enrichFetcher: enrichFetcher}
+func NewAI(adviseFetcher fetching.Fetcher, enrichFetcher fetching.Fetcher, configManager cm.ConfigManager) *AI {
+	return &AI{adviseFetcher: adviseFetcher, enrichFetcher: enrichFetcher, cm: configManager}
 }
 
-func (a AI) Advise(ctx context.Context, params parameters.RequestPerfume) ([]models.Ranked, error) {
+func (a *AI) Advise(ctx context.Context, params parameters.RequestPerfume) ([]models.Ranked, error) {
 	adviseResults, ok := a.adviseFetcher.Fetch(ctx, []parameters.RequestPerfume{params})
 	if !ok {
 		return nil, errors.NewServiceError("failed to interact with AI advisor service", nil)
@@ -44,7 +46,7 @@ func (a AI) Advise(ctx context.Context, params parameters.RequestPerfume) ([]mod
 	for i, advise := range adviseResults {
 		if enriched, ok := rankedMap[getKey(advise)]; ok {
 			matching.PreparePerfumeCharacteristics(&enriched)
-			matching.CalculatePerfumeTags(&enriched)
+			matching.CalculatePerfumeTags(&enriched, a.cm.GetIntWithDefault("minimal_tag_count", 3))
 			rankedResults = append(rankedResults, models.Ranked{
 				Perfume: enriched,
 				Rank:    i + 1,

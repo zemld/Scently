@@ -111,7 +111,6 @@ func getMatchingResults(md *MatchData, h *PerfumeHeap) []models.Ranked {
 	for i := md.matchesCount - 1; i >= 0; i-- {
 		ranked[i] = heap.Pop(h).(models.Ranked)
 		ranked[i].Rank = i + 1
-		CalculatePerfumeTags(&ranked[i].Perfume)
 	}
 	return ranked
 }

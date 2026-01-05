@@ -6,10 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
 	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 	"github.com/zemld/Scently/models"
+	"github.com/zemld/config-manager/pkg/cm"
 )
 
 const (
@@ -108,15 +109,17 @@ type AI struct {
 	modelName string
 	apiKey    string
 	client    *http.Client
+	cm        cm.ConfigManager
 }
 
-func NewAI(url string, folderId string, modelName string, apiKey string) *AI {
+func NewAI(url string, folderId string, modelName string, apiKey string, cm cm.ConfigManager) *AI {
 	return &AI{
 		url:       url,
 		folderId:  folderId,
 		modelName: modelName,
 		apiKey:    apiKey,
-		client:    config.HTTPClient,
+		client:    http.DefaultClient,
+		cm:        cm,
 	}
 }
 
@@ -125,7 +128,7 @@ func (f *AI) Fetch(ctx context.Context, params []parameters.RequestPerfume) ([]m
 		return nil, false
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, config.AIFetcherTimeout)
+	ctx, cancel := context.WithTimeout(ctx, f.cm.GetDurationWithDefault("ai_fetcher_timeout", 20*time.Second))
 	defer cancel()
 
 	r, err := f.createRequest(ctx, params[0])
