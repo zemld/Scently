@@ -29,7 +29,7 @@ func SuggestByTags(w http.ResponseWriter, r *http.Request) {
 	}
 
 	timeout := getSuggestByTagsTimeout(m)
-	resp, body, err := proxyRequestToPerfumist(ctx, perfumistUrl, r, timeout, false)
+	resp, body, err := proxyRequestToPerfumist(ctx, perfumistUrl, r, timeout, true)
 	if err != nil {
 		gatewayErr := errors.NewInternalError(err)
 		gatewayErr.WriteHTTP(w)
