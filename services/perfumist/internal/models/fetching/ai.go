@@ -150,7 +150,7 @@ func (f *AI) createRequest(ctx context.Context, perfume parameters.RequestPerfum
 		ModelUri: f.createModelUri(f.folderId, f.modelName),
 		Messages: []message{
 			{Role: "system", Text: systemPrompt},
-			{Role: "user", Text: fmt.Sprintf(userPrompt, perfume.Brand, perfume.Name, perfume.Sex, f.getAllowedSexes(perfume.Sex))},
+			{Role: "user", Text: fmt.Sprintf(userPrompt, perfume.Brand, perfume.Name, string(perfume.Sex), f.getAllowedSexes(perfume.Sex))},
 		},
 		CompletionOptions: completionOptions{
 			MaxTokens:   500,
@@ -190,13 +190,13 @@ func (f *AI) createModelUri(folderId string, modelName string) string {
 	return fmt.Sprintf("gpt://%s/%s", folderId, modelName)
 }
 
-func (f *AI) getAllowedSexes(sex string) []string {
-	allowed := []string{parameters.SexUnisex}
-	if sex == parameters.SexMale {
-		allowed = append(allowed, parameters.SexMale)
+func (f *AI) getAllowedSexes(sex models.Sex) []string {
+	allowed := []string{string(models.Unisex)}
+	if sex == models.Male {
+		allowed = append(allowed, string(models.Male))
 	}
-	if sex == parameters.SexFemale {
-		allowed = append(allowed, parameters.SexFemale)
+	if sex == models.Female {
+		allowed = append(allowed, string(models.Female))
 	}
 	return allowed
 }

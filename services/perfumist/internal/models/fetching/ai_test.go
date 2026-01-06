@@ -246,7 +246,7 @@ func TestAIFetcher_Fetch_BuildsPOSTRequestToCompletionAPI(t *testing.T) {
 	mockConfig := &config.MockConfigManager{}
 	fetcher := NewAI(url, "test-folder", "aliceai-llm/latest", "test-api-key", mockConfig)
 	params := []parameters.RequestPerfume{
-		{Brand: "Chanel", Name: "No5", Sex: parameters.SexFemale},
+		{Brand: "Chanel", Name: "No5", Sex: models.Female},
 	}
 	fetcher.Fetch(context.Background(), params)
 
