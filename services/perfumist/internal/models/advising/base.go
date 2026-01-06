@@ -3,11 +3,11 @@ package advising
 import (
 	"context"
 
+	"github.com/zemld/Scently/models"
 	"github.com/zemld/Scently/perfumist/internal/errors"
 	"github.com/zemld/Scently/perfumist/internal/models/fetching"
 	"github.com/zemld/Scently/perfumist/internal/models/matching"
 	"github.com/zemld/Scently/perfumist/internal/models/parameters"
-	"github.com/zemld/Scently/models"
 	"github.com/zemld/config-manager/pkg/cm"
 )
 
@@ -45,8 +45,8 @@ func (a *Base) Advise(ctx context.Context, params parameters.RequestPerfume) ([]
 			a.cm.GetIntWithDefault("threads_count", 8),
 		),
 	)
-	for _, match := range matches {
-		matching.CalculatePerfumeTags(&match.Perfume, a.cm.GetIntWithDefault("minimal_tag_count", 3))
+	for i := range matches {
+		matching.CalculatePerfumeTags(&matches[i].Perfume, a.cm.GetIntWithDefault("minimal_tag_count", 3))
 	}
 	return matches, nil
 }

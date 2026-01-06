@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/zemld/Scently/models"
 	"github.com/zemld/Scently/perfumist/internal/config"
 	"github.com/zemld/Scently/perfumist/internal/errors"
 	"github.com/zemld/Scently/perfumist/internal/models/parameters"
-	"github.com/zemld/Scently/models"
 )
 
 type MockFetcher struct {
@@ -22,12 +22,12 @@ func (m *MockFetcher) Fetch(ctx context.Context, params []parameters.RequestPerf
 }
 
 type MockMatcher struct {
-	GetPerfumeSimilarityScoreFunc func(first models.Properties, second models.Properties) float64
+	GetSimilarityScoreFunc func(first models.Properties, second models.Properties) float64
 }
 
-func (m *MockMatcher) GetPerfumeSimilarityScore(first models.Properties, second models.Properties) float64 {
-	if m.GetPerfumeSimilarityScoreFunc != nil {
-		return m.GetPerfumeSimilarityScoreFunc(first, second)
+func (m *MockMatcher) GetSimilarityScore(first models.Properties, second models.Properties) float64 {
+	if m.GetSimilarityScoreFunc != nil {
+		return m.GetSimilarityScoreFunc(first, second)
 	}
 	return 0.0
 }
@@ -92,7 +92,7 @@ func TestBase_Advise_Success(t *testing.T) {
 	}
 
 	matcher := &MockMatcher{
-		GetPerfumeSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
+		GetSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
 			// Simple similarity: count matching notes
 			score := 0.0
 			if first.Type == second.Type {
@@ -359,7 +359,7 @@ func TestBase_Advise_VerifySecondFetchParams(t *testing.T) {
 	}
 
 	matcher := &MockMatcher{
-		GetPerfumeSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
+		GetSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
 			return 0.5
 		},
 	}
@@ -411,7 +411,7 @@ func TestBase_Advise_RespectsAdviseCount(t *testing.T) {
 	}
 
 	matcher := &MockMatcher{
-		GetPerfumeSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
+		GetSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
 			return 0.5
 		},
 	}
