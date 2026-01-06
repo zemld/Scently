@@ -12,7 +12,7 @@ func NewCharacteristicsMatcher(weights Weights) *CharacteristicsMatcher {
 	return &CharacteristicsMatcher{Weights: weights}
 }
 
-func (m CharacteristicsMatcher) GetPerfumeSimilarityScore(first models.Properties, second models.Properties) float64 {
+func (m CharacteristicsMatcher) GetSimilarityScore(first models.Properties, second models.Properties) float64 {
 	upperNotesScore := cosineSimilarity(first.UpperCharacteristics, second.UpperCharacteristics)
 	coreNotesScore := cosineSimilarity(first.CoreCharacteristics, second.CoreCharacteristics)
 	baseNotesScore := cosineSimilarity(first.BaseCharacteristics, second.BaseCharacteristics)

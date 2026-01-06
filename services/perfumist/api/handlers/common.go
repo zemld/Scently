@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/errors"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/fetching"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 	"github.com/zemld/Scently/models"
+	"github.com/zemld/Scently/perfumist/internal/errors"
+	"github.com/zemld/Scently/perfumist/internal/models/fetching"
+	"github.com/zemld/Scently/perfumist/internal/models/parameters"
 	"github.com/zemld/config-manager/pkg/cm"
 )
 
@@ -25,13 +25,18 @@ func generalParseSimilarParameters(r *http.Request) (parameters.RequestPerfume, 
 
 	brand := query.Get(parameters.BrandParamKey)
 	name := query.Get(parameters.NameParamKey)
+	params := parameters.NewGet().WithBrand(brand).WithName(name).WithSex(parseSexParameter(r))
+	return *params, params.Validate()
+}
+
+func parseSexParameter(r *http.Request) models.Sex {
+	query := r.URL.Query()
 	sex := query.Get(parameters.SexParamKey)
 
-	if sex != parameters.SexMale && sex != parameters.SexFemale {
-		sex = parameters.SexUnisex
+	if sex != string(models.Male) && sex != string(models.Female) {
+		sex = string(models.Unisex)
 	}
-	params := parameters.NewGet().WithBrand(brand).WithName(name).WithSex(sex)
-	return *params, params.Validate()
+	return models.Sex(sex)
 }
 
 func createPerfumeHubFetcher(cm cm.ConfigManager) (fetching.Fetcher, error) {

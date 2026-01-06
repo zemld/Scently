@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
 	"github.com/zemld/Scently/models"
+	"github.com/zemld/Scently/perfumist/internal/config"
+	"github.com/zemld/Scently/perfumist/internal/models/parameters"
+	"github.com/zemld/Scently/perfumist/internal/models/perfume"
 )
 
 func TestDbFetcher_getPerfumes_Success(t *testing.T) {

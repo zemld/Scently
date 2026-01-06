@@ -3,7 +3,7 @@ package advising
 import (
 	"context"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
+	"github.com/zemld/Scently/perfumist/internal/models/parameters"
 	"github.com/zemld/Scently/models"
 )
 

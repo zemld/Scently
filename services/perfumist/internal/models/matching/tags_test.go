@@ -26,7 +26,7 @@ func TestNewTags(t *testing.T) {
 	}
 }
 
-func TestTags_GetPerfumeSimilarityScore(t *testing.T) {
+func TestTags_GetSimilarityScore(t *testing.T) {
 	t.Parallel()
 
 	weights := NewBaseWeights(0.3, 0.4, 0.3)
@@ -58,7 +58,7 @@ func TestTags_GetPerfumeSimilarityScore(t *testing.T) {
 		},
 	}
 
-	score := tags.GetPerfumeSimilarityScore(first, second)
+	score := tags.GetSimilarityScore(first, second)
 
 	if score <= 0 {
 		t.Fatalf("expected positive score, got %f", score)
@@ -68,7 +68,7 @@ func TestTags_GetPerfumeSimilarityScore(t *testing.T) {
 	}
 }
 
-func TestTags_GetPerfumeSimilarityScore_Identical(t *testing.T) {
+func TestTags_GetSimilarityScore_Identical(t *testing.T) {
 	t.Parallel()
 
 	weights := NewBaseWeights(0.3, 0.4, 0.3)
@@ -86,7 +86,7 @@ func TestTags_GetPerfumeSimilarityScore_Identical(t *testing.T) {
 		},
 	}
 
-	score := tags.GetPerfumeSimilarityScore(props, props)
+	score := tags.GetSimilarityScore(props, props)
 
 	// For identical tags, cosine similarity should be 1.0
 	// Score should be: 1.0*0.3 + 1.0*0.4 + 1.0*0.3 = 1.0
@@ -96,7 +96,7 @@ func TestTags_GetPerfumeSimilarityScore_Identical(t *testing.T) {
 	}
 }
 
-func TestTags_GetPerfumeSimilarityScore_CompletelyDifferent(t *testing.T) {
+func TestTags_GetSimilarityScore_CompletelyDifferent(t *testing.T) {
 	t.Parallel()
 
 	weights := NewBaseWeights(0.3, 0.4, 0.3)
@@ -126,7 +126,7 @@ func TestTags_GetPerfumeSimilarityScore_CompletelyDifferent(t *testing.T) {
 		},
 	}
 
-	score := tags.GetPerfumeSimilarityScore(first, second)
+	score := tags.GetSimilarityScore(first, second)
 
 	// No overlapping tags, cosine similarity should be 0.0
 	expected := 0.0
@@ -135,7 +135,7 @@ func TestTags_GetPerfumeSimilarityScore_CompletelyDifferent(t *testing.T) {
 	}
 }
 
-func TestTags_GetPerfumeSimilarityScore_EmptyNotes(t *testing.T) {
+func TestTags_GetSimilarityScore_EmptyNotes(t *testing.T) {
 	t.Parallel()
 
 	weights := NewBaseWeights(0.3, 0.4, 0.3)
@@ -159,7 +159,7 @@ func TestTags_GetPerfumeSimilarityScore_EmptyNotes(t *testing.T) {
 		},
 	}
 
-	score := tags.GetPerfumeSimilarityScore(empty, filled)
+	score := tags.GetSimilarityScore(empty, filled)
 
 	// Empty notes should result in 0.0 cosine similarity
 	expected := 0.0
@@ -168,7 +168,7 @@ func TestTags_GetPerfumeSimilarityScore_EmptyNotes(t *testing.T) {
 	}
 }
 
-func TestTags_GetPerfumeSimilarityScore_PartialOverlap(t *testing.T) {
+func TestTags_GetSimilarityScore_PartialOverlap(t *testing.T) {
 	t.Parallel()
 
 	weights := NewBaseWeights(0.3, 0.4, 0.3)
@@ -200,7 +200,7 @@ func TestTags_GetPerfumeSimilarityScore_PartialOverlap(t *testing.T) {
 		},
 	}
 
-	score := tags.GetPerfumeSimilarityScore(first, second)
+	score := tags.GetSimilarityScore(first, second)
 
 	// Should have partial overlap
 	if score <= 0 {
@@ -211,7 +211,7 @@ func TestTags_GetPerfumeSimilarityScore_PartialOverlap(t *testing.T) {
 	}
 }
 
-func TestTags_GetPerfumeSimilarityScore_Weights(t *testing.T) {
+func TestTags_GetSimilarityScore_Weights(t *testing.T) {
 	t.Parallel()
 
 	// Test with different weights
@@ -230,7 +230,7 @@ func TestTags_GetPerfumeSimilarityScore_Weights(t *testing.T) {
 		},
 	}
 
-	score := tags.GetPerfumeSimilarityScore(props, props)
+	score := tags.GetSimilarityScore(props, props)
 
 	// For identical properties, should be 1.0 regardless of weights
 	expected := 1.0
@@ -288,77 +288,3 @@ func TestUniteTags_NoTags(t *testing.T) {
 		t.Fatalf("expected empty map for notes without tags, got %d items", len(united))
 	}
 }
-
-func TestNormalizeTags(t *testing.T) {
-	t.Parallel()
-
-	weights := NewBaseWeights(0.3, 0.4, 0.3)
-	tags := NewTags(*weights)
-
-	tagCounts := map[string]int{
-		"floral": 3,
-		"sweet":  2,
-		"woody":  1,
-	}
-
-	normalized := tags.normalizeTags(tagCounts)
-
-	// Total: 3 + 2 + 1 = 6
-	// floral: 3/6 = 0.5
-	// sweet: 2/6 = 0.333...
-	// woody: 1/6 = 0.166...
-	expectedFloral := 3.0 / 6.0
-	expectedSweet := 2.0 / 6.0
-	expectedWoody := 1.0 / 6.0
-
-	if normalized["floral"] != expectedFloral {
-		t.Fatalf("expected floral %f, got %f", expectedFloral, normalized["floral"])
-	}
-	if normalized["sweet"] != expectedSweet {
-		t.Fatalf("expected sweet %f, got %f", expectedSweet, normalized["sweet"])
-	}
-	if normalized["woody"] != expectedWoody {
-		t.Fatalf("expected woody %f, got %f", expectedWoody, normalized["woody"])
-	}
-}
-
-func TestNormalizeTags_EmptyMap(t *testing.T) {
-	t.Parallel()
-
-	weights := NewBaseWeights(0.3, 0.4, 0.3)
-	tags := NewTags(*weights)
-
-	tagCounts := map[string]int{}
-	normalized := tags.normalizeTags(tagCounts)
-
-	if len(normalized) != 0 {
-		t.Fatalf("expected empty map for empty tag counts, got %d items", len(normalized))
-	}
-}
-
-func TestNormalizeTags_ZeroSum(t *testing.T) {
-	t.Parallel()
-
-	weights := NewBaseWeights(0.3, 0.4, 0.3)
-	tags := NewTags(*weights)
-
-	// This shouldn't happen in practice, but test edge case
-	tagCounts := map[string]int{
-		"floral": 0,
-		"sweet":  0,
-	}
-
-	normalized := tags.normalizeTags(tagCounts)
-
-	// Should handle zero sum gracefully
-	if len(normalized) != 2 {
-		t.Fatalf("expected 2 items in normalized map, got %d", len(normalized))
-	}
-	if normalized["floral"] != 0.0 {
-		t.Fatalf("expected floral 0.0, got %f", normalized["floral"])
-	}
-	if normalized["sweet"] != 0.0 {
-		t.Fatalf("expected sweet 0.0, got %f", normalized["sweet"])
-	}
-}
-

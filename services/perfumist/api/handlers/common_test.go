@@ -7,9 +7,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/errors"
 	"github.com/zemld/Scently/models"
+	"github.com/zemld/Scently/perfumist/internal/config"
+	"github.com/zemld/Scently/perfumist/internal/errors"
 )
 
 func TestGeneralParseSimilarParameters_ValidParams(t *testing.T) {
@@ -46,7 +46,7 @@ func TestGeneralParseSimilarParameters_MaleSex(t *testing.T) {
 	}
 }
 
-func TestGeneralParseSimilarParameters_InvalidSexDefaultsToEmpty(t *testing.T) {
+func TestGeneralParseSimilarParameters_InvalidSexDefaultsToUnisex(t *testing.T) {
 	t.Parallel()
 
 	req := httptest.NewRequest(http.MethodGet, "/?brand=Tom+Ford&name=Black+Orchid&sex=invalid", nil)
@@ -55,13 +55,12 @@ func TestGeneralParseSimilarParameters_InvalidSexDefaultsToEmpty(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
-	// WithSex only sets sex if it's "male" or "female", otherwise it leaves it empty
-	if params.Sex != "" {
-		t.Fatalf("expected empty sex, got %q", params.Sex)
+	if params.Sex != "unisex" {
+		t.Fatalf("expected unisex sex, got %q", params.Sex)
 	}
 }
 
-func TestGeneralParseSimilarParameters_EmptySexDefaultsToEmpty(t *testing.T) {
+func TestGeneralParseSimilarParameters_EmptySexDefaultsToUnisex(t *testing.T) {
 	t.Parallel()
 
 	req := httptest.NewRequest(http.MethodGet, "/?brand=Chanel&name=No5", nil)
@@ -70,9 +69,8 @@ func TestGeneralParseSimilarParameters_EmptySexDefaultsToEmpty(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
-	// WithSex only sets sex if it's "male" or "female", otherwise it leaves it empty
-	if params.Sex != "" {
-		t.Fatalf("expected empty sex, got %q", params.Sex)
+	if params.Sex != "unisex" {
+		t.Fatalf("expected unisex sex, got %q", params.Sex)
 	}
 }
 

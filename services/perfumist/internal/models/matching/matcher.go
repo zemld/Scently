@@ -9,7 +9,7 @@ import (
 )
 
 type Matcher interface {
-	GetPerfumeSimilarityScore(first models.Properties, second models.Properties) float64
+	GetSimilarityScore(first models.Properties, second models.Properties) float64
 }
 
 type MatchData struct {
@@ -24,14 +24,14 @@ func NewMatchData(
 	matcher Matcher,
 	favourite models.Perfume,
 	all []models.Perfume,
-	mathesCount int,
+	matchesCount int,
 	threadsCount int,
 ) *MatchData {
 	md := &MatchData{
 		Matcher:      matcher,
 		favourite:    favourite,
 		all:          all,
-		matchesCount: mathesCount,
+		matchesCount: matchesCount,
 		threadsCount: threadsCount,
 	}
 	PreparePerfumeCharacteristics(&md.favourite)
@@ -77,7 +77,7 @@ func findChunk(md *MatchData, perfumes []models.Perfume, results chan<- PerfumeH
 			continue
 		}
 		PreparePerfumeCharacteristics(&p)
-		similarityScore := md.Matcher.GetPerfumeSimilarityScore(
+		similarityScore := md.Matcher.GetSimilarityScore(
 			md.favourite.Properties,
 			p.Properties,
 		)
@@ -115,7 +115,7 @@ func getMatchingResults(md *MatchData, h *PerfumeHeap) []models.Ranked {
 	return ranked
 }
 
-func cosineSimilarity(first map[string]float64, second map[string]float64) float64 {
+func cosineSimilarity[Number ~int | ~float64](first map[string]Number, second map[string]Number) float64 {
 	dotProduct := multiplyMaps(first, second)
 	firstNorm := math.Sqrt(multiplyMaps(first, first))
 	secondNorm := math.Sqrt(multiplyMaps(second, second))
@@ -127,7 +127,7 @@ func cosineSimilarity(first map[string]float64, second map[string]float64) float
 	return dotProduct / (firstNorm * secondNorm)
 }
 
-func multiplyMaps(first map[string]float64, second map[string]float64) float64 {
+func multiplyMaps[Number ~int | ~float64](first map[string]Number, second map[string]Number) float64 {
 	if len(second) < len(first) {
 		return multiplyMaps(second, first)
 	}
@@ -135,7 +135,7 @@ func multiplyMaps(first map[string]float64, second map[string]float64) float64 {
 	score := 0.0
 	for tag, value := range first {
 		if secondValue, ok := second[tag]; ok {
-			score += value * secondValue
+			score += float64(value) * float64(secondValue)
 		}
 	}
 	return score

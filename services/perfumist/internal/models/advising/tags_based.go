@@ -11,40 +11,32 @@ import (
 	"github.com/zemld/config-manager/pkg/cm"
 )
 
-type Base struct {
+type TagsBased struct {
+	matcher matching.TagsBasedAdapter
 	fetcher fetching.Fetcher
-	matcher matching.Matcher
 	cm      cm.ConfigManager
 }
 
-func NewBase(fetcher fetching.Fetcher, matcher matching.Matcher, cm cm.ConfigManager) *Base {
-	return &Base{fetcher: fetcher, matcher: matcher, cm: cm}
+func NewTagsBased(matcher matching.TagsBasedAdapter, fetcher fetching.Fetcher, cm cm.ConfigManager) *TagsBased {
+	return &TagsBased{matcher: matcher, fetcher: fetcher, cm: cm}
 }
 
-func (a *Base) Advise(ctx context.Context, params parameters.RequestPerfume) ([]models.Ranked, error) {
-	favouritePerfumes, ok := a.fetcher.Fetch(ctx, []parameters.RequestPerfume{params})
+func (a *TagsBased) Advise(ctx context.Context, params parameters.RequestPerfume) ([]models.Ranked, error) {
+	perfumes, ok := a.fetcher.Fetch(ctx, []parameters.RequestPerfume{*parameters.NewGet().WithSex(params.Sex)})
 	if !ok {
 		return nil, errors.NewServiceError("failed to interact with perfume service", nil)
 	}
-	if len(favouritePerfumes) == 0 {
-		return nil, errors.NewNotFoundError("perfume not found")
-	}
-	allPerfumes, ok := a.fetcher.Fetch(ctx, []parameters.RequestPerfume{*parameters.NewGet().WithSex(params.Sex)})
-	if !ok {
-		return nil, errors.NewServiceError("failed to interact with perfume service", nil)
-	}
-	if len(allPerfumes) == 0 {
+	if len(perfumes) == 0 {
 		return nil, errors.NewServiceError("no perfumes available in database", nil)
 	}
 	matches := matching.Find(
 		matching.NewMatchData(
-			a.matcher,
-			favouritePerfumes[0],
-			allPerfumes,
+			&a.matcher,
+			models.Perfume{},
+			perfumes,
 			a.cm.GetIntWithDefault("suggest_count", 4),
 			a.cm.GetIntWithDefault("threads_count", 8),
-		),
-	)
+		))
 	for i := range matches {
 		matching.CalculatePerfumeTags(&matches[i].Perfume, a.cm.GetIntWithDefault("minimal_tag_count", 3))
 	}

@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 	"github.com/zemld/Scently/models"
+	"github.com/zemld/Scently/perfumist/internal/config"
+	"github.com/zemld/Scently/perfumist/internal/models/parameters"
 )
 
 func TestNewAIFetcher(t *testing.T) {
@@ -246,7 +246,7 @@ func TestAIFetcher_Fetch_BuildsPOSTRequestToCompletionAPI(t *testing.T) {
 	mockConfig := &config.MockConfigManager{}
 	fetcher := NewAI(url, "test-folder", "aliceai-llm/latest", "test-api-key", mockConfig)
 	params := []parameters.RequestPerfume{
-		{Brand: "Chanel", Name: "No5", Sex: parameters.SexFemale},
+		{Brand: "Chanel", Name: "No5", Sex: models.Female},
 	}
 	fetcher.Fetch(context.Background(), params)
 
