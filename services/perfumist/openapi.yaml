@@ -323,12 +323,13 @@ components:
       type: object
       required:
         - perfume
+        - similarity_score
       properties:
         perfume:
           $ref: "#/components/schemas/Perfume"
         rank:
           type: integer
-          description: Ранг рекомендации
+          description: Ранг рекомендации (опционально, может отсутствовать если равен 0)
           example: 1
         similarity_score:
           type: number
@@ -343,6 +344,7 @@ components:
         - name
         - sex
         - properties
+        - shops
       properties:
         brand:
           type: string
@@ -406,6 +408,54 @@ components:
             type: string
           description: Базовые ноты
           example: ["Vanilla", "Sandalwood"]
+        enriched_upper_notes:
+          type: array
+          items:
+            $ref: "#/components/schemas/EnrichedNote"
+          description: Обогащенные верхние ноты (опционально)
+        enriched_core_notes:
+          type: array
+          items:
+            $ref: "#/components/schemas/EnrichedNote"
+          description: Обогащенные средние ноты (опционально)
+        enriched_base_notes:
+          type: array
+          items:
+            $ref: "#/components/schemas/EnrichedNote"
+          description: Обогащенные базовые ноты (опционально)
+        tags:
+          type: array
+          items:
+            type: string
+          description: Теги (опционально)
+          example: ["fresh", "spicy", "woody"]
+        upper_characteristics:
+          type: object
+          additionalProperties:
+            type: number
+            format: float
+          description: Характеристики верхних нот (опционально)
+          example:
+            fresh: 0.8
+            citrus: 0.6
+        core_characteristics:
+          type: object
+          additionalProperties:
+            type: number
+            format: float
+          description: Характеристики средних нот (опционально)
+          example:
+            floral: 0.9
+            sweet: 0.7
+        base_characteristics:
+          type: object
+          additionalProperties:
+            type: number
+            format: float
+          description: Характеристики базовых нот (опционально)
+          example:
+            woody: 0.8
+            warm: 0.6
 
     ShopInfo:
       type: object
@@ -425,7 +475,7 @@ components:
         image_url:
           type: string
           format: uri
-          description: URL изображения из магазина
+          description: URL изображения из магазина (опционально)
           example: "https://example.com/shop-image.jpg"
         variants:
           type: array
@@ -452,6 +502,43 @@ components:
           format: uri
           description: Ссылка на товар в магазине
           example: "https://goldapple.ru/perfume/123"
+
+    EnrichedNote:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Название ноты
+          example: "Bergamot"
+        tags:
+          type: array
+          items:
+            type: string
+          description: Теги ноты
+          example: ["citrus", "fresh"]
+        characteristics:
+          type: array
+          items:
+            $ref: "#/components/schemas/NoteCharacteristic"
+          description: Характеристики ноты
+
+    NoteCharacteristic:
+      type: object
+      required:
+        - name
+        - value
+      properties:
+        name:
+          type: string
+          description: Название характеристики
+          example: "fresh"
+        value:
+          type: number
+          format: float
+          description: Значение характеристики
+          example: 0.85
 
     ErrorResponse:
       type: object
