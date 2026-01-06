@@ -12,12 +12,12 @@ import (
 )
 
 type TagsBased struct {
-	matcher matching.TagsBasedAdapter
+	matcher matching.Matcher
 	fetcher fetching.Fetcher
 	cm      cm.ConfigManager
 }
 
-func NewTagsBased(matcher matching.TagsBasedAdapter, fetcher fetching.Fetcher, cm cm.ConfigManager) *TagsBased {
+func NewTagsBased(matcher matching.Matcher, fetcher fetching.Fetcher, cm cm.ConfigManager) *TagsBased {
 	return &TagsBased{matcher: matcher, fetcher: fetcher, cm: cm}
 }
 
@@ -31,14 +31,21 @@ func (a *TagsBased) Advise(ctx context.Context, params parameters.RequestPerfume
 	}
 	matches := matching.Find(
 		matching.NewMatchData(
-			&a.matcher,
+			a.matcher,
 			models.Perfume{},
 			perfumes,
 			a.cm.GetIntWithDefault("suggest_count", 4),
 			a.cm.GetIntWithDefault("threads_count", 8),
 		))
 	for i := range matches {
-		matching.CalculatePerfumeTags(&matches[i].Perfume, a.cm.GetIntWithDefault("minimal_tag_count", 3))
+		matches[i].Perfume.Properties.Tags = matching.CalculatePerfumeTags(
+			&matches[i].Perfume.Properties,
+			*matching.NewBaseWeights(
+				a.cm.GetFloatWithDefault("upper_notes_weight", 0.2),
+				a.cm.GetFloatWithDefault("core_notes_weight", 0.35),
+				a.cm.GetFloatWithDefault("base_notes_weight", 0.45),
+			),
+		)
 	}
 	return matches, nil
 }

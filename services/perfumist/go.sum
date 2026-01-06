@@ -10,5 +10,7 @@ github.com/redis/go-redis/v9 v9.17.2 h1:P2EGsA4qVIM3Pp+aPocCJ7DguDHhqrXNhVcEp4Vi
 github.com/redis/go-redis/v9 v9.17.2/go.mod h1:u410H11HMLoB+TP67dz8rL9s6QW2j76l0//kSOd3370=
 github.com/zemld/Scently/models v0.0.0-20260106072337-80a1ebdcf093 h1:rC1tTsMbPxi5YXkvbIDnnik2t9nE29GvdNERApahtqs=
 github.com/zemld/Scently/models v0.0.0-20260106072337-80a1ebdcf093/go.mod h1:eXvPfm1bJquBM8drqT3KunpT1HOobhs0GS0vpvKaHb8=
+github.com/zemld/Scently/models v0.0.0-20260106164549-b2e28db98b99 h1:aHehrfi+WtRUWjs24ZHFaB7o/b3GSby5pL313OqHk/8=
+github.com/zemld/Scently/models v0.0.0-20260106164549-b2e28db98b99/go.mod h1:eXvPfm1bJquBM8drqT3KunpT1HOobhs0GS0vpvKaHb8=
 github.com/zemld/config-manager v0.0.0-20260105103713-9dd35608f1cd h1:J/ZupUpTnTXGsfaQec546YrC0c2TA8TuBZ0J+oZr/5A=
 github.com/zemld/config-manager v0.0.0-20260105103713-9dd35608f1cd/go.mod h1:gxQGRIGA0o8joS2oXmc0BAY58PS/FK9X8acaHNLbQk0=
