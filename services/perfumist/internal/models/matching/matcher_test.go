@@ -7,12 +7,12 @@ import (
 )
 
 type MockMatcher struct {
-	GetPerfumeSimilarityScoreFunc func(first models.Properties, second models.Properties) float64
+	GetSimilarityScoreFunc func(first models.Properties, second models.Properties) float64
 }
 
-func (m *MockMatcher) GetPerfumeSimilarityScore(first models.Properties, second models.Properties) float64 {
-	if m.GetPerfumeSimilarityScoreFunc != nil {
-		return m.GetPerfumeSimilarityScoreFunc(first, second)
+func (m *MockMatcher) GetSimilarityScore(first models.Properties, second models.Properties) float64 {
+	if m.GetSimilarityScoreFunc != nil {
+		return m.GetSimilarityScoreFunc(first, second)
 	}
 	return 0.0
 }
@@ -91,7 +91,7 @@ func TestFind_ExcludesFavourite(t *testing.T) {
 	t.Parallel()
 
 	matcher := &MockMatcher{
-		GetPerfumeSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
+		GetSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
 			return 0.5
 		},
 	}
@@ -128,7 +128,7 @@ func TestFind_RespectsMatchesCount(t *testing.T) {
 	t.Parallel()
 
 	matcher := &MockMatcher{
-		GetPerfumeSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
+		GetSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
 			return 0.5
 		},
 	}
@@ -162,7 +162,7 @@ func TestFind_AssignsRanks(t *testing.T) {
 	t.Parallel()
 
 	matcher := &MockMatcher{
-		GetPerfumeSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
+		GetSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
 			return 0.5
 		},
 	}
@@ -206,7 +206,7 @@ func TestFind_SortsByScore(t *testing.T) {
 	t.Parallel()
 
 	matcher := &MockMatcher{
-		GetPerfumeSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
+		GetSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
 			return 0.5
 		},
 	}
@@ -250,7 +250,7 @@ func TestFind_SingleThread(t *testing.T) {
 	t.Parallel()
 
 	matcher := &MockMatcher{
-		GetPerfumeSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
+		GetSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
 			return 0.5
 		},
 	}
@@ -278,7 +278,7 @@ func TestFind_MoreThreadsThanItems(t *testing.T) {
 	t.Parallel()
 
 	matcher := &MockMatcher{
-		GetPerfumeSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
+		GetSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
 			return 0.5
 		},
 	}
@@ -307,7 +307,7 @@ func TestFind_LargeDataset(t *testing.T) {
 	t.Parallel()
 
 	matcher := &MockMatcher{
-		GetPerfumeSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
+		GetSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
 			return 0.5
 		},
 	}
@@ -363,7 +363,7 @@ func TestFind_ChunkDistribution(t *testing.T) {
 
 	callCount := 0
 	matcher := &MockMatcher{
-		GetPerfumeSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
+		GetSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
 			callCount++
 			return 0.5
 		},
@@ -404,7 +404,7 @@ func TestFind_AllItemsAreFavourite(t *testing.T) {
 	t.Parallel()
 
 	matcher := &MockMatcher{
-		GetPerfumeSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
+		GetSimilarityScoreFunc: func(first models.Properties, second models.Properties) float64 {
 			return 0.5
 		},
 	}

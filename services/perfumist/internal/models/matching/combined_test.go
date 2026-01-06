@@ -6,7 +6,7 @@ import (
 	"github.com/zemld/Scently/models"
 )
 
-func TestCombinedMatcher_GetPerfumeSimilarityScore(t *testing.T) {
+func TestCombinedMatcher_GetSimilarityScore(t *testing.T) {
 	t.Parallel()
 
 	weights := NewWeights(0.1, 0.15, 0.05, 0.2, 0.3, 0.2, 0.15, 0.15, 0.1)
@@ -88,7 +88,7 @@ func TestCombinedMatcher_GetPerfumeSimilarityScore(t *testing.T) {
 		BaseCharacteristics:  map[string]float64{"woody": 0.3},
 	}
 
-	score := matcher.GetPerfumeSimilarityScore(first, second)
+	score := matcher.GetSimilarityScore(first, second)
 
 	if score <= 0 {
 		t.Fatalf("expected positive score, got %f", score)
@@ -98,7 +98,7 @@ func TestCombinedMatcher_GetPerfumeSimilarityScore(t *testing.T) {
 	}
 }
 
-func TestCombinedMatcher_GetPerfumeSimilarityScore_Identical(t *testing.T) {
+func TestCombinedMatcher_GetSimilarityScore_Identical(t *testing.T) {
 	t.Parallel()
 
 	weights := NewWeights(0.1, 0.15, 0.05, 0.2, 0.3, 0.2, 0.15, 0.15, 0.1)
@@ -142,7 +142,7 @@ func TestCombinedMatcher_GetPerfumeSimilarityScore_Identical(t *testing.T) {
 		BaseCharacteristics:  map[string]float64{"woody": 0.4},
 	}
 
-	score := matcher.GetPerfumeSimilarityScore(props, props)
+	score := matcher.GetSimilarityScore(props, props)
 
 	// For identical properties:
 	// CharacteristicsMatcher: 1.0 (identical characteristics)
@@ -169,7 +169,7 @@ func TestCombinedMatcher_GetPerfumeSimilarityScore_Identical(t *testing.T) {
 	}
 }
 
-func TestCombinedMatcher_GetPerfumeSimilarityScore_CompletelyDifferent(t *testing.T) {
+func TestCombinedMatcher_GetSimilarityScore_CompletelyDifferent(t *testing.T) {
 	t.Parallel()
 
 	weights := NewWeights(0.1, 0.15, 0.05, 0.2, 0.3, 0.2, 0.15, 0.15, 0.1)
@@ -251,7 +251,7 @@ func TestCombinedMatcher_GetPerfumeSimilarityScore_CompletelyDifferent(t *testin
 		BaseCharacteristics:  map[string]float64{"woody": 0.3},
 	}
 
-	score := matcher.GetPerfumeSimilarityScore(first, second)
+	score := matcher.GetSimilarityScore(first, second)
 
 	// For completely different properties:
 	// CharacteristicsMatcher: 0.0 (no overlapping characteristics)
@@ -265,7 +265,7 @@ func TestCombinedMatcher_GetPerfumeSimilarityScore_CompletelyDifferent(t *testin
 	}
 }
 
-func TestCombinedMatcher_GetPerfumeSimilarityScore_Weights(t *testing.T) {
+func TestCombinedMatcher_GetSimilarityScore_Weights(t *testing.T) {
 	t.Parallel()
 
 	// Test with different weights
@@ -310,7 +310,7 @@ func TestCombinedMatcher_GetPerfumeSimilarityScore_Weights(t *testing.T) {
 		BaseCharacteristics:  map[string]float64{"woody": 0.4},
 	}
 
-	score := matcher.GetPerfumeSimilarityScore(props, props)
+	score := matcher.GetSimilarityScore(props, props)
 
 	// For identical properties:
 	// CharacteristicsMatcher: 1.0 (identical characteristics)
@@ -336,7 +336,7 @@ func TestCombinedMatcher_GetPerfumeSimilarityScore_Weights(t *testing.T) {
 	}
 }
 
-func TestCombinedMatcher_GetPerfumeSimilarityScore_EmptyProperties(t *testing.T) {
+func TestCombinedMatcher_GetSimilarityScore_EmptyProperties(t *testing.T) {
 	t.Parallel()
 
 	weights := NewWeights(0.1, 0.15, 0.05, 0.2, 0.3, 0.2, 0.15, 0.15, 0.1)
@@ -381,7 +381,7 @@ func TestCombinedMatcher_GetPerfumeSimilarityScore_EmptyProperties(t *testing.T)
 		BaseCharacteristics:  map[string]float64{"woody": 0.4},
 	}
 
-	score := matcher.GetPerfumeSimilarityScore(empty, filled)
+	score := matcher.GetSimilarityScore(empty, filled)
 
 	// Should handle empty properties gracefully
 	if score < 0 || score > 1.0 {
@@ -389,7 +389,7 @@ func TestCombinedMatcher_GetPerfumeSimilarityScore_EmptyProperties(t *testing.T)
 	}
 }
 
-func TestCombinedMatcher_GetPerfumeSimilarityScore_PartialMatch(t *testing.T) {
+func TestCombinedMatcher_GetSimilarityScore_PartialMatch(t *testing.T) {
 	t.Parallel()
 
 	weights := NewWeights(0.1, 0.15, 0.05, 0.2, 0.3, 0.2, 0.15, 0.15, 0.1)
@@ -471,7 +471,7 @@ func TestCombinedMatcher_GetPerfumeSimilarityScore_PartialMatch(t *testing.T) {
 		BaseCharacteristics:  map[string]float64{"woody": 0.3},
 	}
 
-	score := matcher.GetPerfumeSimilarityScore(first, second)
+	score := matcher.GetSimilarityScore(first, second)
 
 	// Should have partial match
 	if score <= 0 {

@@ -15,7 +15,7 @@ func NewOverlay(weights Weights) *Overlay {
 	}
 }
 
-func (m Overlay) GetPerfumeSimilarityScore(first models.Properties, second models.Properties) float64 {
+func (m Overlay) GetSimilarityScore(first models.Properties, second models.Properties) float64 {
 	familiesSimilarityScore := m.getListSimilarityScore(first.Family, second.Family)
 	notesSimilarityScore := m.getNotesSimilarityScore(first, second)
 	typeSimilarity := m.getTypeSimilarityScore(first.Type, second.Type)

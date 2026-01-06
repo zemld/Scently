@@ -23,7 +23,7 @@ func TestNewOverlay(t *testing.T) {
 	}
 }
 
-func TestOverlay_GetPerfumeSimilarityScore(t *testing.T) {
+func TestOverlay_GetSimilarityScore(t *testing.T) {
 	t.Parallel()
 
 	weights := NewBaseWeights(0.2, 0.3, 0.2)
@@ -48,7 +48,7 @@ func TestOverlay_GetPerfumeSimilarityScore(t *testing.T) {
 		BaseNotes:  []string{"Musk"},
 	}
 
-	score := overlay.GetPerfumeSimilarityScore(first, second)
+	score := overlay.GetSimilarityScore(first, second)
 
 	// Expected calculations:
 	// Family similarity: 1/2 = 0.5 (intersection: Floral, union: Floral, Oriental)
@@ -67,7 +67,7 @@ func TestOverlay_GetPerfumeSimilarityScore(t *testing.T) {
 	}
 }
 
-func TestOverlay_GetPerfumeSimilarityScore_Identical(t *testing.T) {
+func TestOverlay_GetSimilarityScore_Identical(t *testing.T) {
 	t.Parallel()
 
 	weights := NewBaseWeights(0.2, 0.3, 0.2)
@@ -84,7 +84,7 @@ func TestOverlay_GetPerfumeSimilarityScore_Identical(t *testing.T) {
 		BaseNotes:  []string{"Musk"},
 	}
 
-	score := overlay.GetPerfumeSimilarityScore(props, props)
+	score := overlay.GetSimilarityScore(props, props)
 
 	// All similarities should be 1.0
 	// Family: 1.0, Notes: 1.0*0.2 + 1.0*0.3 + 1.0*0.2 = 0.7, Type: 1.0
@@ -95,7 +95,7 @@ func TestOverlay_GetPerfumeSimilarityScore_Identical(t *testing.T) {
 	}
 }
 
-func TestOverlay_GetPerfumeSimilarityScore_CompletelyDifferent(t *testing.T) {
+func TestOverlay_GetSimilarityScore_CompletelyDifferent(t *testing.T) {
 	t.Parallel()
 
 	weights := NewBaseWeights(0.2, 0.3, 0.2)
@@ -120,7 +120,7 @@ func TestOverlay_GetPerfumeSimilarityScore_CompletelyDifferent(t *testing.T) {
 		BaseNotes:  []string{"Wood"},
 	}
 
-	score := overlay.GetPerfumeSimilarityScore(first, second)
+	score := overlay.GetSimilarityScore(first, second)
 
 	// All similarities should be 0.0
 	// Total should be 0.0
@@ -243,7 +243,7 @@ func TestOverlay_getTypeSimilarityScore(t *testing.T) {
 	}
 }
 
-func TestOverlay_GetPerfumeSimilarityScore_EmptyProperties(t *testing.T) {
+func TestOverlay_GetSimilarityScore_EmptyProperties(t *testing.T) {
 	t.Parallel()
 
 	weights := NewBaseWeights(0.2, 0.3, 0.2)
@@ -261,14 +261,14 @@ func TestOverlay_GetPerfumeSimilarityScore_EmptyProperties(t *testing.T) {
 		BaseNotes:  []string{"Musk"},
 	}
 
-	score := overlay.GetPerfumeSimilarityScore(empty, filled)
+	score := overlay.GetSimilarityScore(empty, filled)
 	// Should handle empty properties gracefully
 	if score < 0 || score > 1.0 {
 		t.Fatalf("expected score in range [0, 1], got %f", score)
 	}
 }
 
-func TestOverlay_GetPerfumeSimilarityScore_WeightsSum(t *testing.T) {
+func TestOverlay_GetSimilarityScore_WeightsSum(t *testing.T) {
 	t.Parallel()
 
 	// Test with different weight configurations
@@ -286,7 +286,7 @@ func TestOverlay_GetPerfumeSimilarityScore_WeightsSum(t *testing.T) {
 		BaseNotes:  []string{"Musk"},
 	}
 
-	score := overlay.GetPerfumeSimilarityScore(props, props)
+	score := overlay.GetSimilarityScore(props, props)
 
 	// For identical properties, score should be based on weights
 	// All individual similarities are 1.0

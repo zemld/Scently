@@ -26,7 +26,7 @@ func TestNewCharacteristicsMatcher(t *testing.T) {
 	}
 }
 
-func TestCharacteristicsMatcher_GetPerfumeSimilarityScore(t *testing.T) {
+func TestCharacteristicsMatcher_GetSimilarityScore(t *testing.T) {
 	t.Parallel()
 
 	weights := NewBaseWeights(0.3, 0.4, 0.3)
@@ -34,7 +34,7 @@ func TestCharacteristicsMatcher_GetPerfumeSimilarityScore(t *testing.T) {
 
 	first := models.Properties{
 		UpperCharacteristics: map[string]float64{
-			"fresh": 0.5,
+			"fresh":  0.5,
 			"citrus": 0.3,
 		},
 		CoreCharacteristics: map[string]float64{
@@ -49,7 +49,7 @@ func TestCharacteristicsMatcher_GetPerfumeSimilarityScore(t *testing.T) {
 
 	second := models.Properties{
 		UpperCharacteristics: map[string]float64{
-			"fresh": 0.4,
+			"fresh":  0.4,
 			"citrus": 0.4,
 		},
 		CoreCharacteristics: map[string]float64{
@@ -62,7 +62,7 @@ func TestCharacteristicsMatcher_GetPerfumeSimilarityScore(t *testing.T) {
 		},
 	}
 
-	score := matcher.GetPerfumeSimilarityScore(first, second)
+	score := matcher.GetSimilarityScore(first, second)
 
 	if score <= 0 {
 		t.Fatalf("expected positive score, got %f", score)
@@ -72,7 +72,7 @@ func TestCharacteristicsMatcher_GetPerfumeSimilarityScore(t *testing.T) {
 	}
 }
 
-func TestCharacteristicsMatcher_GetPerfumeSimilarityScore_Identical(t *testing.T) {
+func TestCharacteristicsMatcher_GetSimilarityScore_Identical(t *testing.T) {
 	t.Parallel()
 
 	weights := NewBaseWeights(0.3, 0.4, 0.3)
@@ -80,7 +80,7 @@ func TestCharacteristicsMatcher_GetPerfumeSimilarityScore_Identical(t *testing.T
 
 	props := models.Properties{
 		UpperCharacteristics: map[string]float64{
-			"fresh": 0.5,
+			"fresh":  0.5,
 			"citrus": 0.3,
 		},
 		CoreCharacteristics: map[string]float64{
@@ -91,7 +91,7 @@ func TestCharacteristicsMatcher_GetPerfumeSimilarityScore_Identical(t *testing.T
 		},
 	}
 
-	score := matcher.GetPerfumeSimilarityScore(props, props)
+	score := matcher.GetSimilarityScore(props, props)
 
 	// For identical characteristics, cosine similarity should be 1.0
 	// Score should be: 1.0*0.3 + 1.0*0.4 + 1.0*0.3 = 1.0
@@ -101,7 +101,7 @@ func TestCharacteristicsMatcher_GetPerfumeSimilarityScore_Identical(t *testing.T
 	}
 }
 
-func TestCharacteristicsMatcher_GetPerfumeSimilarityScore_CompletelyDifferent(t *testing.T) {
+func TestCharacteristicsMatcher_GetSimilarityScore_CompletelyDifferent(t *testing.T) {
 	t.Parallel()
 
 	weights := NewBaseWeights(0.3, 0.4, 0.3)
@@ -131,7 +131,7 @@ func TestCharacteristicsMatcher_GetPerfumeSimilarityScore_CompletelyDifferent(t 
 		},
 	}
 
-	score := matcher.GetPerfumeSimilarityScore(first, second)
+	score := matcher.GetSimilarityScore(first, second)
 
 	// No overlapping characteristics, cosine similarity should be 0.0
 	expected := 0.0
@@ -140,7 +140,7 @@ func TestCharacteristicsMatcher_GetPerfumeSimilarityScore_CompletelyDifferent(t 
 	}
 }
 
-func TestCharacteristicsMatcher_GetPerfumeSimilarityScore_EmptyCharacteristics(t *testing.T) {
+func TestCharacteristicsMatcher_GetSimilarityScore_EmptyCharacteristics(t *testing.T) {
 	t.Parallel()
 
 	weights := NewBaseWeights(0.3, 0.4, 0.3)
@@ -158,7 +158,7 @@ func TestCharacteristicsMatcher_GetPerfumeSimilarityScore_EmptyCharacteristics(t
 		BaseCharacteristics:  map[string]float64{"woody": 0.4},
 	}
 
-	score := matcher.GetPerfumeSimilarityScore(empty, filled)
+	score := matcher.GetSimilarityScore(empty, filled)
 
 	// Empty characteristics should result in 0.0 cosine similarity
 	expected := 0.0
@@ -167,7 +167,7 @@ func TestCharacteristicsMatcher_GetPerfumeSimilarityScore_EmptyCharacteristics(t
 	}
 }
 
-func TestCharacteristicsMatcher_GetPerfumeSimilarityScore_PartialOverlap(t *testing.T) {
+func TestCharacteristicsMatcher_GetSimilarityScore_PartialOverlap(t *testing.T) {
 	t.Parallel()
 
 	weights := NewBaseWeights(0.3, 0.4, 0.3)
@@ -175,7 +175,7 @@ func TestCharacteristicsMatcher_GetPerfumeSimilarityScore_PartialOverlap(t *test
 
 	first := models.Properties{
 		UpperCharacteristics: map[string]float64{
-			"fresh": 0.5,
+			"fresh":  0.5,
 			"citrus": 0.3,
 		},
 		CoreCharacteristics: map[string]float64{
@@ -199,7 +199,7 @@ func TestCharacteristicsMatcher_GetPerfumeSimilarityScore_PartialOverlap(t *test
 		},
 	}
 
-	score := matcher.GetPerfumeSimilarityScore(first, second)
+	score := matcher.GetSimilarityScore(first, second)
 
 	// Should have partial overlap (fresh, floral, woody)
 	if score <= 0 {
@@ -210,7 +210,7 @@ func TestCharacteristicsMatcher_GetPerfumeSimilarityScore_PartialOverlap(t *test
 	}
 }
 
-func TestCharacteristicsMatcher_GetPerfumeSimilarityScore_Weights(t *testing.T) {
+func TestCharacteristicsMatcher_GetSimilarityScore_Weights(t *testing.T) {
 	t.Parallel()
 
 	// Test with different weights
@@ -223,7 +223,7 @@ func TestCharacteristicsMatcher_GetPerfumeSimilarityScore_Weights(t *testing.T) 
 		BaseCharacteristics:  map[string]float64{"woody": 0.4},
 	}
 
-	score := matcher.GetPerfumeSimilarityScore(props, props)
+	score := matcher.GetSimilarityScore(props, props)
 
 	// For identical properties, should be 1.0 regardless of weights
 	expected := 1.0
@@ -353,4 +353,3 @@ func TestPreparePerfumeCharacteristics(t *testing.T) {
 		t.Fatalf("expected BaseCharacteristics[woody] 0.4, got %f", perfume.Properties.BaseCharacteristics["woody"])
 	}
 }
-

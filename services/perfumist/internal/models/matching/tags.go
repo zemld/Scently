@@ -12,14 +12,14 @@ func NewTags(weights Weights) *Tags {
 	return &Tags{Weights: weights}
 }
 
-func (m Tags) GetPerfumeSimilarityScore(first models.Properties, second models.Properties) float64 {
-	firstUpperNotesTags := m.normalizeTags(uniteTags(first.EnrichedUpperNotes))
-	firstCoreNotesTags := m.normalizeTags(uniteTags(first.EnrichedCoreNotes))
-	firstBaseNotesTags := m.normalizeTags(uniteTags(first.EnrichedBaseNotes))
+func (m Tags) GetSimilarityScore(first models.Properties, second models.Properties) float64 {
+	firstUpperNotesTags := uniteTags(first.EnrichedUpperNotes)
+	firstCoreNotesTags := uniteTags(first.EnrichedCoreNotes)
+	firstBaseNotesTags := uniteTags(first.EnrichedBaseNotes)
 
-	secondUpperNotesTags := m.normalizeTags(uniteTags(second.EnrichedUpperNotes))
-	secondCoreNotesTags := m.normalizeTags(uniteTags(second.EnrichedCoreNotes))
-	secondBaseNotesTags := m.normalizeTags(uniteTags(second.EnrichedBaseNotes))
+	secondUpperNotesTags := uniteTags(second.EnrichedUpperNotes)
+	secondCoreNotesTags := uniteTags(second.EnrichedCoreNotes)
+	secondBaseNotesTags := uniteTags(second.EnrichedBaseNotes)
 
 	upperNotesScore := cosineSimilarity(firstUpperNotesTags, secondUpperNotesTags)
 	coreNotesScore := cosineSimilarity(firstCoreNotesTags, secondCoreNotesTags)
@@ -28,23 +28,6 @@ func (m Tags) GetPerfumeSimilarityScore(first models.Properties, second models.P
 	return (upperNotesScore*m.UpperNotesWeight +
 		coreNotesScore*m.CoreNotesWeight +
 		baseNotesScore*m.BaseNotesWeight)
-}
-
-func (m Tags) normalizeTags(tags map[string]int) map[string]float64 {
-	tagsSum := 0
-
-	normalized := make(map[string]float64, len(tags))
-	for tag, count := range tags {
-		normalized[tag] += float64(count)
-		tagsSum += count
-	}
-
-	for tag, raw := range normalized {
-		if tagsSum != 0 {
-			normalized[tag] = raw / float64(tagsSum)
-		}
-	}
-	return normalized
 }
 
 func uniteTags(notes []models.EnrichedNote) map[string]int {
