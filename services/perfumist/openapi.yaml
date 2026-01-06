@@ -10,10 +10,10 @@ servers:
     description: Production сервер
 
 paths:
-  /v1/perfume/suggest:
+  /v2/perfume/suggest:
     get:
       summary: Получить рекомендации по духам
-      description: Возвращает список похожих духов на основе переданных параметров
+      description: Возвращает список похожих духов на основе переданных параметров, используя алгоритмический подход
       operationId: suggestPerfume
       tags:
         - Suggestions
@@ -43,14 +43,6 @@ paths:
             enum: [male, female, unisex]
             default: unisex
             example: "female"
-        - name: use_ai
-          in: query
-          required: false
-          description: Использовать AI для рекомендаций
-          schema:
-            type: boolean
-            default: false
-            example: false
       responses:
         "200":
           description: Успешно получены рекомендации
@@ -111,6 +103,195 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
                 error: "perfume not found"
+        "500":
+          description: Ошибка взаимодействия с другими сервисами
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "failed to interact with perfume service"
+
+  /v2/perfume/ai-suggest:
+    get:
+      summary: Получить рекомендации по духам с использованием AI
+      description: Возвращает список похожих духов на основе переданных параметров, используя искусственный интеллект для анализа и рекомендаций
+      operationId: aiSuggestPerfume
+      tags:
+        - Suggestions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: brand
+          in: query
+          required: true
+          description: Бренд духов
+          schema:
+            type: string
+            example: "Chanel"
+        - name: name
+          in: query
+          required: true
+          description: Название духов
+          schema:
+            type: string
+            example: "No. 5"
+        - name: sex
+          in: query
+          required: false
+          description: Пол (male, female, unisex)
+          schema:
+            type: string
+            enum: [male, female, unisex]
+            default: unisex
+            example: "female"
+      responses:
+        "200":
+          description: Успешно получены рекомендации
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuggestResponse"
+              example:
+                suggested:
+                  - perfume:
+                      brand: "Dior"
+                      name: "Sauvage"
+                      sex: "male"
+                      image_url: "https://example.com/image.jpg"
+                      properties:
+                        perfume_type: "EDT"
+                        family: ["Fresh", "Spicy"]
+                        upper_notes: ["Bergamot", "Pepper"]
+                        core_notes: ["Lavender", "Pink Pepper"]
+                        base_notes: ["Ambroxan", "Cedar"]
+                      shops: []
+                    rank: 1
+                    similarity_score: 0.95
+                  - perfume:
+                      brand: "Tom Ford"
+                      name: "Oud Wood"
+                      sex: "male"
+                      image_url: "https://example.com/image2.jpg"
+                      properties:
+                        perfume_type: "EDP"
+                        family: ["Woody", "Oriental"]
+                        upper_notes: ["Rosewood"]
+                        core_notes: ["Oud"]
+                        base_notes: ["Sandalwood", "Vanilla"]
+                      shops: []
+                    rank: 2
+                    similarity_score: 0.88
+        "400":
+          description: Неверные параметры запроса (отсутствует brand или name)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "Brand and name are required"
+        "403":
+          description: Ошибка авторизации (отсутствует или неверный токен)
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: "authentication error: missing or invalid authorization header"
+        "404":
+          description: Духи не найдены
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "perfume not found"
+        "500":
+          description: Ошибка взаимодействия с другими сервисами
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "failed to interact with perfume service"
+
+  /v2/perfume/suggest-by-tags:
+    get:
+      summary: Получить рекомендации по духам на основе тегов
+      description: Возвращает список похожих духов на основе переданных тегов
+      operationId: suggestPerfumeByTags
+      tags:
+        - Suggestions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: tags
+          in: query
+          required: true
+          description: Теги для поиска (разделенные запятой)
+          schema:
+            type: string
+            example: "fresh,spicy,woody"
+        - name: sex
+          in: query
+          required: false
+          description: Пол (male, female, unisex)
+          schema:
+            type: string
+            enum: [male, female, unisex]
+            default: unisex
+            example: "male"
+      responses:
+        "200":
+          description: Успешно получены рекомендации
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuggestResponse"
+              example:
+                suggested:
+                  - perfume:
+                      brand: "Dior"
+                      name: "Sauvage"
+                      sex: "male"
+                      image_url: "https://example.com/image.jpg"
+                      properties:
+                        perfume_type: "EDT"
+                        family: ["Fresh", "Spicy"]
+                        upper_notes: ["Bergamot", "Pepper"]
+                        core_notes: ["Lavender", "Pink Pepper"]
+                        base_notes: ["Ambroxan", "Cedar"]
+                      shops: []
+                    rank: 1
+                    similarity_score: 0.95
+                  - perfume:
+                      brand: "Tom Ford"
+                      name: "Oud Wood"
+                      sex: "male"
+                      image_url: "https://example.com/image2.jpg"
+                      properties:
+                        perfume_type: "EDP"
+                        family: ["Woody", "Oriental"]
+                        upper_notes: ["Rosewood"]
+                        core_notes: ["Oud"]
+                        base_notes: ["Sandalwood", "Vanilla"]
+                      shops: []
+                    rank: 2
+                    similarity_score: 0.88
+        "400":
+          description: Неверные параметры запроса (отсутствует tags)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "tags are required"
+        "403":
+          description: Ошибка авторизации (отсутствует или неверный токен)
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: "authentication error: missing or invalid authorization header"
         "500":
           description: Ошибка взаимодействия с другими сервисами
           content:
