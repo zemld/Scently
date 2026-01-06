@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/zemld/Scently/perfumist/internal/config"
@@ -10,7 +9,6 @@ import (
 )
 
 func Suggest(w http.ResponseWriter, r *http.Request) {
-	log.Println("Suggest request received")
 	ctx := r.Context()
 
 	params, err := generalParseSimilarParameters(r)

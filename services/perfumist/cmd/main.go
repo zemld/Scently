@@ -18,6 +18,7 @@ func main() {
 
 	r.HandleFunc("GET /v2/perfume/suggest", middleware.Auth(handlers.Suggest))
 	r.HandleFunc("GET /v2/perfume/ai-suggest", middleware.Auth(handlers.AISuggest))
+	r.HandleFunc("GET /v2/perfume/suggest-by-tags", handlers.SuggestByTags)
 
 	if err := http.ListenAndServe(":8000", r); err != nil {
 		log.Fatalf("Error starting server: %v\n", err)

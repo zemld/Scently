@@ -9,7 +9,6 @@ import (
 )
 
 func AISuggest(w http.ResponseWriter, r *http.Request) {
-	log.Println("AISuggest request received")
 	ctx := r.Context()
 	params, err := generalParseSimilarParameters(r)
 	if err != nil {
