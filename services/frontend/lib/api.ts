@@ -63,6 +63,11 @@ export interface SuggestionRequest {
     sex?: 'male' | 'unisex' | 'female'
 }
 
+export interface TagSuggestionRequest {
+    tags: string[]
+    sex?: 'male' | 'unisex' | 'female'
+}
+
 export interface SuggestionResponse {
     suggested: Array<{
         perfume: {
@@ -131,11 +136,25 @@ class APIClient {
         const url = `${API_BASE_URL}/perfume/suggest?${params.toString()}`
         return this.request<SuggestionResponse>(url)
     }
+
+    async getSuggestionsByTags(request: TagSuggestionRequest): Promise<SuggestionResponse> {
+        const params = new URLSearchParams({
+            tags: request.tags.join(','),
+        })
+
+        if (request.sex !== undefined) {
+            params.append('sex', request.sex)
+        }
+
+        const url = `${API_BASE_URL}/perfume/suggest-by-tags?${params.toString()}`
+        return this.request<SuggestionResponse>(url)
+    }
 }
 
-// Export singleton instance
 export const apiClient = new APIClient()
 
-// Export individual functions for convenience
 export const getSuggestions = (request: SuggestionRequest) =>
     apiClient.getSuggestions(request)
+
+export const getSuggestionsByTags = (request: TagSuggestionRequest) =>
+    apiClient.getSuggestionsByTags(request)
