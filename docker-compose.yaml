@@ -46,6 +46,7 @@ services:
       - config_storage
     networks:
       - backend
+      - external
 
   redis_cache:
     image: redis:latest
@@ -58,15 +59,15 @@ services:
     networks:
       - backend
 
-  frontend:
+  external:
     build:
-      context: services/frontend
+      context: services/external
     ports:
       - "3000:3000"
     environment:
       NEXT_PUBLIC_API_URL: /api
     networks:
-      - frontend
+      - external
 
   api_gateway:
     build:
@@ -82,7 +83,7 @@ services:
       - perfumist
       - config_storage
     networks:
-      - frontend
+      - external
       - backend
 
   config_storage:
@@ -95,7 +96,7 @@ services:
       - config_vlm:/data
     networks:
       - backend
-      - frontend
+      - external
 
 volumes:
   perfume_volume:
@@ -103,7 +104,7 @@ volumes:
   config_vlm:
 
 networks:
-  frontend:
+  external:
     driver: bridge
   backend:
     internal: true

@@ -16,7 +16,10 @@ func main() {
 
 	r := http.NewServeMux()
 
-	r.HandleFunc("GET /v1/perfume/suggest", middleware.Auth(handlers.Suggest))
+	r.HandleFunc("GET /v1/perfume/suggest", middleware.Auth(handlers.OldSuggest))
+
+	r.HandleFunc("GET /v2/perfume/suggest", middleware.Auth(handlers.Suggest))
+	r.HandleFunc("GET /v2/perfume/ai-suggest", middleware.Auth(handlers.AISuggest))
 
 	if err := http.ListenAndServe(":8000", r); err != nil {
 		log.Fatalf("Error starting server: %v\n", err)
