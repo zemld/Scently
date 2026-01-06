@@ -4,8 +4,8 @@ info:
   description: API для получения рекомендаций по парфюмерии
   version: 1.0.0
 servers:
-  - url: http://localhost:8000
-    description: Локальный сервер разработки
+  - url: http://localhost:8080
+    description: Локальный сервер разработки (порт 8080 согласно docker-compose)
   - url: http://gateway:8000
     description: Сервер в Docker
 
@@ -105,7 +105,7 @@ paths:
                 $ref: "#/components/schemas/Error"
               example:
                 error: "BAD_REQUEST"
-                message: "Brand and name are required"
+                message: "Wrong request parameters"
         "403":
           description: CORS не разрешен
           content:
@@ -124,6 +124,100 @@ paths:
               example:
                 error: "INTERNAL_ERROR"
                 message: "failed to interact with perfume service"
+
+  /perfume/suggest-by-tags:
+    get:
+      summary: Получить рекомендации по парфюмерии на основе тегов
+      description: Возвращает список рекомендованных парфюмов на основе переданных тегов. Теги передаются через запятую.
+      operationId: suggestPerfumeByTags
+      tags:
+        - Perfume
+      parameters:
+        - name: tags
+          in: query
+          description: |
+            Теги для поиска (через запятую). 
+            Доступные теги: light, airy, soft, rich, dense, sharp, bright, muted, warm, cold, fresh, cool, cozy, sweet, bitter, sour, salty, spicy, vanillic, caramel, gourmand, powdery, velvety, dry, wet, smoky, soapy, leathery, woody, floral, fruity, green, marine, herbal, resinous, earthy, mossy, romantic, sensual, calm, invigorating, mysterious, elegant, energetic, bold, clean, noble
+          required: true
+          schema:
+            type: string
+            example: "floral,sweet,romantic"
+        - name: sex
+          in: query
+          description: Пол (male/female/unisex). По умолчанию unisex
+          required: false
+          default: "unisex"
+          schema:
+            type: string
+            enum: [male, female, unisex]
+            example: "female"
+      responses:
+        "200":
+          description: Успешный ответ с рекомендациями
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Suggestions"
+              example:
+                suggested:
+                  - perfume:
+                      brand: "Chanel"
+                      name: "Coco Mademoiselle"
+                      sex: "female"
+                      image_url: "https://example.com/image.jpg"
+                      properties:
+                        perfume_type: "Eau de Parfum"
+                        family: ["Floral", "Oriental"]
+                        upper_notes: ["Orange", "Mandarin Orange"]
+                        core_notes: ["Rose", "Jasmine"]
+                        base_notes: ["Patchouli", "Vanilla"]
+                        tags: ["floral", "sweet", "romantic", "elegant"]
+                      shops:
+                        - shop_name: "Gold Apple"
+                          domain: "https://goldapple.ru"
+                          variants:
+                            - volume: 50
+                              link: "https://goldapple.ru/product"
+                              price: 8500
+                    rank: 1
+                    similarity_score: 0.92
+        "204":
+          description: Не удалось дать рекомендации (пустой список или нет данных)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "No recommendations available"
+        "400":
+          description: Неверные параметры запроса (отсутствует параметр tags)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "BAD_REQUEST"
+                message: "Wrong request parameters"
+        "403":
+          description: CORS не разрешен
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "CORS_NOT_ALLOWED"
+                message: "CORS not allowed"
+        "500":
+          description: Ошибка взаимодействия с другими сервисами
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "INTERNAL_ERROR"
+                message: "Internal server error"
 
 components:
   schemas:
@@ -219,6 +313,27 @@ components:
           items:
             type: string
           example: ["Vanilla", "Amber"]
+        tags:
+          type: array
+          items:
+            type: string
+          description: Теги парфюма (опциональное поле, может отсутствовать)
+          example: ["floral", "sweet", "romantic", "elegant"]
+        enriched_upper_notes:
+          type: array
+          description: Обогащенные верхние ноты с тегами и характеристиками (опциональное поле)
+        enriched_core_notes:
+          type: array
+          description: Обогащенные средние ноты с тегами и характеристиками (опциональное поле)
+        enriched_base_notes:
+          type: array
+          description: Обогащенные базовые ноты с тегами и характеристиками (опциональное поле)
+        core_characteristics:
+          type: object
+          description: Характеристики средних нот (опциональное поле)
+        base_characteristics:
+          type: object
+          description: Характеристики базовых нот (опциональное поле)
 
     ShopInfo:
       type: object
