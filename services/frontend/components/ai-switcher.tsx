@@ -3,23 +3,17 @@
 import { useRef, useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
 
-interface SexSelectorProps {
-    value: 'male' | 'unisex' | 'female'
-    onChange: (value: 'male' | 'unisex' | 'female') => void
+interface AISwitcherProps {
+    value: boolean
+    onChange: (value: boolean) => void
 }
 
-export function SexSelector({ value, onChange }: SexSelectorProps) {
-    const options = [
-        { key: 'male' as const, label: 'Мужской' },
-        { key: 'unisex' as const, label: 'Унисекс' },
-        { key: 'female' as const, label: 'Женский' },
-    ]
-
+export function AISwitcher({ value, onChange }: AISwitcherProps) {
     const buttonRefs = useRef<(HTMLButtonElement | null)[]>([])
     const containerRef = useRef<HTMLDivElement>(null)
     const [sliderStyle, setSliderStyle] = useState({ left: 0, width: 0 })
 
-    const activeIndex = options.findIndex(opt => opt.key === value)
+    const activeIndex = value ? 1 : 0
 
     useEffect(() => {
         const updateSlider = () => {
@@ -47,7 +41,7 @@ export function SexSelector({ value, onChange }: SexSelectorProps) {
 
     return (
         <div className="space-y-2">
-            <label className="text-sm font-medium text-[#F8F5F0]/80">Пол</label>
+            <label className="text-sm font-medium text-[#F8F5F0]/80">Использовать ИИ</label>
             <div
                 ref={containerRef}
                 className="relative bg-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-2 flex gap-4 shadow-[0_8px_32px_rgba(227,178,60,0.1)]"
@@ -58,25 +52,37 @@ export function SexSelector({ value, onChange }: SexSelectorProps) {
                     style={{
                         left: `${sliderStyle.left}px`,
                         width: `${sliderStyle.width}px`,
-                        boxShadow: "0_0_30px_rgba(195,142,112,0.5), inset 0_1px_0_rgba(255,255,255,0.2)"
+                        boxShadow: value
+                            ? "0_0_30px_rgba(227,178,60,0.5), inset 0_1px_0_rgba(255,255,255,0.2)"
+                            : "0_0_30px_rgba(195,142,112,0.5), inset 0_1px_0_rgba(255,255,255,0.2)"
                     }}
                 />
 
-                {options.map((option, index) => (
-                    <button
-                        key={option.key}
-                        ref={(el) => { buttonRefs.current[index] = el }}
-                        onClick={() => onChange(option.key)}
-                        className={cn(
-                            "relative z-10 px-4 py-2 rounded-xl font-semibold transition-all duration-300 flex-1 flex items-center justify-center whitespace-nowrap",
-                            value === option.key
-                                ? "text-[#E3B23C]"
-                                : "text-[#F8F5F0]/60 hover:text-[#F8F5F0]/80"
-                        )}
-                    >
-                        {option.label}
-                    </button>
-                ))}
+                <button
+                    ref={(el) => { buttonRefs.current[0] = el }}
+                    onClick={() => onChange(false)}
+                    className={cn(
+                        "relative z-10 px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex-1 flex items-center justify-center whitespace-nowrap",
+                        !value
+                            ? "text-[#E3B23C]"
+                            : "text-[#F8F5F0]/60 hover:text-[#F8F5F0]/80"
+                    )}
+                >
+                    Выкл
+                </button>
+
+                <button
+                    ref={(el) => { buttonRefs.current[1] = el }}
+                    onClick={() => onChange(true)}
+                    className={cn(
+                        "relative z-10 px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex-1 flex items-center justify-center whitespace-nowrap",
+                        value
+                            ? "text-[#E3B23C]"
+                            : "text-[#F8F5F0]/60 hover:text-[#F8F5F0]/80"
+                    )}
+                >
+                    Вкл
+                </button>
             </div>
         </div>
     )
