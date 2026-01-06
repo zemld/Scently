@@ -17,7 +17,7 @@ func main() {
 	router := http.NewServeMux()
 
 	router.HandleFunc("GET /perfume/suggest", middleware.Cors(middleware.Cache(handlers.Suggest)))
-	router.HandleFunc("GET /perfume/suggest-by-tags", handlers.SuggestByTags)
+	router.HandleFunc("GET /perfume/suggest-by-tags", middleware.Cors(middleware.Cache(handlers.SuggestByTags)))
 
 	log.Printf("Starting server on port 8000")
 	if err := http.ListenAndServe(":8000", router); err != nil {
