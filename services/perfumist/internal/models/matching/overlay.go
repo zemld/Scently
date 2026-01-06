@@ -1,8 +1,8 @@
 package matching
 
 import (
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/pkg/set"
 	"github.com/zemld/Scently/models"
+	"github.com/zemld/Scently/perfumist/pkg/set"
 )
 
 type Overlay struct {

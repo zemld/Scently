@@ -3,10 +3,10 @@ package advising
 import (
 	"context"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/errors"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/fetching"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/matching"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
+	"github.com/zemld/Scently/perfumist/internal/errors"
+	"github.com/zemld/Scently/perfumist/internal/models/fetching"
+	"github.com/zemld/Scently/perfumist/internal/models/matching"
+	"github.com/zemld/Scently/perfumist/internal/models/parameters"
 	"github.com/zemld/Scently/models"
 	"github.com/zemld/config-manager/pkg/cm"
 )

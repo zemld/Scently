@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/perfume"
 	"github.com/zemld/Scently/models"
+	"github.com/zemld/Scently/perfumist/internal/models/parameters"
+	"github.com/zemld/Scently/perfumist/internal/models/perfume"
 	"github.com/zemld/config-manager/pkg/cm"
 )
 

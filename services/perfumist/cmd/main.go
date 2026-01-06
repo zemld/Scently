@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/api/handlers"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/api/middleware"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
+	"github.com/zemld/Scently/perfumist/api/handlers"
+	"github.com/zemld/Scently/perfumist/api/middleware"
+	"github.com/zemld/Scently/perfumist/internal/config"
 )
 
 func main() {

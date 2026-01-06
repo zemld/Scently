@@ -3,7 +3,7 @@ package parameters
 import (
 	"net/http"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/errors"
+	"github.com/zemld/Scently/perfumist/internal/errors"
 )
 
 type contextKey string

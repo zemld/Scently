@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 	"github.com/zemld/Scently/models"
+	"github.com/zemld/Scently/perfumist/internal/config"
+	"github.com/zemld/Scently/perfumist/internal/models/parameters"
 )
 
 func TestNewAIFetcher(t *testing.T) {

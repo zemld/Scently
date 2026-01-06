@@ -7,9 +7,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/errors"
 	"github.com/zemld/Scently/models"
+	"github.com/zemld/Scently/perfumist/internal/config"
+	"github.com/zemld/Scently/perfumist/internal/errors"
 )
 
 func TestGeneralParseSimilarParameters_ValidParams(t *testing.T) {

@@ -4,9 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/config"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/advising"
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/matching"
+	"github.com/zemld/Scently/perfumist/internal/config"
+	"github.com/zemld/Scently/perfumist/internal/models/advising"
+	"github.com/zemld/Scently/perfumist/internal/models/matching"
 )
 
 func Suggest(w http.ResponseWriter, r *http.Request) {

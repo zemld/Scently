@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/zemld/PerfumeRecommendationSystem/perfumist/internal/models/parameters"
 	"github.com/zemld/Scently/models"
+	"github.com/zemld/Scently/perfumist/internal/models/parameters"
 	"github.com/zemld/config-manager/pkg/cm"
 )
 
