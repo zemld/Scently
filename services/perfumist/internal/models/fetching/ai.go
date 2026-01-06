@@ -99,10 +99,6 @@ type aiCompletionResponse struct {
 	} `json:"result"`
 }
 
-type aISuggestion struct {
-	Perfumes []models.Perfume `json:"perfumes"`
-}
-
 type AI struct {
 	url       string
 	folderId  string

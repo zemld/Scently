@@ -8,5 +8,5 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/redis/go-redis/v9 v9.17.2
-	github.com/zemld/config-manager v0.0.0-20260104161929-1471f089fb0c
+	github.com/zemld/config-manager v0.0.0-20260105103713-9dd35608f1cd
 )

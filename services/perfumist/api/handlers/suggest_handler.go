@@ -14,7 +14,7 @@ import (
 	"github.com/zemld/config-manager/pkg/cm"
 )
 
-func Suggest(w http.ResponseWriter, r *http.Request) {
+func OldSuggest(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	params := parseQueryParams(r)
 	if err := params.Validate(); err != nil {
@@ -56,28 +56,6 @@ func parseQueryParams(r *http.Request) parameters.RequestPerfume {
 	}
 
 	return *parameters.NewGet().WithBrand(brand).WithName(name).WithSex(sex).WithUseAI(useAI)
-}
-
-func handleError(w http.ResponseWriter, err error) {
-	var status int
-	var errorMsg string
-
-	switch e := err.(type) {
-	case *errors.ValidationError:
-		status = http.StatusBadRequest
-		errorMsg = e.Error()
-	case *errors.NotFoundError:
-		status = http.StatusNotFound
-		errorMsg = e.Error()
-	case *errors.ServiceError:
-		status = http.StatusInternalServerError
-		errorMsg = e.Error()
-	default:
-		status = http.StatusInternalServerError
-		errorMsg = "internal server error"
-	}
-
-	WriteResponse(w, ErrorResponse{Error: errorMsg}, status)
 }
 
 func createAdvisor(params parameters.RequestPerfume, cm cm.ConfigManager) advising.Advisor {
