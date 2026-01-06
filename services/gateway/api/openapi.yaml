@@ -171,7 +171,10 @@ paths:
                         upper_notes: ["Orange", "Mandarin Orange"]
                         core_notes: ["Rose", "Jasmine"]
                         base_notes: ["Patchouli", "Vanilla"]
-                        tags: ["floral", "sweet", "romantic", "elegant"]
+                        tags:
+                          fresh: 1
+                          spicy: 2
+                          woody: 3
                       shops:
                         - shop_name: "Gold Apple"
                           domain: "https://goldapple.ru"
@@ -314,11 +317,14 @@ components:
             type: string
           example: ["Vanilla", "Amber"]
         tags:
-          type: array
-          items:
-            type: string
+          type: object
+          additionalProperties:
+            type: integer
           description: Теги парфюма (опциональное поле, может отсутствовать)
-          example: ["floral", "sweet", "romantic", "elegant"]
+          example:
+            fresh: 1
+            spicy: 2
+            woody: 3
         enriched_upper_notes:
           type: array
           description: Обогащенные верхние ноты с тегами и характеристиками (опциональное поле)
@@ -328,12 +334,33 @@ components:
         enriched_base_notes:
           type: array
           description: Обогащенные базовые ноты с тегами и характеристиками (опциональное поле)
+        upper_characteristics:
+          type: object
+          additionalProperties:
+            type: number
+            format: float
+          description: Характеристики верхних нот (опционально)
+          example:
+            fresh: 0.8
+            citrus: 0.6
         core_characteristics:
           type: object
-          description: Характеристики средних нот (опциональное поле)
+          additionalProperties:
+            type: number
+            format: float
+          description: Характеристики средних нот (опционально)
+          example:
+            floral: 0.9
+            sweet: 0.7
         base_characteristics:
           type: object
-          description: Характеристики базовых нот (опциональное поле)
+          additionalProperties:
+            type: number
+            format: float
+          description: Характеристики базовых нот (опционально)
+          example:
+            woody: 0.8
+            warm: 0.6
 
     ShopInfo:
       type: object
