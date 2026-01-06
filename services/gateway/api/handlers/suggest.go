@@ -26,7 +26,7 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), getTimeoutFromRequest(*r, m))
 	defer cancel()
 
-	perfumistUrl, err := m.GetString("perfumist_url")
+	perfumistUrl, err := getSuggestionUrlFromRequest(*r, m)
 	if err != nil {
 		gatewayErr := errors.NewInternalError(err)
 		gatewayErr.WriteHTTP(w)
@@ -110,6 +110,13 @@ func Suggest(w http.ResponseWriter, r *http.Request) {
 		gatewayErr := errors.NewInternalError(fmt.Errorf("internal service returned status: %d", resp.StatusCode))
 		gatewayErr.WriteHTTP(w)
 	}
+}
+
+func getSuggestionUrlFromRequest(r http.Request, cm cm.ConfigManager) (string, error) {
+	if strings.EqualFold(r.URL.Query().Get("use_ai"), "true") {
+		return cm.GetString("ai_suggest_url")
+	}
+	return cm.GetString("suggest_url")
 }
 
 func getTimeoutFromRequest(r http.Request, cm cm.ConfigManager) time.Duration {

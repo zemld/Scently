@@ -5,7 +5,7 @@ go 1.25.1
 require (
 	github.com/redis/go-redis/v9 v9.17.2
 	github.com/zemld/Scently/models v0.0.0-20260101183948-f901ead60ce6
-	github.com/zemld/config-manager v0.0.0-20260104161929-1471f089fb0c
+	github.com/zemld/config-manager v0.0.0-20260105103713-9dd35608f1cd
 )
 
 require (
