@@ -424,11 +424,14 @@ components:
             $ref: "#/components/schemas/EnrichedNote"
           description: Обогащенные базовые ноты (опционально)
         tags:
-          type: array
-          items:
-            type: string
+          type: object
+          additionalProperties:
+            type: integer
           description: Теги (опционально)
-          example: ["fresh", "spicy", "woody"]
+          example:
+            fresh: 1
+            spicy: 2
+            woody: 3
         upper_characteristics:
           type: object
           additionalProperties:
