@@ -46,7 +46,14 @@ func (a *Base) Advise(ctx context.Context, params parameters.RequestPerfume) ([]
 		),
 	)
 	for i := range matches {
-		matching.CalculatePerfumeTags(&matches[i].Perfume, a.cm.GetIntWithDefault("minimal_tag_count", 3))
+		matches[i].Perfume.Properties.Tags = matching.CalculatePerfumeTags(
+			&matches[i].Perfume.Properties,
+			*matching.NewBaseWeights(
+				a.cm.GetFloatWithDefault("upper_notes_weight", 0.2),
+				a.cm.GetFloatWithDefault("core_notes_weight", 0.35),
+				a.cm.GetFloatWithDefault("base_notes_weight", 0.45),
+			),
+		)
 	}
 	return matches, nil
 }

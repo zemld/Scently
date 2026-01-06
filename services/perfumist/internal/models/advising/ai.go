@@ -3,11 +3,11 @@ package advising
 import (
 	"context"
 
+	"github.com/zemld/Scently/models"
 	"github.com/zemld/Scently/perfumist/internal/errors"
 	"github.com/zemld/Scently/perfumist/internal/models/fetching"
 	"github.com/zemld/Scently/perfumist/internal/models/matching"
 	"github.com/zemld/Scently/perfumist/internal/models/parameters"
-	"github.com/zemld/Scently/models"
 	"github.com/zemld/config-manager/pkg/cm"
 )
 
@@ -46,7 +46,14 @@ func (a *AI) Advise(ctx context.Context, params parameters.RequestPerfume) ([]mo
 	for i, advise := range adviseResults {
 		if enriched, ok := rankedMap[getKey(advise)]; ok {
 			matching.PreparePerfumeCharacteristics(&enriched)
-			matching.CalculatePerfumeTags(&enriched, a.cm.GetIntWithDefault("minimal_tag_count", 3))
+			enriched.Properties.Tags = matching.CalculatePerfumeTags(
+				&enriched.Properties,
+				*matching.NewBaseWeights(
+					a.cm.GetFloatWithDefault("upper_notes_weight", 0.2),
+					a.cm.GetFloatWithDefault("core_notes_weight", 0.35),
+					a.cm.GetFloatWithDefault("base_notes_weight", 0.45),
+				),
+			)
 			rankedResults = append(rankedResults, models.Ranked{
 				Perfume: enriched,
 				Rank:    i + 1,

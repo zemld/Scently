@@ -32,13 +32,12 @@ func SuggestByTags(w http.ResponseWriter, r *http.Request) {
 	}
 
 	advisor := advising.NewTagsBased(
-		*matching.NewTagsBasedAdapter(
+		matching.NewTagsBasedAdapter(
 			matching.Weights{
 				UpperNotesWeight: config.Manager().GetFloatWithDefault("upper_notes_weight", 0.2),
 				CoreNotesWeight:  config.Manager().GetFloatWithDefault("core_notes_weight", 0.35),
 				BaseNotesWeight:  config.Manager().GetFloatWithDefault("base_notes_weight", 0.45),
 			},
-			matching.NewTagsBased(config.Manager().GetIntWithDefault("suggest_count", 4)),
 			tags,
 		),
 		perfumeHubFetcher,

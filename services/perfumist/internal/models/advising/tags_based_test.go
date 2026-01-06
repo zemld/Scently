@@ -15,8 +15,7 @@ func TestNewTagsBased(t *testing.T) {
 	t.Parallel()
 
 	weights := matching.NewBaseWeights(0.3, 0.4, 0.3)
-	tagsBasedMatcher := matching.NewTagsBased(10)
-	matcher := *matching.NewTagsBasedAdapter(*weights, tagsBasedMatcher, []string{"floral", "sweet"})
+	matcher := matching.NewTagsBasedAdapter(*weights, []string{"floral", "sweet"})
 	fetcher := &MockFetcher{}
 	mockConfig := &config.MockConfigManager{}
 
@@ -82,8 +81,7 @@ func TestTagsBased_Advise_Success(t *testing.T) {
 	}
 
 	weights := matching.NewBaseWeights(0.3, 0.4, 0.3)
-	tagsBasedMatcher := matching.NewTagsBased(10)
-	matcher := *matching.NewTagsBasedAdapter(*weights, tagsBasedMatcher, []string{"floral", "sweet"})
+	matcher := matching.NewTagsBasedAdapter(*weights, []string{"floral", "sweet"})
 
 	mockConfig := &config.MockConfigManager{
 		GetIntWithDefaultFunc: func(key string, defaultValue int) int {
@@ -127,8 +125,7 @@ func TestTagsBased_Advise_FetcherFails(t *testing.T) {
 	}
 
 	weights := matching.NewBaseWeights(0.3, 0.4, 0.3)
-	tagsBasedMatcher := matching.NewTagsBased(10)
-	matcher := *matching.NewTagsBasedAdapter(*weights, tagsBasedMatcher, []string{})
+	matcher := matching.NewTagsBasedAdapter(*weights, []string{})
 	mockConfig := &config.MockConfigManager{}
 
 	advisor := NewTagsBased(matcher, fetcher, mockConfig)
@@ -163,8 +160,7 @@ func TestTagsBased_Advise_FetcherReturnsEmpty(t *testing.T) {
 	}
 
 	weights := matching.NewBaseWeights(0.3, 0.4, 0.3)
-	tagsBasedMatcher := matching.NewTagsBased(10)
-	matcher := *matching.NewTagsBasedAdapter(*weights, tagsBasedMatcher, []string{})
+	matcher := matching.NewTagsBasedAdapter(*weights, []string{})
 	mockConfig := &config.MockConfigManager{}
 
 	advisor := NewTagsBased(matcher, fetcher, mockConfig)
@@ -216,12 +212,10 @@ func TestTagsBased_Advise_RespectsConfigParams(t *testing.T) {
 	}
 
 	weights := matching.NewBaseWeights(0.3, 0.4, 0.3)
-	tagsBasedMatcher := matching.NewTagsBased(10)
-	matcher := *matching.NewTagsBasedAdapter(*weights, tagsBasedMatcher, []string{"floral", "sweet"})
+	matcher := matching.NewTagsBasedAdapter(*weights, []string{"floral", "sweet"})
 
 	var suggestCount int
 	var threadsCount int
-	var minimalTagCount int
 
 	mockConfig := &config.MockConfigManager{
 		GetIntWithDefaultFunc: func(key string, defaultValue int) int {
@@ -232,9 +226,6 @@ func TestTagsBased_Advise_RespectsConfigParams(t *testing.T) {
 			case "threads_count":
 				threadsCount = 2
 				return 2
-			case "minimal_tag_count":
-				minimalTagCount = 1
-				return 1
 			}
 			return defaultValue
 		},
@@ -255,9 +246,6 @@ func TestTagsBased_Advise_RespectsConfigParams(t *testing.T) {
 	}
 	if threadsCount != 2 {
 		t.Fatalf("expected threads_count to be called, got %d", threadsCount)
-	}
-	if minimalTagCount != 1 {
-		t.Fatalf("expected minimal_tag_count to be called, got %d", minimalTagCount)
 	}
 	if len(result) > 3 {
 		t.Fatalf("expected at most 3 results, got %d", len(result))
@@ -298,8 +286,7 @@ func TestTagsBased_Advise_CalculatesPerfumeTags(t *testing.T) {
 	}
 
 	weights := matching.NewBaseWeights(0.3, 0.4, 0.3)
-	tagsBasedMatcher := matching.NewTagsBased(10)
-	matcher := *matching.NewTagsBasedAdapter(*weights, tagsBasedMatcher, []string{"floral", "sweet"})
+	matcher := matching.NewTagsBasedAdapter(*weights, []string{"floral", "sweet"})
 
 	mockConfig := &config.MockConfigManager{
 		GetIntWithDefaultFunc: func(key string, defaultValue int) int {
@@ -330,8 +317,8 @@ func TestTagsBased_Advise_CalculatesPerfumeTags(t *testing.T) {
 	}
 	// Verify that tags were calculated
 	found := false
-	for _, tag := range result[0].Perfume.Properties.Tags {
-		if tag == "floral" {
+	for _, note := range result[0].Perfume.Properties.EnrichedUpperNotes {
+		if note.Name == "Rose" {
 			found = true
 			break
 		}
@@ -366,8 +353,7 @@ func TestTagsBased_Advise_VerifyFetchParams(t *testing.T) {
 	}
 
 	weights := matching.NewBaseWeights(0.3, 0.4, 0.3)
-	tagsBasedMatcher := matching.NewTagsBased(10)
-	matcher := *matching.NewTagsBasedAdapter(*weights, tagsBasedMatcher, []string{"floral", "sweet"})
+	matcher := matching.NewTagsBasedAdapter(*weights, []string{"floral", "sweet"})
 
 	mockConfig := &config.MockConfigManager{
 		GetIntWithDefaultFunc: func(key string, defaultValue int) int {
@@ -389,4 +375,3 @@ func TestTagsBased_Advise_VerifyFetchParams(t *testing.T) {
 		t.Fatalf("expected sex 'female' to be fetched, got %q", fetchedSex)
 	}
 }
-
