@@ -2,5 +2,6 @@
     "ai_suggest_timeout": "20s",
     "non_ai_suggest_timeout": "8s",
     "suggest_url": "http://perfumist:8000/v2/perfume/suggest",
-    "ai_suggest_url": "http://perfumist:8000/v2/perfume/ai-suggest"
+    "ai_suggest_url": "http://perfumist:8000/v2/perfume/ai-suggest",
+    "suggest_by_tags_url": "http://perfumist:8000/v2/perfume/suggest-by-tags"
 }
