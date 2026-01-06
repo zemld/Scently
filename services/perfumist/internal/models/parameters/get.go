@@ -3,6 +3,7 @@ package parameters
 import (
 	"net/http"
 
+	"github.com/zemld/Scently/models"
 	"github.com/zemld/Scently/perfumist/internal/errors"
 )
 
@@ -14,20 +15,12 @@ const (
 	BrandParamKey = "brand"
 	NameParamKey  = "name"
 	SexParamKey   = "sex"
-	UseAIParamKey = "use_ai"
-)
-
-const (
-	SexMale   = "male"
-	SexFemale = "female"
-	SexUnisex = "unisex"
 )
 
 type RequestPerfume struct {
 	Brand string
 	Name  string
-	Sex   string
-	UseAI bool
+	Sex   models.Sex
 }
 
 func (p *RequestPerfume) WithBrand(brand string) *RequestPerfume {
@@ -40,13 +33,8 @@ func (p *RequestPerfume) WithName(name string) *RequestPerfume {
 	return p
 }
 
-func (p *RequestPerfume) WithUseAI(useAI bool) *RequestPerfume {
-	p.UseAI = useAI
-	return p
-}
-
-func (p *RequestPerfume) WithSex(sex string) *RequestPerfume {
-	if sex != "male" && sex != "female" {
+func (p *RequestPerfume) WithSex(sex models.Sex) *RequestPerfume {
+	if sex != models.Male && sex != models.Female {
 		return p
 	}
 	p.Sex = sex
@@ -54,14 +42,14 @@ func (p *RequestPerfume) WithSex(sex string) *RequestPerfume {
 }
 
 func NewGet() *RequestPerfume {
-	return &RequestPerfume{UseAI: false}
+	return &RequestPerfume{Sex: models.Unisex}
 }
 
 func (p RequestPerfume) AddToQuery(r *http.Request) {
 	addQueryParameter(r, "brand", p.Brand)
 	addQueryParameter(r, "name", p.Name)
-	if p.Sex == "male" || p.Sex == "female" {
-		addQueryParameter(r, "sex", p.Sex)
+	if p.Sex == models.Male || p.Sex == models.Female {
+		addQueryParameter(r, "sex", string(p.Sex))
 	}
 }
 
