@@ -59,11 +59,10 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                             <img
                                 src={perfume.image_url || "/luxury-perfume-bottle-amber-gold.jpg"}
                                 alt={perfume.name}
-                                className={`w-full h-full ${
-                                    perfume.image_url 
-                                        ? "object-contain p-4" 
-                                        : "object-cover"
-                                }`}
+                                className={`w-full h-full ${perfume.image_url
+                                    ? "object-contain p-4"
+                                    : "object-cover"
+                                    }`}
                             />
                         </div>
 
@@ -148,123 +147,128 @@ export function PerfumeModal({ perfume, isOpen, onClose }: PerfumeModalProps) {
                     )}
 
                     {/* Tags and Characteristics Section */}
-                    {((perfume.properties?.tags && perfume.properties.tags.length > 0) || 
-                     perfume.properties?.upper_characteristics || 
-                     perfume.properties?.core_characteristics || 
-                     perfume.properties?.base_characteristics) && (
-                        <div className="mb-8">
-                            <h3 className="text-2xl font-bold text-[#F8F5F0] mb-6">Теги и характеристики</h3>
-                            <div className="flex flex-col md:flex-row gap-6">
-                                {/* Tags Section - 30% */}
-                                {perfume.properties?.tags && perfume.properties.tags.length > 0 && (
-                                    <div className="w-full md:w-[30%] space-y-3">
-                                        <h4 className="text-sm font-semibold text-[#C38E70] uppercase tracking-wider">Теги</h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {perfume.properties.tags.map((tag, index) => (
-                                                <span
-                                                    key={index}
-                                                    className="px-3 py-1.5 text-sm bg-white/15 backdrop-blur-md border border-white/30 rounded-full text-[#F8F5F0] hover:bg-white/20 hover:border-[#E3B23C]/50 transition-all duration-300"
-                                                >
-                                                    {translateTag(tag)}
-                                                </span>
-                                            ))}
+                    {((perfume.properties?.tags && Object.keys(perfume.properties.tags).length > 0) ||
+                        perfume.properties?.upper_characteristics ||
+                        perfume.properties?.core_characteristics ||
+                        perfume.properties?.base_characteristics) && (
+                            <div className="mb-8">
+                                <h3 className="text-2xl font-bold text-[#F8F5F0] mb-6">Теги и характеристики</h3>
+                                <div className="flex flex-col md:flex-row gap-6">
+                                    {/* Tags Section - 30% */}
+                                    {perfume.properties?.tags && Object.keys(perfume.properties.tags).length > 0 && (
+                                        <div className="w-full md:w-[30%] space-y-3">
+                                            <h4 className="text-sm font-semibold text-[#C38E70] uppercase tracking-wider">Теги</h4>
+                                            <div className="flex flex-wrap gap-2">
+                                                {Object.entries(perfume.properties.tags).map(([tag, count]) => (
+                                                    <span
+                                                        key={tag}
+                                                        className="px-3 py-1.5 text-sm bg-white/15 backdrop-blur-md border border-white/30 rounded-full text-[#F8F5F0] hover:bg-white/20 hover:border-[#E3B23C]/50 transition-all duration-300"
+                                                    >
+                                                        {translateTag(tag)}
+                                                        {count > 1 && (
+                                                            <span className="ml-1 text-[#E3B23C] font-semibold">
+                                                                × {count}
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
 
-                                {/* Characteristics Section - 70% */}
-                                {(perfume.properties?.upper_characteristics || 
-                                  perfume.properties?.core_characteristics || 
-                                  perfume.properties?.base_characteristics) && (
-                                    <div className="w-full md:w-[70%] space-y-6">
-                                        {/* Upper Characteristics */}
-                                        {perfume.properties?.upper_characteristics && (
-                                            <div className="space-y-3">
-                                                <h4 className="text-sm font-semibold text-[#C38E70] uppercase tracking-wider">Верхние ноты</h4>
-                                                <div className="space-y-2">
-                                                    {Object.entries(perfume.properties.upper_characteristics).map(([key, value]) => {
-                                                        const numValue = typeof value === 'number' ? value : 0
-                                                        return (
-                                                            <div key={key} className="flex items-center gap-3">
-                                                                <span className="text-sm text-[#F8F5F0] w-28 flex-shrink-0">
-                                                                    {getCharacteristicLabel(key)}
-                                                                </span>
-                                                                <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
-                                                                    <div 
-                                                                        className="h-full bg-gradient-to-r from-[#C38E70] to-[#E3B23C] rounded-full transition-all duration-500"
-                                                                        style={{ width: `${Math.min(numValue * 100, 100)}%` }}
-                                                                    />
-                                                                </div>
-                                                                <span className="text-xs text-[#C38E70] w-12 text-right">
-                                                                    {Math.round(numValue * 100)}%
-                                                                </span>
-                                                            </div>
-                                                        )
-                                                    })}
-                                                </div>
+                                    {/* Characteristics Section - 70% */}
+                                    {(perfume.properties?.upper_characteristics ||
+                                        perfume.properties?.core_characteristics ||
+                                        perfume.properties?.base_characteristics) && (
+                                            <div className="w-full md:w-[70%] space-y-6">
+                                                {/* Upper Characteristics */}
+                                                {perfume.properties?.upper_characteristics && (
+                                                    <div className="space-y-3">
+                                                        <h4 className="text-sm font-semibold text-[#C38E70] uppercase tracking-wider">Верхние ноты</h4>
+                                                        <div className="space-y-2">
+                                                            {Object.entries(perfume.properties.upper_characteristics).map(([key, value]) => {
+                                                                const numValue = typeof value === 'number' ? value : 0
+                                                                return (
+                                                                    <div key={key} className="flex items-center gap-3">
+                                                                        <span className="text-sm text-[#F8F5F0] w-28 flex-shrink-0">
+                                                                            {getCharacteristicLabel(key)}
+                                                                        </span>
+                                                                        <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                                                                            <div
+                                                                                className="h-full bg-gradient-to-r from-[#C38E70] to-[#E3B23C] rounded-full transition-all duration-500"
+                                                                                style={{ width: `${Math.min(numValue * 100, 100)}%` }}
+                                                                            />
+                                                                        </div>
+                                                                        <span className="text-xs text-[#C38E70] w-12 text-right">
+                                                                            {Math.round(numValue * 100)}%
+                                                                        </span>
+                                                                    </div>
+                                                                )
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Core Characteristics */}
+                                                {perfume.properties?.core_characteristics && (
+                                                    <div className="space-y-3">
+                                                        <h4 className="text-sm font-semibold text-[#C38E70] uppercase tracking-wider">Ноты сердца</h4>
+                                                        <div className="space-y-2">
+                                                            {Object.entries(perfume.properties.core_characteristics).map(([key, value]) => {
+                                                                const numValue = typeof value === 'number' ? value : 0
+                                                                return (
+                                                                    <div key={key} className="flex items-center gap-3">
+                                                                        <span className="text-sm text-[#F8F5F0] w-28 flex-shrink-0">
+                                                                            {getCharacteristicLabel(key)}
+                                                                        </span>
+                                                                        <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                                                                            <div
+                                                                                className="h-full bg-gradient-to-r from-[#C38E70] to-[#E3B23C] rounded-full transition-all duration-500"
+                                                                                style={{ width: `${Math.min(numValue * 100, 100)}%` }}
+                                                                            />
+                                                                        </div>
+                                                                        <span className="text-xs text-[#C38E70] w-12 text-right">
+                                                                            {Math.round(numValue * 100)}%
+                                                                        </span>
+                                                                    </div>
+                                                                )
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Base Characteristics */}
+                                                {perfume.properties?.base_characteristics && (
+                                                    <div className="space-y-3">
+                                                        <h4 className="text-sm font-semibold text-[#C38E70] uppercase tracking-wider">Базовые ноты</h4>
+                                                        <div className="space-y-2">
+                                                            {Object.entries(perfume.properties.base_characteristics).map(([key, value]) => {
+                                                                const numValue = typeof value === 'number' ? value : 0
+                                                                return (
+                                                                    <div key={key} className="flex items-center gap-3">
+                                                                        <span className="text-sm text-[#F8F5F0] w-28 flex-shrink-0">
+                                                                            {getCharacteristicLabel(key)}
+                                                                        </span>
+                                                                        <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                                                                            <div
+                                                                                className="h-full bg-gradient-to-r from-[#C38E70] to-[#E3B23C] rounded-full transition-all duration-500"
+                                                                                style={{ width: `${Math.min(numValue * 100, 100)}%` }}
+                                                                            />
+                                                                        </div>
+                                                                        <span className="text-xs text-[#C38E70] w-12 text-right">
+                                                                            {Math.round(numValue * 100)}%
+                                                                        </span>
+                                                                    </div>
+                                                                )
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
-
-                                        {/* Core Characteristics */}
-                                        {perfume.properties?.core_characteristics && (
-                                            <div className="space-y-3">
-                                                <h4 className="text-sm font-semibold text-[#C38E70] uppercase tracking-wider">Ноты сердца</h4>
-                                                <div className="space-y-2">
-                                                    {Object.entries(perfume.properties.core_characteristics).map(([key, value]) => {
-                                                        const numValue = typeof value === 'number' ? value : 0
-                                                        return (
-                                                            <div key={key} className="flex items-center gap-3">
-                                                                <span className="text-sm text-[#F8F5F0] w-28 flex-shrink-0">
-                                                                    {getCharacteristicLabel(key)}
-                                                                </span>
-                                                                <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
-                                                                    <div 
-                                                                        className="h-full bg-gradient-to-r from-[#C38E70] to-[#E3B23C] rounded-full transition-all duration-500"
-                                                                        style={{ width: `${Math.min(numValue * 100, 100)}%` }}
-                                                                    />
-                                                                </div>
-                                                                <span className="text-xs text-[#C38E70] w-12 text-right">
-                                                                    {Math.round(numValue * 100)}%
-                                                                </span>
-                                                            </div>
-                                                        )
-                                                    })}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Base Characteristics */}
-                                        {perfume.properties?.base_characteristics && (
-                                            <div className="space-y-3">
-                                                <h4 className="text-sm font-semibold text-[#C38E70] uppercase tracking-wider">Базовые ноты</h4>
-                                                <div className="space-y-2">
-                                                    {Object.entries(perfume.properties.base_characteristics).map(([key, value]) => {
-                                                        const numValue = typeof value === 'number' ? value : 0
-                                                        return (
-                                                            <div key={key} className="flex items-center gap-3">
-                                                                <span className="text-sm text-[#F8F5F0] w-28 flex-shrink-0">
-                                                                    {getCharacteristicLabel(key)}
-                                                                </span>
-                                                                <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
-                                                                    <div 
-                                                                        className="h-full bg-gradient-to-r from-[#C38E70] to-[#E3B23C] rounded-full transition-all duration-500"
-                                                                        style={{ width: `${Math.min(numValue * 100, 100)}%` }}
-                                                                    />
-                                                                </div>
-                                                                <span className="text-xs text-[#C38E70] w-12 text-right">
-                                                                    {Math.round(numValue * 100)}%
-                                                                </span>
-                                                            </div>
-                                                        )
-                                                    })}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
 
                     {/* Available Shops and Variants - show if we have shops data */}
                     {perfume.shops && perfume.shops.length > 0 && (
