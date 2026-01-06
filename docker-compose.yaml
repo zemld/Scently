@@ -59,9 +59,9 @@ services:
     networks:
       - backend
 
-  external:
+  frontend:
     build:
-      context: services/external
+      context: services/frontend
     ports:
       - "3000:3000"
     environment:
