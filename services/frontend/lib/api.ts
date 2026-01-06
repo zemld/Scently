@@ -20,7 +20,7 @@ export interface PerfumeProperties {
     upper_notes: string[]
     core_notes: string[]
     base_notes: string[]
-    tags?: string[]
+    tags?: Record<string, number>
     upper_characteristics?: PerfumeCharacteristics
     core_characteristics?: PerfumeCharacteristics
     base_characteristics?: PerfumeCharacteristics
