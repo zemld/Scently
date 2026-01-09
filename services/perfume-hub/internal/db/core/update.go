@@ -30,7 +30,7 @@ func Update(ctx context.Context, params *models.UpdateParameters) models.Process
 	}
 	defer tx.Rollback(ctx)
 
-	if !deleteOldPerfumes(ctx, tx) {
+	if params.IsHard && !deleteOldPerfumes(ctx, tx) {
 		log.Printf("Warning: Failed to delete old perfumes, continuing with update\n")
 	}
 

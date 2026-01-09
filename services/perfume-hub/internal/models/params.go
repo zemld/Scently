@@ -15,21 +15,12 @@ const DefaultItemsPerPage = 500
 type contextKey string
 
 const UpdateParametersContextKey contextKey = "update_parameters"
+const SelectParametersContextKey contextKey = "select_parameters"
 
 type UpdateParameters struct {
 	Perfumes []models.Perfume `json:"perfumes"`
+	IsHard   bool             `json:"is_hard"`
 }
-
-func NewUpdateParameters() *UpdateParameters {
-	return &UpdateParameters{}
-}
-
-func (p *UpdateParameters) WithPerfumes(perfumes []models.Perfume) *UpdateParameters {
-	p.Perfumes = perfumes
-	return p
-}
-
-const SelectParametersContextKey contextKey = "select_parameters"
 
 type SelectParameters struct {
 	Brand           string
@@ -37,6 +28,20 @@ type SelectParameters struct {
 	Sex             string
 	Page            int
 	parametersCount int
+}
+
+func NewUpdateParameters() *UpdateParameters {
+	return &UpdateParameters{IsHard: false}
+}
+
+func (p *UpdateParameters) WithPerfumes(perfumes []models.Perfume) *UpdateParameters {
+	p.Perfumes = perfumes
+	return p
+}
+
+func (p *UpdateParameters) WithIsHard(isHard bool) *UpdateParameters {
+	p.IsHard = isHard
+	return p
 }
 
 func NewSelectParameters() *SelectParameters {

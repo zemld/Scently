@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/zemld/Scently/perfume-hub/internal/db/core"
 	"github.com/zemld/Scently/perfume-hub/internal/errors"
@@ -41,6 +42,9 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		handleError(w, validationErr)
 		return
 	}
+
+	isHard, _ := strconv.ParseBool(r.URL.Query().Get("is_hard"))
+	params.WithIsHard(isHard)
 
 	updateStatus := core.Update(r.Context(), params)
 	if updateStatus.Error != nil {
