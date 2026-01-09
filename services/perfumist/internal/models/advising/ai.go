@@ -22,27 +22,43 @@ func NewAI(adviseFetcher fetching.Fetcher, enrichFetcher fetching.Fetcher, confi
 }
 
 func (a *AI) Advise(ctx context.Context, params parameters.RequestPerfume) ([]models.Ranked, error) {
-	adviseResults, ok := a.adviseFetcher.Fetch(ctx, []parameters.RequestPerfume{params})
-	if !ok {
-		return nil, errors.NewServiceError("failed to interact with AI advisor service", nil)
+	adviseResults, err := a.tryFetchRawAdvise(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	rankedMap := a.tryFetchEnrichments(ctx, adviseResults, params)
+
+	return a.prepareSuggestionsWithEnrichments(adviseResults, rankedMap), nil
+}
+
+func (a *AI) tryFetchRawAdvise(ctx context.Context, params parameters.RequestPerfume) ([]models.Perfume, error) {
+	adviseChan := a.adviseFetcher.Fetch(ctx, params)
+	adviseResults := make([]models.Perfume, 0, a.cm.GetIntWithDefault("suggest_count", 4))
+	for perfume, ok := <-adviseChan; ok; perfume, ok = <-adviseChan {
+		adviseResults = append(adviseResults, perfume)
 	}
 	if len(adviseResults) == 0 {
 		return nil, errors.NewNotFoundError("perfume not found")
 	}
+	return adviseResults, nil
+}
 
+func (a *AI) tryFetchEnrichments(ctx context.Context, adviseResults []models.Perfume, params parameters.RequestPerfume) map[string]models.Perfume {
 	enrichmentParams := make([]parameters.RequestPerfume, len(adviseResults))
 	for i, suggestion := range adviseResults {
 		enrichmentParams[i] = *parameters.NewGet().WithBrand(suggestion.Brand).WithName(suggestion.Name).WithSex(params.Sex)
 	}
-	enrichmentResults, ok := a.enrichFetcher.Fetch(ctx, enrichmentParams)
+	enrichmentChan := a.enrichFetcher.FetchMany(ctx, enrichmentParams)
 
 	rankedMap := make(map[string]models.Perfume)
-	if ok && enrichmentResults != nil && len(enrichmentResults) > 0 {
-		for _, e := range enrichmentResults {
-			rankedMap[getKey(e)] = e
-		}
+	for enrichment, ok := <-enrichmentChan; ok; enrichment, ok = <-enrichmentChan {
+		rankedMap[getKey(enrichment)] = enrichment
 	}
-	rankedResults := make([]models.Ranked, 0, len(adviseResults))
+	return rankedMap
+}
+
+func (a *AI) prepareSuggestionsWithEnrichments(adviseResults []models.Perfume, rankedMap map[string]models.Perfume) []models.Ranked {
+	enrichedResults := make([]models.Ranked, 0, len(adviseResults))
 	for i, advise := range adviseResults {
 		if enriched, ok := rankedMap[getKey(advise)]; ok {
 			matching.PreparePerfumeCharacteristics(&enriched)
@@ -54,18 +70,18 @@ func (a *AI) Advise(ctx context.Context, params parameters.RequestPerfume) ([]mo
 					a.cm.GetFloatWithDefault("base_notes_weight", 0.45),
 				),
 			)
-			rankedResults = append(rankedResults, models.Ranked{
+			enrichedResults = append(enrichedResults, models.Ranked{
 				Perfume: enriched,
 				Rank:    i + 1,
 			})
 		} else {
-			rankedResults = append(rankedResults, models.Ranked{
+			enrichedResults = append(enrichedResults, models.Ranked{
 				Perfume: advise,
 				Rank:    i + 1,
 			})
 		}
 	}
-	return rankedResults, nil
+	return enrichedResults
 }
 
 func getKey(p models.Perfume) string {

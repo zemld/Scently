@@ -2,6 +2,7 @@ package advising
 
 import (
 	"context"
+	"log"
 
 	"github.com/zemld/Scently/models"
 	"github.com/zemld/Scently/perfumist/internal/errors"
@@ -22,38 +23,23 @@ func NewBase(fetcher fetching.Fetcher, matcher matching.Matcher, cm cm.ConfigMan
 }
 
 func (a *Base) Advise(ctx context.Context, params parameters.RequestPerfume) ([]models.Ranked, error) {
-	favouritePerfumes, ok := a.fetcher.Fetch(ctx, []parameters.RequestPerfume{params})
-	if !ok {
-		return nil, errors.NewServiceError("failed to interact with perfume service", nil)
+	favouritePerfume, err := a.fetchFavouritePerfume(ctx, params)
+	if err != nil {
+		return nil, err
 	}
-	if len(favouritePerfumes) == 0 {
-		return nil, errors.NewNotFoundError("perfume not found")
+	log.Printf("favouritePerfume: %+v\n", favouritePerfume)
+	common := NewCommon(a.fetcher, a.matcher, a.cm).WithFavouritePerfume(favouritePerfume)
+	return common.Advise(ctx, params)
+}
+
+func (a *Base) fetchFavouritePerfume(ctx context.Context, params parameters.RequestPerfume) (models.Perfume, error) {
+	select {
+	case <-ctx.Done():
+		return models.Perfume{}, errors.NewServiceError("context cancelled", nil)
+	case favouritePerfume, ok := <-a.fetcher.Fetch(ctx, params):
+		if !ok {
+			return models.Perfume{}, errors.NewServiceError("failed to interact with perfume service", nil)
+		}
+		return favouritePerfume, nil
 	}
-	allPerfumes, ok := a.fetcher.Fetch(ctx, []parameters.RequestPerfume{*parameters.NewGet().WithSex(params.Sex)})
-	if !ok {
-		return nil, errors.NewServiceError("failed to interact with perfume service", nil)
-	}
-	if len(allPerfumes) == 0 {
-		return nil, errors.NewServiceError("no perfumes available in database", nil)
-	}
-	matches := matching.Find(
-		matching.NewMatchData(
-			a.matcher,
-			favouritePerfumes[0],
-			allPerfumes,
-			a.cm.GetIntWithDefault("suggest_count", 4),
-			a.cm.GetIntWithDefault("threads_count", 8),
-		),
-	)
-	for i := range matches {
-		matches[i].Perfume.Properties.Tags = matching.CalculatePerfumeTags(
-			&matches[i].Perfume.Properties,
-			*matching.NewBaseWeights(
-				a.cm.GetFloatWithDefault("upper_notes_weight", 0.2),
-				a.cm.GetFloatWithDefault("core_notes_weight", 0.35),
-				a.cm.GetFloatWithDefault("base_notes_weight", 0.45),
-			),
-		)
-	}
-	return matches, nil
 }

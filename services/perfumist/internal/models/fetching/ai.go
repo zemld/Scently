@@ -119,30 +119,50 @@ func NewAI(url string, folderId string, modelName string, apiKey string, cm cm.C
 	}
 }
 
-func (f *AI) Fetch(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
+func (f *AI) FetchMany(ctx context.Context, params []parameters.RequestPerfume) <-chan models.Perfume {
 	if len(params) == 0 {
-		return nil, false
+		perfumesChan := make(chan models.Perfume)
+		close(perfumesChan)
+		return perfumesChan
 	}
+	return f.Fetch(ctx, params[0])
+}
 
-	ctx, cancel := context.WithTimeout(ctx, f.cm.GetDurationWithDefault("ai_fetcher_timeout", 20*time.Second))
-	defer cancel()
+func (f *AI) Fetch(ctx context.Context, parameter parameters.RequestPerfume) <-chan models.Perfume {
+	perfumesChan := make(chan models.Perfume)
 
-	r, err := f.createRequest(ctx, params[0])
-	if err != nil {
-		return nil, false
-	}
+	go func() {
+		defer close(perfumesChan)
 
-	response, err := f.client.Do(r)
-	if err != nil {
-		return nil, false
-	}
-	defer response.Body.Close()
+		ctx, cancel := context.WithTimeout(ctx, f.cm.GetDurationWithDefault("ai_fetcher_timeout", 20*time.Second))
+		defer cancel()
 
-	perfumes, err := f.tryParseResponse(response)
-	if err != nil {
-		return nil, false
-	}
-	return perfumes, true
+		r, err := f.createRequest(ctx, parameter)
+		if err != nil {
+			return
+		}
+
+		response, err := f.client.Do(r)
+		if err != nil {
+			return
+		}
+		defer response.Body.Close()
+
+		perfumes, err := f.tryParseResponse(response)
+		if err != nil {
+			return
+		}
+		for _, perfume := range perfumes {
+			select {
+			case <-ctx.Done():
+				return
+			case perfumesChan <- perfume:
+				continue
+			}
+		}
+	}()
+
+	return perfumesChan
 }
 
 func (f *AI) createRequest(ctx context.Context, perfume parameters.RequestPerfume) (*http.Request, error) {

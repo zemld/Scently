@@ -2,6 +2,7 @@ package parameters
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/zemld/Scently/models"
 	"github.com/zemld/Scently/perfumist/internal/errors"
@@ -21,6 +22,7 @@ type RequestPerfume struct {
 	Brand string
 	Name  string
 	Sex   models.Sex
+	Page  uint32
 }
 
 func (p *RequestPerfume) WithBrand(brand string) *RequestPerfume {
@@ -50,6 +52,9 @@ func (p RequestPerfume) AddToQuery(r *http.Request) {
 	addQueryParameter(r, "name", p.Name)
 	if p.Sex == models.Male || p.Sex == models.Female {
 		addQueryParameter(r, "sex", string(p.Sex))
+	}
+	if p.Page > 0 {
+		addQueryParameter(r, "page", strconv.FormatUint(uint64(p.Page), 10))
 	}
 }
 
