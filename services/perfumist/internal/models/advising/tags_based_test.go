@@ -6,7 +6,6 @@ import (
 
 	"github.com/zemld/Scently/models"
 	"github.com/zemld/Scently/perfumist/internal/config"
-	"github.com/zemld/Scently/perfumist/internal/errors"
 	"github.com/zemld/Scently/perfumist/internal/models/matching"
 	"github.com/zemld/Scently/perfumist/internal/models/parameters"
 )
@@ -72,11 +71,21 @@ func TestTagsBased_Advise_Success(t *testing.T) {
 	}
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
-			if len(params) == 1 && params[0].Sex == "female" && params[0].Brand == "" && params[0].Name == "" {
-				return perfumes, true
-			}
-			return nil, false
+		FetchFunc: func(ctx context.Context, param parameters.RequestPerfume) <-chan models.Perfume {
+			ch := make(chan models.Perfume)
+			go func() {
+				defer close(ch)
+				if param.Sex == "female" && param.Brand == "" && param.Name == "" {
+					for _, p := range perfumes {
+						select {
+						case <-ctx.Done():
+							return
+						case ch <- p:
+						}
+					}
+				}
+			}()
+			return ch
 		},
 	}
 
@@ -119,8 +128,10 @@ func TestTagsBased_Advise_FetcherFails(t *testing.T) {
 	t.Parallel()
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
-			return nil, false
+		FetchFunc: func(ctx context.Context, param parameters.RequestPerfume) <-chan models.Perfume {
+			ch := make(chan models.Perfume)
+			close(ch)
+			return ch
 		},
 	}
 
@@ -135,18 +146,12 @@ func TestTagsBased_Advise_FetcherFails(t *testing.T) {
 
 	result, err := advisor.Advise(context.Background(), params)
 
-	if err == nil {
-		t.Fatal("expected error when fetcher fails")
+	// When fetcher returns empty channel, Common.Advise returns empty array without error
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
 	}
-	serviceErr, ok := err.(*errors.ServiceError)
-	if !ok {
-		t.Fatalf("expected ServiceError, got %T", err)
-	}
-	if serviceErr.Message != "failed to interact with perfume service" {
-		t.Fatalf("expected error message 'failed to interact with perfume service', got %q", serviceErr.Message)
-	}
-	if result != nil {
-		t.Fatalf("expected nil result, got %v", result)
+	if len(result) != 0 {
+		t.Fatalf("expected empty result, got %v", result)
 	}
 }
 
@@ -154,8 +159,10 @@ func TestTagsBased_Advise_FetcherReturnsEmpty(t *testing.T) {
 	t.Parallel()
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
-			return []models.Perfume{}, true
+		FetchFunc: func(ctx context.Context, param parameters.RequestPerfume) <-chan models.Perfume {
+			ch := make(chan models.Perfume)
+			close(ch)
+			return ch
 		},
 	}
 
@@ -170,18 +177,12 @@ func TestTagsBased_Advise_FetcherReturnsEmpty(t *testing.T) {
 
 	result, err := advisor.Advise(context.Background(), params)
 
-	if err == nil {
-		t.Fatal("expected error when fetcher returns empty")
+	// When fetcher returns empty channel, Common.Advise returns empty array without error
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
 	}
-	serviceErr, ok := err.(*errors.ServiceError)
-	if !ok {
-		t.Fatalf("expected ServiceError, got %T", err)
-	}
-	if serviceErr.Message != "no perfumes available in database" {
-		t.Fatalf("expected error message 'no perfumes available in database', got %q", serviceErr.Message)
-	}
-	if result != nil {
-		t.Fatalf("expected nil result, got %v", result)
+	if len(result) != 0 {
+		t.Fatalf("expected empty result, got %v", result)
 	}
 }
 
@@ -203,11 +204,21 @@ func TestTagsBased_Advise_RespectsConfigParams(t *testing.T) {
 	}
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
-			if len(params) == 1 && params[0].Sex == "female" {
-				return perfumes, true
-			}
-			return nil, false
+		FetchFunc: func(ctx context.Context, param parameters.RequestPerfume) <-chan models.Perfume {
+			ch := make(chan models.Perfume)
+			go func() {
+				defer close(ch)
+				if param.Sex == "female" {
+					for _, p := range perfumes {
+						select {
+						case <-ctx.Done():
+							return
+						case ch <- p:
+						}
+					}
+				}
+			}()
+			return ch
 		},
 	}
 
@@ -277,11 +288,21 @@ func TestTagsBased_Advise_CalculatesPerfumeTags(t *testing.T) {
 	}
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
-			if len(params) == 1 && params[0].Sex == "female" {
-				return perfumes, true
-			}
-			return nil, false
+		FetchFunc: func(ctx context.Context, param parameters.RequestPerfume) <-chan models.Perfume {
+			ch := make(chan models.Perfume)
+			go func() {
+				defer close(ch)
+				if param.Sex == "female" {
+					for _, p := range perfumes {
+						select {
+						case <-ctx.Done():
+							return
+						case ch <- p:
+						}
+					}
+				}
+			}()
+			return ch
 		},
 	}
 
@@ -341,14 +362,22 @@ func TestTagsBased_Advise_VerifyFetchParams(t *testing.T) {
 
 	var fetchedSex models.Sex
 	fetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
-			if len(params) == 1 {
-				fetchedSex = params[0].Sex
-				if params[0].Brand == "" && params[0].Name == "" {
-					return perfumes, true
+		FetchFunc: func(ctx context.Context, param parameters.RequestPerfume) <-chan models.Perfume {
+			ch := make(chan models.Perfume)
+			go func() {
+				defer close(ch)
+				fetchedSex = param.Sex
+				if param.Brand == "" && param.Name == "" {
+					for _, p := range perfumes {
+						select {
+						case <-ctx.Done():
+							return
+						case ch <- p:
+						}
+					}
 				}
-			}
-			return nil, false
+			}()
+			return ch
 		},
 	}
 

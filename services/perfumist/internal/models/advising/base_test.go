@@ -11,14 +11,26 @@ import (
 )
 
 type MockFetcher struct {
-	FetchFunc func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool)
+	FetchFunc     func(ctx context.Context, param parameters.RequestPerfume) <-chan models.Perfume
+	FetchManyFunc func(ctx context.Context, params []parameters.RequestPerfume) <-chan models.Perfume
 }
 
-func (m *MockFetcher) Fetch(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
+func (m *MockFetcher) Fetch(ctx context.Context, param parameters.RequestPerfume) <-chan models.Perfume {
 	if m.FetchFunc != nil {
-		return m.FetchFunc(ctx, params)
+		return m.FetchFunc(ctx, param)
 	}
-	return nil, false
+	ch := make(chan models.Perfume)
+	close(ch)
+	return ch
+}
+
+func (m *MockFetcher) FetchMany(ctx context.Context, params []parameters.RequestPerfume) <-chan models.Perfume {
+	if m.FetchManyFunc != nil {
+		return m.FetchManyFunc(ctx, params)
+	}
+	ch := make(chan models.Perfume)
+	close(ch)
+	return ch
 }
 
 type MockMatcher struct {
@@ -76,18 +88,31 @@ func TestBase_Advise_Success(t *testing.T) {
 	}
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
-			if len(params) == 1 {
+		FetchFunc: func(ctx context.Context, param parameters.RequestPerfume) <-chan models.Perfume {
+			ch := make(chan models.Perfume)
+			go func() {
+				defer close(ch)
 				// First fetch - favourite perfume (has Brand and Name)
-				if params[0].Brand == "Chanel" && params[0].Name == "No5" {
-					return []models.Perfume{favouritePerfume}, true
+				if param.Brand == "Chanel" && param.Name == "No5" {
+					select {
+					case <-ctx.Done():
+						return
+					case ch <- favouritePerfume:
+					}
+					return
 				}
 				// Second fetch - all perfumes with same sex (only Sex is set, Brand and Name are empty)
-				if params[0].Brand == "" && params[0].Name == "" && params[0].Sex == "female" {
-					return allPerfumes, true
+				if param.Brand == "" && param.Name == "" && param.Sex == "female" {
+					for _, p := range allPerfumes {
+						select {
+						case <-ctx.Done():
+							return
+						case ch <- p:
+						}
+					}
 				}
-			}
-			return nil, false
+			}()
+			return ch
 		},
 	}
 
@@ -160,8 +185,10 @@ func TestBase_Advise_FetcherFailsOnFirstFetch(t *testing.T) {
 	t.Parallel()
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
-			return nil, false
+		FetchFunc: func(ctx context.Context, param parameters.RequestPerfume) <-chan models.Perfume {
+			ch := make(chan models.Perfume)
+			close(ch)
+			return ch
 		},
 	}
 
@@ -195,8 +222,10 @@ func TestBase_Advise_FetcherReturnsEmptyOnFirstFetch(t *testing.T) {
 	t.Parallel()
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
-			return []models.Perfume{}, true
+		FetchFunc: func(ctx context.Context, param parameters.RequestPerfume) <-chan models.Perfume {
+			ch := make(chan models.Perfume)
+			close(ch)
+			return ch
 		},
 	}
 
@@ -214,12 +243,12 @@ func TestBase_Advise_FetcherReturnsEmptyOnFirstFetch(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error when fetcher returns empty on first fetch")
 	}
-	notFoundErr, ok := err.(*errors.NotFoundError)
+	serviceErr, ok := err.(*errors.ServiceError)
 	if !ok {
-		t.Fatalf("expected NotFoundError, got %T", err)
+		t.Fatalf("expected ServiceError, got %T", err)
 	}
-	if notFoundErr.Message != "perfume not found" {
-		t.Fatalf("expected error message 'perfume not found', got %q", notFoundErr.Message)
+	if serviceErr.Message != "failed to interact with perfume service" {
+		t.Fatalf("expected error message 'failed to interact with perfume service', got %q", serviceErr.Message)
 	}
 	if result != nil {
 		t.Fatalf("expected nil result, got %v", result)
@@ -236,13 +265,22 @@ func TestBase_Advise_FetcherFailsOnSecondFetch(t *testing.T) {
 	}
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
-			if len(params) == 1 && params[0].Brand == "Chanel" && params[0].Name == "No5" {
-				// First fetch succeeds
-				return []models.Perfume{favouritePerfume}, true
-			}
-			// Second fetch fails
-			return nil, false
+		FetchFunc: func(ctx context.Context, param parameters.RequestPerfume) <-chan models.Perfume {
+			ch := make(chan models.Perfume)
+			go func() {
+				defer close(ch)
+				if param.Brand == "Chanel" && param.Name == "No5" {
+					// First fetch succeeds
+					select {
+					case <-ctx.Done():
+						return
+					case ch <- favouritePerfume:
+					}
+					return
+				}
+				// Second fetch fails - return closed channel
+			}()
+			return ch
 		},
 	}
 
@@ -257,18 +295,11 @@ func TestBase_Advise_FetcherFailsOnSecondFetch(t *testing.T) {
 
 	result, err := base.Advise(context.Background(), params)
 
-	if err == nil {
-		t.Fatal("expected error when fetcher fails on second fetch")
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
 	}
-	serviceErr, ok := err.(*errors.ServiceError)
-	if !ok {
-		t.Fatalf("expected ServiceError, got %T", err)
-	}
-	if serviceErr.Message != "failed to interact with perfume service" {
-		t.Fatalf("expected error message 'failed to interact with perfume service', got %q", serviceErr.Message)
-	}
-	if result != nil {
-		t.Fatalf("expected nil result, got %v", result)
+	if len(result) != 0 {
+		t.Fatalf("expected empty result, got %v", result)
 	}
 }
 
@@ -282,13 +313,22 @@ func TestBase_Advise_FetcherReturnsEmptyOnSecondFetch(t *testing.T) {
 	}
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
-			if len(params) == 1 && params[0].Brand == "Chanel" && params[0].Name == "No5" {
-				// First fetch succeeds
-				return []models.Perfume{favouritePerfume}, true
-			}
-			// Second fetch returns empty
-			return []models.Perfume{}, true
+		FetchFunc: func(ctx context.Context, param parameters.RequestPerfume) <-chan models.Perfume {
+			ch := make(chan models.Perfume)
+			go func() {
+				defer close(ch)
+				if param.Brand == "Chanel" && param.Name == "No5" {
+					// First fetch succeeds
+					select {
+					case <-ctx.Done():
+						return
+					case ch <- favouritePerfume:
+					}
+					return
+				}
+				// Second fetch returns empty - channel closes without sending
+			}()
+			return ch
 		},
 	}
 
@@ -303,18 +343,11 @@ func TestBase_Advise_FetcherReturnsEmptyOnSecondFetch(t *testing.T) {
 
 	result, err := base.Advise(context.Background(), params)
 
-	if err == nil {
-		t.Fatal("expected error when fetcher returns empty on second fetch")
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
 	}
-	serviceErr, ok := err.(*errors.ServiceError)
-	if !ok {
-		t.Fatalf("expected ServiceError, got %T", err)
-	}
-	if serviceErr.Message != "no perfumes available in database" {
-		t.Fatalf("expected error message 'no perfumes available in database', got %q", serviceErr.Message)
-	}
-	if result != nil {
-		t.Fatalf("expected nil result, got %v", result)
+	if len(result) != 0 {
+		t.Fatalf("expected empty result, got %v", result)
 	}
 }
 
@@ -336,25 +369,38 @@ func TestBase_Advise_VerifySecondFetchParams(t *testing.T) {
 	}
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
-			if len(params) == 1 && params[0].Brand == "Chanel" && params[0].Name == "No5" {
-				// First fetch - favourite perfume
-				return []models.Perfume{favouritePerfume}, true
-			}
-			// Second fetch - verify params
-			if len(params) != 1 {
-				t.Fatalf("expected 1 param for second fetch, got %d", len(params))
-			}
-			if params[0].Sex != "female" {
-				t.Fatalf("expected sex 'female' in second fetch params, got %q", params[0].Sex)
-			}
-			if params[0].Brand != "" {
-				t.Fatalf("expected empty brand in second fetch params, got %q", params[0].Brand)
-			}
-			if params[0].Name != "" {
-				t.Fatalf("expected empty name in second fetch params, got %q", params[0].Name)
-			}
-			return allPerfumes, true
+		FetchFunc: func(ctx context.Context, param parameters.RequestPerfume) <-chan models.Perfume {
+			ch := make(chan models.Perfume)
+			go func() {
+				defer close(ch)
+				if param.Brand == "Chanel" && param.Name == "No5" {
+					// First fetch - favourite perfume
+					select {
+					case <-ctx.Done():
+						return
+					case ch <- favouritePerfume:
+					}
+					return
+				}
+				// Second fetch - verify params
+				if param.Sex != "female" {
+					t.Fatalf("expected sex 'female' in second fetch params, got %q", param.Sex)
+				}
+				if param.Brand != "" {
+					t.Fatalf("expected empty brand in second fetch params, got %q", param.Brand)
+				}
+				if param.Name != "" {
+					t.Fatalf("expected empty name in second fetch params, got %q", param.Name)
+				}
+				for _, p := range allPerfumes {
+					select {
+					case <-ctx.Done():
+						return
+					case ch <- p:
+					}
+				}
+			}()
+			return ch
 		},
 	}
 
@@ -402,11 +448,27 @@ func TestBase_Advise_RespectsAdviseCount(t *testing.T) {
 	}
 
 	fetcher := &MockFetcher{
-		FetchFunc: func(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
-			if len(params) == 1 && params[0].Brand == "Chanel" && params[0].Name == "No5" {
-				return []models.Perfume{favouritePerfume}, true
-			}
-			return allPerfumes, true
+		FetchFunc: func(ctx context.Context, param parameters.RequestPerfume) <-chan models.Perfume {
+			ch := make(chan models.Perfume)
+			go func() {
+				defer close(ch)
+				if param.Brand == "Chanel" && param.Name == "No5" {
+					select {
+					case <-ctx.Done():
+						return
+					case ch <- favouritePerfume:
+					}
+					return
+				}
+				for _, p := range allPerfumes {
+					select {
+					case <-ctx.Done():
+						return
+					case ch <- p:
+					}
+				}
+			}()
+			return ch
 		},
 	}
 

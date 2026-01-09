@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -271,143 +270,7 @@ func TestDbFetcher_getPerfumes_AddsAuthHeader(t *testing.T) {
 	}
 }
 
-func TestDbFetcher_getPerfumesAsync_Success(t *testing.T) {
-	expectedPerfumes := []models.Perfume{{Brand: "Chanel", Name: "No5"}}
-	resp := perfume.PerfumeResponse{Perfumes: expectedPerfumes}
-	body, err := json.Marshal(resp)
-	if err != nil {
-		t.Fatalf("failed to marshal test data: %v", err)
-	}
-
-	origTransport := http.DefaultClient.Transport
-	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
-		return &http.Response{
-			StatusCode: http.StatusOK,
-			Status:     http.StatusText(http.StatusOK),
-			Body:       io.NopCloser(strings.NewReader(string(body))),
-			Header:     make(http.Header),
-			Request:    r,
-		}, nil
-	})
-	t.Cleanup(func() {
-		http.DefaultClient.Transport = origTransport
-	})
-
-	mockConfig := &config.MockConfigManager{}
-	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
-	results := make(chan perfumesFetchAndGlueResult, 1)
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
-
-	fetcher.getPerfumesAsync(context.Background(), parameters.RequestPerfume{}, results, wg)
-	wg.Wait()
-	close(results)
-
-	result := <-results
-	if result.Status != http.StatusOK {
-		t.Fatalf("expected status %d, got %d", http.StatusOK, result.Status)
-	}
-	if len(result.Perfumes) != len(expectedPerfumes) {
-		t.Fatalf("expected %d perfumes, got %d", len(expectedPerfumes), len(result.Perfumes))
-	}
-}
-
-func TestDbFetcher_getPerfumesAsync_Error(t *testing.T) {
-	origTransport := http.DefaultClient.Transport
-	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
-		return nil, io.ErrUnexpectedEOF
-	})
-	t.Cleanup(func() {
-		http.DefaultClient.Transport = origTransport
-	})
-
-	mockConfig := &config.MockConfigManager{}
-	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
-	results := make(chan perfumesFetchAndGlueResult, 1)
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
-
-	fetcher.getPerfumesAsync(context.Background(), parameters.RequestPerfume{}, results, wg)
-	wg.Wait()
-	close(results)
-
-	result := <-results
-	if result.Status != http.StatusInternalServerError {
-		t.Fatalf("expected status %d, got %d", http.StatusInternalServerError, result.Status)
-	}
-	if result.Perfumes != nil {
-		t.Fatalf("expected nil perfumes, got %v", result.Perfumes)
-	}
-}
-
-func TestDbFetcher_fetchPerfumeResults_Success(t *testing.T) {
-	t.Parallel()
-
-	ch := make(chan perfumesFetchAndGlueResult, 3)
-	ch <- perfumesFetchAndGlueResult{
-		Status:   http.StatusOK,
-		Perfumes: []models.Perfume{{Brand: "Chanel", Name: "No5"}},
-	}
-	ch <- perfumesFetchAndGlueResult{
-		Status:   http.StatusOK,
-		Perfumes: []models.Perfume{{Brand: "Dior", Name: "Sauvage"}},
-	}
-	ch <- perfumesFetchAndGlueResult{
-		Status:   http.StatusNotFound,
-		Perfumes: []models.Perfume{},
-	}
-	close(ch)
-
-	mockConfig := &config.MockConfigManager{}
-	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
-	perfumes, status := fetcher.fetchPerfumeResults(context.Background(), ch)
-
-	if status != http.StatusOK {
-		t.Fatalf("expected status %d, got %d", http.StatusOK, status)
-	}
-	if len(perfumes) != 2 {
-		t.Fatalf("expected 2 perfumes, got %d", len(perfumes))
-	}
-}
-
-func TestDbFetcher_fetchPerfumeResults_ServerError(t *testing.T) {
-	t.Parallel()
-
-	ch := make(chan perfumesFetchAndGlueResult, 1)
-	ch <- perfumesFetchAndGlueResult{Status: http.StatusInternalServerError}
-	close(ch)
-
-	mockConfig := &config.MockConfigManager{}
-	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
-	perfumes, status := fetcher.fetchPerfumeResults(context.Background(), ch)
-
-	if status != http.StatusInternalServerError {
-		t.Fatalf("expected status %d, got %d", http.StatusInternalServerError, status)
-	}
-	if perfumes != nil {
-		t.Fatalf("expected nil perfumes, got %v", perfumes)
-	}
-}
-
-func TestDbFetcher_fetchPerfumeResults_ContextCancelled(t *testing.T) {
-	t.Parallel()
-
-	ctx, cancel := context.WithCancel(context.Background())
-	cancel()
-
-	mockConfig := &config.MockConfigManager{}
-	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
-	perfumes, status := fetcher.fetchPerfumeResults(ctx, make(chan perfumesFetchAndGlueResult))
-
-	if status != http.StatusInternalServerError {
-		t.Fatalf("expected status %d, got %d", http.StatusInternalServerError, status)
-	}
-	if perfumes != nil {
-		t.Fatalf("expected nil perfumes, got %v", perfumes)
-	}
-}
-
-func TestDbFetcher_Fetch_Success(t *testing.T) {
+func TestDbFetcher_FetchMany_Success(t *testing.T) {
 	callCount := 0
 	origTransport := http.DefaultClient.Transport
 	http.DefaultClient.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
@@ -436,11 +299,13 @@ func TestDbFetcher_Fetch_Success(t *testing.T) {
 		{Brand: "Chanel"},
 		{Brand: "Dior"},
 	}
-	perfumes, ok := fetcher.Fetch(context.Background(), params)
+	perfumesChan := fetcher.FetchMany(context.Background(), params)
 
-	if !ok {
-		t.Fatal("expected true on success")
+	perfumes := make([]models.Perfume, 0)
+	for p := range perfumesChan {
+		perfumes = append(perfumes, p)
 	}
+
 	if callCount != 2 {
 		t.Fatalf("expected 2 HTTP calls, got %d", callCount)
 	}
@@ -468,14 +333,16 @@ func TestDbFetcher_Fetch_EmptyResults(t *testing.T) {
 
 	mockConfig := &config.MockConfigManager{}
 	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
-	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
-	perfumes, ok := fetcher.Fetch(context.Background(), params)
+	param := parameters.RequestPerfume{Brand: "Chanel"}
+	perfumesChan := fetcher.Fetch(context.Background(), param)
 
-	if ok {
-		t.Fatal("expected false on empty results")
+	perfumes := make([]models.Perfume, 0)
+	for p := range perfumesChan {
+		perfumes = append(perfumes, p)
 	}
-	if perfumes != nil {
-		t.Fatalf("expected nil perfumes, got %v", perfumes)
+
+	if len(perfumes) != 0 {
+		t.Fatalf("expected 0 perfumes, got %d", len(perfumes))
 	}
 }
 
@@ -496,14 +363,16 @@ func TestDbFetcher_Fetch_ServerError(t *testing.T) {
 
 	mockConfig := &config.MockConfigManager{}
 	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
-	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
-	perfumes, ok := fetcher.Fetch(context.Background(), params)
+	param := parameters.RequestPerfume{Brand: "Chanel"}
+	perfumesChan := fetcher.Fetch(context.Background(), param)
 
-	if ok {
-		t.Fatal("expected false on server error")
+	perfumes := make([]models.Perfume, 0)
+	for p := range perfumesChan {
+		perfumes = append(perfumes, p)
 	}
-	if perfumes != nil {
-		t.Fatalf("expected nil perfumes, got %v", perfumes)
+
+	if len(perfumes) != 0 {
+		t.Fatalf("expected 0 perfumes on server error, got %d", len(perfumes))
 	}
 }
 
@@ -526,14 +395,18 @@ func TestDbFetcher_Fetch_Timeout(t *testing.T) {
 
 	mockConfig := &config.MockConfigManager{}
 	fetcher := NewPerfumeHub("http://test-url:8080", "test-token", mockConfig)
-	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
-	perfumes, ok := fetcher.Fetch(context.Background(), params)
+	param := parameters.RequestPerfume{Brand: "Chanel"}
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	perfumesChan := fetcher.Fetch(ctx, param)
 
-	if ok {
-		t.Fatal("expected false on timeout")
+	perfumes := make([]models.Perfume, 0)
+	for p := range perfumesChan {
+		perfumes = append(perfumes, p)
 	}
-	if perfumes != nil {
-		t.Fatalf("expected nil perfumes, got %v", perfumes)
+
+	if len(perfumes) != 0 {
+		t.Fatalf("expected 0 perfumes on timeout, got %d", len(perfumes))
 	}
 }
 
