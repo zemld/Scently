@@ -38,6 +38,13 @@ paths:
             type: string
             enum: [male, female, unisex]
             example: "female"
+        - name: page
+          in: query
+          description: Страница результатов (индексация с 1, на каждой странице не более 400 парфюмов)
+          required: false
+          schema:
+            type: integer
+            example: 1
       responses:
         "200":
           description: Успешно получены парфюмы
@@ -105,6 +112,15 @@ paths:
       operationId: updatePerfumes
       security:
         - bearerAuth: []
+      parameters:
+        - name: is_hard
+          in: query
+          description: Флаг, определяющий, нужно ли удалять старые парфюмы
+          required: false
+          schema:
+            type: boolean
+            example: true
+          default: false
       requestBody:
         required: true
         content:
