@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"unicode"
 
@@ -9,16 +10,28 @@ import (
 	queries "github.com/zemld/Scently/perfume-hub/internal/db/query"
 )
 
+const DefaultItemsPerPage = 500
+
 type contextKey string
 
 const UpdateParametersContextKey contextKey = "update_parameters"
+const SelectParametersContextKey contextKey = "select_parameters"
 
 type UpdateParameters struct {
 	Perfumes []models.Perfume `json:"perfumes"`
+	IsHard   bool             `json:"is_hard"`
+}
+
+type SelectParameters struct {
+	Brand           string
+	Name            string
+	Sex             string
+	Page            int
+	parametersCount int
 }
 
 func NewUpdateParameters() *UpdateParameters {
-	return &UpdateParameters{}
+	return &UpdateParameters{IsHard: false}
 }
 
 func (p *UpdateParameters) WithPerfumes(perfumes []models.Perfume) *UpdateParameters {
@@ -26,16 +39,13 @@ func (p *UpdateParameters) WithPerfumes(perfumes []models.Perfume) *UpdateParame
 	return p
 }
 
-const SelectParametersContextKey contextKey = "select_parameters"
-
-type SelectParameters struct {
-	Brand string
-	Name  string
-	Sex   string
+func (p *UpdateParameters) WithIsHard(isHard bool) *UpdateParameters {
+	p.IsHard = isHard
+	return p
 }
 
 func NewSelectParameters() *SelectParameters {
-	return &SelectParameters{}
+	return &SelectParameters{parametersCount: 1}
 }
 
 func (p *SelectParameters) WithBrand(brand string) *SelectParameters {
@@ -53,50 +63,71 @@ func (p *SelectParameters) WithSex(sex string) *SelectParameters {
 	return p
 }
 
-func (p SelectParameters) GetQuery() string {
+func (p *SelectParameters) WithPage(page int) *SelectParameters {
+	if page <= 0 {
+		page = 1
+	}
+	p.Page = page
+	return p
+}
+
+func (p *SelectParameters) GetQuery() string {
 	choosingPerfumesQuery := p.GetChoosingPerfumesQuery()
 	withClause := fmt.Sprintf(queries.WithSelect, choosingPerfumesQuery)
+	log.Printf("withClause: %s", withClause)
 	return withClause + queries.EnrichSelectedPerfumes
 }
 
-func (p SelectParameters) GetChoosingPerfumesQuery() string {
-	query := strings.TrimSpace(queries.SelectPerfumesBaseInfo)
-	conditions := []string{}
+func (p *SelectParameters) GetChoosingPerfumesQuery() string {
+	if p.Brand == "" && p.Name == "" {
+		return p.GetAllPerfumesQueryWithPage()
+	}
+	return p.GetConcretePerfumeQuery()
+}
 
-	parametersCount := 1
+func (p *SelectParameters) GetAllPerfumesQueryWithPage() string {
+	query := p.updateQueryWithSexFilter(strings.TrimSpace(queries.SelectPerfumesBaseInfo))
+	log.Printf("query: %s", query)
+	return query + fmt.Sprintf(" AND page_number = $%d", p.parametersCount)
+}
+
+func (p *SelectParameters) GetConcretePerfumeQuery() string {
+	query := p.updateQueryWithSexFilter(strings.TrimSpace(queries.SelectPerfumesBaseInfo))
 	if p.Brand != "" {
-		conditions = append(conditions, fmt.Sprintf("pb.canonized_brand = $%d", parametersCount))
-		parametersCount++
+		query += fmt.Sprintf(" AND canonized_brand = $%d", p.parametersCount)
+		p.parametersCount++
 	}
 	if p.Name != "" {
-		conditions = append(conditions, fmt.Sprintf("pb.canonized_name = $%d", parametersCount))
-		parametersCount++
+		query += fmt.Sprintf(" AND canonized_name = $%d", p.parametersCount)
+		p.parametersCount++
 	}
+	return query
+}
+
+func (p *SelectParameters) updateQueryWithSexFilter(query string) string {
+	query += " WHERE"
 	if p.Sex == "male" || p.Sex == "female" {
-		conditions = append(conditions, fmt.Sprintf("(s.sex = $%d OR s.sex = 'unisex')", parametersCount))
-		parametersCount++
+		query += fmt.Sprintf(" (sex = 'unisex' OR sex = $%d)", p.parametersCount)
+		p.parametersCount++
 	} else {
-		conditions = append(conditions, "s.sex = 'unisex'")
+		query += " sex = 'unisex'"
 	}
-
-	if len(conditions) > 0 {
-		whereClause := " WHERE " + strings.Join(conditions, " AND ")
-		query = query + whereClause
-	}
-
 	return query
 }
 
 func (p SelectParameters) Unpack() []any {
 	var args []any
+	if p.Sex == "male" || p.Sex == "female" {
+		args = append(args, p.Sex)
+	}
 	if p.Brand != "" {
 		args = append(args, canonize(p.Brand))
 	}
 	if p.Name != "" {
 		args = append(args, canonize(p.Name))
 	}
-	if p.Sex == "male" || p.Sex == "female" {
-		args = append(args, p.Sex)
+	if len(args) <= 1 {
+		args = append(args, p.Page)
 	}
 	return args
 }

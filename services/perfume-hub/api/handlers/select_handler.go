@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/zemld/Scently/perfume-hub/internal/db/core"
 	"github.com/zemld/Scently/perfume-hub/internal/errors"
@@ -13,8 +14,9 @@ func Select(w http.ResponseWriter, r *http.Request) {
 	brand := r.URL.Query().Get("brand")
 	name := r.URL.Query().Get("name")
 	sex := r.URL.Query().Get("sex")
+	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 
-	params := models.NewSelectParameters().WithBrand(brand).WithName(name).WithSex(sex)
+	params := models.NewSelectParameters().WithBrand(brand).WithName(name).WithSex(sex).WithPage(page)
 
 	perfumes, status := core.Select(r.Context(), params)
 	if status.Error != nil {
