@@ -11,6 +11,17 @@ type PerfumeHeap struct {
 	limit    int
 }
 
+func NewPerfumeHeap(limit int) *PerfumeHeap {
+	return &PerfumeHeap{
+		perfumes: make([]models.Ranked, 0),
+		limit:    limit,
+	}
+}
+
+func (p *PerfumeHeap) GetPerfumes() []models.Ranked {
+	return p.perfumes
+}
+
 func (h *PerfumeHeap) Push(x any) {
 	if h.limit <= 0 {
 		return

@@ -8,5 +8,6 @@ import (
 )
 
 type Fetcher interface {
-	Fetch(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool)
+	Fetch(ctx context.Context, parameter parameters.RequestPerfume) <-chan models.Perfume
+	FetchMany(ctx context.Context, parameters []parameters.RequestPerfume) <-chan models.Perfume
 }

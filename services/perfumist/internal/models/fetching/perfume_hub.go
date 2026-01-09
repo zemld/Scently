@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/zemld/Scently/models"
@@ -39,47 +40,103 @@ func NewPerfumeHub(url string, token string, cm cm.ConfigManager) *PerfumeHub {
 	}
 }
 
-func (f PerfumeHub) Fetch(ctx context.Context, params []parameters.RequestPerfume) ([]models.Perfume, bool) {
-	perfumesChan := make(chan perfumesFetchAndGlueResult, len(params))
+func (f *PerfumeHub) FetchMany(ctx context.Context, params []parameters.RequestPerfume) <-chan models.Perfume {
+	allPerfumesChan := make(chan models.Perfume)
 
 	wg := sync.WaitGroup{}
 	wg.Add(len(params))
-
-	ctx, cancel := context.WithTimeout(ctx, f.cm.GetDurationWithDefault("perfume_hub_fetcher_timeout", 5*time.Second))
-	defer cancel()
-
 	for _, param := range params {
-		go f.getPerfumesAsync(ctx, param, perfumesChan, &wg)
+		go func(p parameters.RequestPerfume) {
+			defer wg.Done()
+			perfumesChan := f.Fetch(ctx, p)
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case perfume, ok := <-perfumesChan:
+					if !ok {
+						return
+					}
+					select {
+					case <-ctx.Done():
+						return
+					case allPerfumesChan <- perfume:
+					}
+				}
+			}
+		}(param)
 	}
 
 	go func() {
 		wg.Wait()
-		close(perfumesChan)
+		close(allPerfumesChan)
 	}()
-
-	all, AllStatus := f.fetchPerfumeResults(ctx, perfumesChan)
-	if AllStatus == http.StatusForbidden || AllStatus >= http.StatusInternalServerError {
-		return nil, false
-	}
-	if len(all) == 0 {
-		return nil, false
-	}
-	return all, true
+	return allPerfumesChan
 }
 
-func (f PerfumeHub) getPerfumesAsync(ctx context.Context, params parameters.RequestPerfume, results chan<- perfumesFetchAndGlueResult, wg *sync.WaitGroup) {
-	if wg != nil {
-		defer wg.Done()
+func (f *PerfumeHub) Fetch(ctx context.Context, parameter parameters.RequestPerfume) <-chan models.Perfume {
+	if parameter.Brand != "" || parameter.Name != "" {
+		return f.fetchConcretePerfume(ctx, parameter)
 	}
-	perfumes, status := f.getPerfumes(ctx, params)
-	if status == http.StatusOK || status == http.StatusNotFound {
-		results <- perfumesFetchAndGlueResult{Perfumes: perfumes, Status: status}
-		return
-	}
-	results <- perfumesFetchAndGlueResult{Perfumes: nil, Status: status}
+	return f.fetchAllPerfumes(ctx, parameter)
 }
 
-func (f PerfumeHub) getPerfumes(ctx context.Context, p parameters.RequestPerfume) ([]models.Perfume, int) {
+func (f *PerfumeHub) fetchConcretePerfume(ctx context.Context, parameter parameters.RequestPerfume) <-chan models.Perfume {
+	perfumeChan := make(chan models.Perfume)
+	go func() {
+		defer close(perfumeChan)
+		perfumes, status := f.getPerfumes(ctx, parameter)
+		if status == http.StatusOK {
+			for _, perfume := range perfumes {
+				select {
+				case <-ctx.Done():
+					return
+				case perfumeChan <- perfume:
+				}
+			}
+		}
+	}()
+	return perfumeChan
+}
+
+func (f *PerfumeHub) fetchAllPerfumes(ctx context.Context, parameter parameters.RequestPerfume) <-chan models.Perfume {
+	var pageNumber atomic.Uint32
+	pageNumber.Store(1)
+
+	perfumeChan := make(chan models.Perfume)
+	workersCount := f.cm.GetIntWithDefault("threads_count", 8)
+	wg := sync.WaitGroup{}
+	wg.Add(workersCount)
+	for range workersCount {
+		go func() {
+			defer wg.Done()
+			localParameter := parameter
+			for {
+				localParameter.Page = pageNumber.Load()
+				pageNumber.Add(1)
+				perfumes, status := f.getPerfumes(ctx, localParameter)
+				if status != http.StatusOK {
+					break
+				}
+				for _, perfume := range perfumes {
+					select {
+					case <-ctx.Done():
+						return
+					case perfumeChan <- perfume:
+					}
+				}
+			}
+		}()
+	}
+
+	go func() {
+		wg.Wait()
+		close(perfumeChan)
+	}()
+	return perfumeChan
+}
+
+func (f *PerfumeHub) getPerfumes(ctx context.Context, p parameters.RequestPerfume) ([]models.Perfume, int) {
 	r, err := http.NewRequestWithContext(ctx, "GET", f.url, nil)
 	if err != nil {
 		log.Printf("Can't create request: %v", err)
@@ -137,29 +194,4 @@ func (f PerfumeHub) getPerfumes(ctx context.Context, p parameters.RequestPerfume
 	}
 
 	return nil, http.StatusInternalServerError
-}
-
-func (f PerfumeHub) fetchPerfumeResults(ctx context.Context, perfumesChan <-chan perfumesFetchAndGlueResult) ([]models.Perfume, int) {
-	var perfumes []models.Perfume
-	var status int
-
-	for {
-		select {
-		case result, ok := <-perfumesChan:
-			if !ok {
-				return perfumes, status
-			}
-			if result.Status == http.StatusForbidden || result.Status == http.StatusInternalServerError {
-				return perfumes, result.Status
-			}
-			if result.Status == http.StatusOK || result.Status == http.StatusNotFound {
-				perfumes = append(perfumes, result.Perfumes...)
-				if status == 0 || (status == http.StatusNotFound && result.Status == http.StatusOK) {
-					status = result.Status
-				}
-			}
-		case <-ctx.Done():
-			return nil, http.StatusInternalServerError
-		}
-	}
 }

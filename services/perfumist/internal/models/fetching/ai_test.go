@@ -28,18 +28,17 @@ func TestNewAIFetcher(t *testing.T) {
 	}
 }
 
-func TestAIFetcher_Fetch_EmptyParams(t *testing.T) {
+func TestAIFetcher_FetchMany_EmptyParams(t *testing.T) {
 	t.Parallel()
 
 	mockConfig := &config.MockConfigManager{}
 	fetcher := NewAI("http://test-url:8000/v1/advise", "test-folder", "test-model", "test-api-key", mockConfig)
-	perfumes, ok := fetcher.Fetch(context.Background(), []parameters.RequestPerfume{})
+	perfumesChan := fetcher.FetchMany(context.Background(), []parameters.RequestPerfume{})
 
+	// Channel should be closed immediately for empty params
+	_, ok := <-perfumesChan
 	if ok {
-		t.Fatal("expected false on empty params")
-	}
-	if perfumes != nil {
-		t.Fatalf("expected nil perfumes, got %v", perfumes)
+		t.Fatal("expected closed channel on empty params")
 	}
 }
 
@@ -54,14 +53,13 @@ func TestAIFetcher_Fetch_HTTPError(t *testing.T) {
 
 	mockConfig := &config.MockConfigManager{}
 	fetcher := NewAI("http://test-url:8000/v1/advise", "test-folder", "test-model", "test-api-key", mockConfig)
-	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
-	perfumes, ok := fetcher.Fetch(context.Background(), params)
+	param := parameters.RequestPerfume{Brand: "Chanel"}
+	perfumesChan := fetcher.Fetch(context.Background(), param)
 
+	// Channel should be closed with no perfumes on error
+	_, ok := <-perfumesChan
 	if ok {
-		t.Fatal("expected false on HTTP error")
-	}
-	if perfumes != nil {
-		t.Fatalf("expected nil perfumes, got %v", perfumes)
+		t.Fatal("expected closed channel on HTTP error")
 	}
 }
 
@@ -82,14 +80,13 @@ func TestAIFetcher_Fetch_Non200Status(t *testing.T) {
 
 	mockConfig := &config.MockConfigManager{}
 	fetcher := NewAI("http://test-url:8000/v1/advise", "test-folder", "test-model", "test-api-key", mockConfig)
-	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
-	perfumes, ok := fetcher.Fetch(context.Background(), params)
+	param := parameters.RequestPerfume{Brand: "Chanel"}
+	perfumesChan := fetcher.Fetch(context.Background(), param)
 
+	// Channel should be closed with no perfumes on non-200 status
+	_, ok := <-perfumesChan
 	if ok {
-		t.Fatal("expected false on non-200 status")
-	}
-	if perfumes != nil {
-		t.Fatalf("expected nil perfumes, got %v", perfumes)
+		t.Fatal("expected closed channel on non-200 status")
 	}
 }
 
@@ -110,14 +107,13 @@ func TestAIFetcher_Fetch_EmptyBody(t *testing.T) {
 
 	mockConfig := &config.MockConfigManager{}
 	fetcher := NewAI("http://test-url:8000/v1/advise", "test-folder", "test-model", "test-api-key", mockConfig)
-	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
-	perfumes, ok := fetcher.Fetch(context.Background(), params)
+	param := parameters.RequestPerfume{Brand: "Chanel"}
+	perfumesChan := fetcher.Fetch(context.Background(), param)
 
+	// Channel should be closed with no perfumes on empty body
+	_, ok := <-perfumesChan
 	if ok {
-		t.Fatal("expected false on empty body")
-	}
-	if perfumes != nil {
-		t.Fatalf("expected nil perfumes, got %v", perfumes)
+		t.Fatal("expected closed channel on empty body")
 	}
 }
 
@@ -138,14 +134,13 @@ func TestAIFetcher_Fetch_InvalidJSON(t *testing.T) {
 
 	mockConfig := &config.MockConfigManager{}
 	fetcher := NewAI("http://test-url:8000/v1/advise", "test-folder", "test-model", "test-api-key", mockConfig)
-	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
-	perfumes, ok := fetcher.Fetch(context.Background(), params)
+	param := parameters.RequestPerfume{Brand: "Chanel"}
+	perfumesChan := fetcher.Fetch(context.Background(), param)
 
+	// Channel should be closed with no perfumes on invalid JSON
+	_, ok := <-perfumesChan
 	if ok {
-		t.Fatal("expected false on invalid JSON")
-	}
-	if perfumes != nil {
-		t.Fatalf("expected nil perfumes, got %v", perfumes)
+		t.Fatal("expected closed channel on invalid JSON")
 	}
 }
 
@@ -190,12 +185,14 @@ func TestAIFetcher_Fetch_Success(t *testing.T) {
 
 	mockConfig := &config.MockConfigManager{}
 	fetcher := NewAI("http://test-url:8000/v1/advise", "test-folder", "test-model", "test-api-key", mockConfig)
-	params := []parameters.RequestPerfume{{Brand: "Chanel"}}
-	perfumes, ok := fetcher.Fetch(context.Background(), params)
+	param := parameters.RequestPerfume{Brand: "Chanel"}
+	perfumesChan := fetcher.Fetch(context.Background(), param)
 
-	if !ok {
-		t.Fatal("expected true on success")
+	perfumes := make([]models.Perfume, 0)
+	for perfume := range perfumesChan {
+		perfumes = append(perfumes, perfume)
 	}
+
 	if len(perfumes) != len(expectedPerfumes) {
 		t.Fatalf("expected %d perfumes, got %d", len(expectedPerfumes), len(perfumes))
 	}
@@ -245,10 +242,15 @@ func TestAIFetcher_Fetch_BuildsPOSTRequestToCompletionAPI(t *testing.T) {
 	url := "http://test-url:8000/v1/advise"
 	mockConfig := &config.MockConfigManager{}
 	fetcher := NewAI(url, "test-folder", "aliceai-llm/latest", "test-api-key", mockConfig)
-	params := []parameters.RequestPerfume{
-		{Brand: "Chanel", Name: "No5", Sex: models.Female},
+	param := parameters.RequestPerfume{
+		Brand: "Chanel",
+		Name:  "No5",
+		Sex:   models.Female,
 	}
-	fetcher.Fetch(context.Background(), params)
+	perfumesChan := fetcher.Fetch(context.Background(), param)
+	// Drain the channel to ensure request is made
+	for range perfumesChan {
+	}
 
 	if capturedRequest == nil {
 		t.Fatal("expected request to be captured")
