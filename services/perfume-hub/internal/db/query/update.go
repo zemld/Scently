@@ -74,4 +74,6 @@ const (
 	WHERE (canonized_brand, canonized_name, sex_id) IN (SELECT canonized_brand, canonized_name, sex_id FROM old_perfumes_temp);
 	
 	DROP TABLE IF EXISTS old_perfumes_temp;`
+
+	RefreshMV = `REFRESH MATERIALIZED VIEW perfume_base_info_with_pages;`
 )

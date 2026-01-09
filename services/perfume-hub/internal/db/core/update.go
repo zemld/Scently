@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	perfumeModels "github.com/zemld/Scently/models"
@@ -40,6 +41,9 @@ func Update(ctx context.Context, params *models.UpdateParameters) models.Process
 		log.Printf("Unable to commit transaction: %v\n", err)
 		return models.ProcessedState{Error: errors.NewDBError("unable to commit transaction", err)}
 	}
+
+	refreshMV()
+
 	return updateStatus
 }
 
@@ -159,4 +163,16 @@ func updateSavepointStatus(ctx context.Context, tx pgx.Tx, cmd string, i int) {
 
 func getSavepointQuery(cmd string, i int) string {
 	return fmt.Sprintf("%s%d", cmd, i)
+}
+
+func refreshMV() {
+	go func() {
+		refreshCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		_, err := Pool.Exec(refreshCtx, queries.RefreshMV)
+		if err != nil {
+			log.Printf("Error refreshing materialized view: %v\n", err)
+		}
+	}()
 }
