@@ -6,18 +6,16 @@ const (
 		%s
 		),`
 	SelectPerfumesBaseInfo = `SELECT
-		pb.canonized_brand as canonized_brand,
-		pb.canonized_name as canonized_name,
-		pb.brand as brand,
-		pb.name as name,
-		pb.sex_id as sex_id,
-		s.sex as sex,
-		pb.type as type,
-		pb.image_url as image_url
-	FROM perfume_base_info pb
-	INNER JOIN sexes s ON pb.sex_id = s.id
+		canonized_brand,
+		canonized_name,
+		brand,
+		name,
+		sex_id,
+		sex,
+		type,
+		image_url
+	FROM perfume_base_info_with_pages pb
 	`
-
 	EnrichSelectedPerfumes = `
 	aggregated_families AS (
 		SELECT canonized_brand, canonized_name, sex_id, jsonb_agg(DISTINCT family) FILTER (WHERE family IS NOT NULL) as families
