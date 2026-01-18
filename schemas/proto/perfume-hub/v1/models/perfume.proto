@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package perfume_hub.v1.models;
+
+option go_package = "github.com/zemld/Scently/shared/proto/perfume-hub/models;models";
+
+message Perfume {
+    enum Sex {
+        UNISEX = 0;
+        MALE = 1;
+        FEMALE = 2;
+    };
+
+    message Properties {
+        message EnrichedNote {
+            message NoteCharacteristic {
+                string name = 1;
+                double value = 2;
+            };
+            string name = 1;
+            repeated string tags = 2;
+            repeated NoteCharacteristic characteristics = 3;
+        };
+
+        string type = 1;
+        repeated string family = 2;
+        repeated string upper_notes = 3;
+        repeated string core_notes = 4;
+        repeated string base_notes = 5;
+
+        repeated EnrichedNote enriched_upper_notes = 6;
+        repeated EnrichedNote enriched_core_notes = 7;
+        repeated EnrichedNote enriched_base_notes = 8;
+    };
+
+    message Shop {
+        message Variant {
+            int32 volume = 1;
+            string link = 2;
+            int32 price = 3;
+        };
+
+        string name = 1;
+        string domain = 2;
+        string image_url = 3;
+        repeated Variant variants = 4;
+    };
+
+    string brand = 1;
+    string name = 2;
+    Sex sex = 3;
+    string image_url = 4;
+    Properties properties = 5;
+    repeated Shop shops = 6;
+};

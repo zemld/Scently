@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package perfumist.v1;
+
+option go_package = "github.com/zemld/Scently/shared/proto/perfumist";
+
+import "perfumist/v1/models/perfume.proto";
+
+service PerfumistService {
+    rpc Suggest(SuggestRequest) returns (SuggestResponse);
+    rpc AISuggest(SuggestRequest) returns (SuggestResponse);
+    rpc SuggestByTags(SuggestByTagsRequest) returns (SuggestResponse);
+};
+
+message SuggestRequest {
+    string brand = 1;
+    string name = 2;
+    perfumist.v1.models.Perfume.Sex sex = 3;
+};
+
+message SuggestByTagsRequest {
+    repeated string tags = 1;
+};
+
+message SuggestResponse {
+    repeated perfumist.v1.models.Perfume perfumes = 1;
+};

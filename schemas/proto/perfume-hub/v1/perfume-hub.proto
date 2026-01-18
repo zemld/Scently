@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package perfume_hub.v1;
+
+option go_package = "github.com/zemld/Scently/shared/proto/perfume-hub";
+
+import "perfume-hub/v1/models/perfume.proto";
+
+service PerfumeHubService {
+    rpc GetPerfume(GetPerfumeRequest) returns (GetPerfumeResponse);
+};
+
+message GetPerfumeRequest {
+    optional string brand = 1;
+    optional string name = 2;
+    perfume_hub.v1.models.Perfume.Sex sex = 3;
+    optional int32 page = 4;
+};
+
+message GetPerfumeResponse {
+    repeated perfume_hub.v1.models.Perfume perfumes = 1;
+};
